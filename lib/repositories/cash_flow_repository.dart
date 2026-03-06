@@ -1,4 +1,4 @@
-//資金資料中心
+//資金資料庫存取邏輯
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import '../models/cash_flow.dart';
@@ -7,6 +7,7 @@ class CashFlowRepository extends ChangeNotifier {
   static const String boxName = 'cash_flows';
 
   late Box<CashFlow> _box;
+  List<CashFlow> _flows = [];
 
   CashFlowRepository() {
     _init();
@@ -14,26 +15,36 @@ class CashFlowRepository extends ChangeNotifier {
 
   Future<void> _init() async {
     _box = await Hive.openBox<CashFlow>(boxName);
-    notifyListeners();
-  }
-
-  List<CashFlow> getAll() {
-    return _box.values.toList()
+    _flows = _box.values.toList()
       ..sort((a, b) => b.date.compareTo(a.date));
-  }
-
-  Future<void> add(CashFlow flow) async {
-    await _box.put(flow.id, flow);
     notifyListeners();
   }
 
-  Future<void> delete(String id) async {
+  List<CashFlow> getAllFlows() {
+    return List.unmodifiable(_flows);
+  }
+
+  Future<void> addFlow(CashFlow flow) async {
+    await _box.put(flow.id, flow);
+    _reloadFlows();
+    notifyListeners();
+  }
+
+  Future<void> removeFlow(String id) async {
     await _box.delete(id);
+    _reloadFlows();
     notifyListeners();
   }
 
-  Future<void> update(CashFlow flow) async {
+  Future<void> updateFlow(CashFlow flow) async {
     await _box.put(flow.id, flow);
+    _reloadFlows();
+    notifyListeners();
+  }
+
+  Future<void> clear() async {
+    await _box.clear();
+    _flows.clear();
     notifyListeners();
   }
 
@@ -54,5 +65,10 @@ class CashFlowRepository extends ChangeNotifier {
     return _box.values
         .where((f) => f.type == CashFlowType.withdraw)
         .fold(0.0, (sum, f) => sum + f.amount);
+  }
+
+  void _reloadFlows() {
+    _flows = _box.values.toList()
+      ..sort((a, b) => b.date.compareTo(a.date));
   }
 }

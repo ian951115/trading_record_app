@@ -29,7 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final cashRepo = context.watch<CashFlowRepository>();
 
     final trades = tradeRepo.getAllTrades();
-    final cashFlows = cashRepo.getAll();
+    final cashFlows = cashRepo.getAllFlows();
 
     final positions = buildPositions(trades);
 

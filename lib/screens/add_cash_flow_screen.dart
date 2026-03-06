@@ -41,7 +41,7 @@ class _AddCashFlowScreenState extends State<AddCashFlowScreen> {
       note: _noteController.text,
     );
 
-    await cashRepo.add(flow);
+    await cashRepo.addFlow(flow);
 
     Navigator.pop(context);
   }

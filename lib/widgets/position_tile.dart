@@ -74,7 +74,7 @@ class _PositionTileState extends State<PositionTile> {
                         Text(
                           '${position.quantity} 股  '
                           '均價 ${position.avgCost.toStringAsFixed(1)} '
-                          '現價 ${priceFormatter.format(position.currentPrice)}',
+                          '現價 ${priceFormatter.format(position.mockPrice)}',
                           style: const TextStyle(
                             fontSize: 12,
                             color: Colors.black54,

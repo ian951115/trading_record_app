@@ -1,4 +1,4 @@
-//出入金及損益計算服務
+//計算服務
 import '../models/trade.dart';
 import '../models/position.dart';
 import '../models/cash_flow.dart';

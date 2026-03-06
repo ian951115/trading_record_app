@@ -17,7 +17,7 @@ class CashFlowScreen extends StatelessWidget {
     final tradeRepo = context.watch<TradeRepository>();
 
     final trades = tradeRepo.getAllTrades();
-    final cashFlows = cashRepo.getAll();
+    final cashFlows = cashRepo.getAllFlows();
 
     final cash = PortfolioService.calculateCash(
       trades: trades,
@@ -110,7 +110,7 @@ class CashFlowScreen extends StatelessWidget {
                           child: const Icon(Icons.delete, color: Colors.white),
                         ),
                         onDismissed: (_) async {
-                          await context.read<CashFlowRepository>().delete(flow.id);
+                          await context.read<CashFlowRepository>().removeFlow(flow.id);
                         },
                         child: ListTile(
                           title: Text(flow.type == CashFlowType.deposit ? '入金' : '提領'),

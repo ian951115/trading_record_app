@@ -52,12 +52,13 @@ class Trade {
   }) : id = id ?? const Uuid().v4();
 
   double get amount => price * quantity;
-  double get totalAmount => amount + fee + tax; //useless?
+  double get buyCost => amount + fee;
+  double get sellIncome => amount - fee - tax;
   double get netAmount {
     if(type == TradeType.buy) {
-      return -(amount+fee);
+      return -buyCost;
     }else{
-      return amount-fee-tax;
+      return sellIncome;
     }
   }
 

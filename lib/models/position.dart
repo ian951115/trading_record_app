@@ -1,4 +1,4 @@
-//庫存的 模型/範本 及計算
+//庫存的計算
 import 'trade.dart';
 
 class Position { //all
@@ -15,18 +15,18 @@ class Position { //all
 
   double get avgCost => quantity == 0 ? 0 : totalCost / quantity;
 
-  double get currentPrice => avgCost * 1.05; //暫時假設漲5%，只是讓畫面能跑
-  double get marketValue => currentPrice * quantity; //市值
+  double get mockPrice => avgCost * 1.05; //暫時假設漲5%，只是讓畫面能跑
+  double get marketValue => mockPrice * quantity; //市值
   double get unrealizedPnL => marketValue - totalCost; //未實現損益
   double get unrealizedReturn => //未實現報酬率
        totalCost == 0 ? 0 : (unrealizedPnL / totalCost) * 100;
 }
 
-class _BuyLot { //某一次買進的剩餘股數與價格
+class BuyLot { //某一次買進的剩餘股數與價格
   int quantity;
   double costPerShare;
 
-  _BuyLot({
+  BuyLot({
     required this.quantity,
     required this.costPerShare,
   });
@@ -34,7 +34,7 @@ class _BuyLot { //某一次買進的剩餘股數與價格
 
 List<Position> buildPositions(List<Trade> trades) { //FIFO主函式
   final Map<String, Position> positionMap = {}; //存每檔股票的最終庫存
-  final Map<String, List<_BuyLot>> buyLotMap = {}; //存FIFO用的買進批次
+  final Map<String, List<BuyLot>> buyLotMap = {}; //存FIFO用的買進批次
 
   //時間排序：舊的先算（FIFO）
   final sortedTrades = [...trades]
@@ -55,7 +55,7 @@ List<Position> buildPositions(List<Trade> trades) { //FIFO主函式
     if (trade.type == TradeType.buy) { //買進：新增一批lot
       final costPerShare = (trade.amount + trade.fee) / trade.quantity;
       buyLots.add( //加入字典
-        _BuyLot(
+        BuyLot(
           quantity: trade.quantity,
           costPerShare: costPerShare,
         ),
