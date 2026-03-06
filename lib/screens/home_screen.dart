@@ -48,101 +48,109 @@ class _HomeScreenState extends State<HomeScreen> {
         );
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('交易紀錄'),
-        centerTitle: true,
-      ),
-      
-      body: Column(
-        children: [
-          Container(   //上方圖表佔位
-            height: 200,
-            margin: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.blueGrey.shade100,
-              borderRadius: BorderRadius.circular(16),   //四個角圓半徑
-            ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('現金: $cash'),
-                  Text('市值: ${marketValue.toStringAsFixed(2)}'),
-                  Text('總資產: ${totalAsset.toStringAsFixed(2)}'),
-                ],
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            title: const Text('交易紀錄'),
+            centerTitle: true,
+            pinned: true, //往上滑後 AppBar 會固定在頂部
+            expandedHeight: 120, //展開高度
+          ),
+
+          SliverToBoxAdapter(
+            child: Container(   //上方圖表佔位
+              height: 200,
+              margin: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.blueGrey.shade100,
+                borderRadius: BorderRadius.circular(16),   //四個角圓半徑
+              ),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('現金: $cash'),
+                    Text('市值: ${marketValue.toStringAsFixed(2)}'),
+                    Text('總資產: ${totalAsset.toStringAsFixed(2)}'),
+                  ],
+                ),
               ),
             ),
           ),
 
-          Expanded( //下方按鈕區   expanded代表撐滿剩下的空間
-            child: GridView.count( //建立可滑動的2D矩陣
-              crossAxisCount: 3, //每列的數量
-              padding: const EdgeInsets.all(16), //外圍距離
-              crossAxisSpacing: 16, //每欄間距
-              mainAxisSpacing: 16, //每列間距
-              children: [
-                HomeMenuTile(
-                  icon: Icons.receipt_long,
-                  label: '交易明細',
-                  onTap: () { //導航用
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => TradeListScreen()
-                      ),
-                    );
-                  },
-                ),
-                HomeMenuTile(
-                  icon: Icons.inventory,
-                  label: '庫存明細',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => PositionListScreen()
-                      ),
-                    );
-                  },
-                ),
-                HomeMenuTile(
-                  icon: Icons.calendar_month,
-                  label: '收益日曆',
-                  onTap: () {},
-                ),
-                HomeMenuTile(
-                  icon: Icons.flag,
-                  label: '年度目標',
-                  onTap: () {},
-                ),
-                HomeMenuTile(
-                  icon: Icons.show_chart,
-                  label: '各式圖表',
-                  onTap: () {},
-                ),
-                HomeMenuTile(
-                  icon: Icons.savings,
-                  label: '股利紀錄',
-                  onTap: () {},
-                ),
-                HomeMenuTile(
-                  icon: Icons.attach_money,
-                  label: '資金管理',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const CashFlowScreen(),
-                      )
-                    );
-                  },
-                ),
-                HomeMenuTile(
-                  icon: Icons.settings,
-                  label: '設定',
-                  onTap: () {},
-                ),
-              ],
+          SliverPadding( //下方按鈕區
+            padding: const EdgeInsets.all(16), //外圍距離
+            sliver: SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+              ),
+              delegate: SliverChildListDelegate(
+                [
+                  HomeMenuTile(
+                    icon: Icons.receipt_long,
+                    label: '交易明細',
+                    onTap: () { //導航用
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => TradeListScreen()
+                        ),
+                      );
+                    },
+                  ),
+                  HomeMenuTile(
+                    icon: Icons.inventory,
+                    label: '庫存明細',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => PositionListScreen()
+                        ),
+                      );
+                    },
+                  ),
+                  HomeMenuTile(
+                    icon: Icons.calendar_month,
+                    label: '收益日曆',
+                    onTap: () {},
+                  ),
+                  HomeMenuTile(
+                    icon: Icons.flag,
+                    label: '年度目標',
+                    onTap: () {},
+                  ),
+                  HomeMenuTile(
+                    icon: Icons.show_chart,
+                    label: '各式圖表',
+                    onTap: () {},
+                  ),
+                  HomeMenuTile(
+                    icon: Icons.savings,
+                    label: '股利紀錄',
+                    onTap: () {},
+                  ),
+                  HomeMenuTile(
+                    icon: Icons.attach_money,
+                    label: '資金管理',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const CashFlowScreen()
+                        )
+                      );
+                    },
+                  ),
+                  HomeMenuTile(
+                    icon: Icons.settings,
+                    label: '設定',
+                    onTap: () {},
+                  ),
+                ],
+              ),
             ),
           ),
         ],
