@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../repositories/trade_repository.dart';
 import '../models/position.dart';
 import '../widgets/position_tile.dart';
-import '../widgets/portfolio_summary.dart';
+import '../widgets/position_summary.dart';
 
 class PositionListScreen extends StatefulWidget {
   const PositionListScreen({super.key});

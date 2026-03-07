@@ -1,14 +1,16 @@
 //主畫面UI
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:trading_record_app/models/position.dart';
-import 'package:trading_record_app/repositories/cash_flow_repository.dart';
-import 'package:trading_record_app/repositories/trade_repository.dart';
-import 'package:trading_record_app/screens/cash_flow_screen.dart';
-import 'package:trading_record_app/services/portfolio_service.dart';
-import '../widgets/home_menu_tile.dart';
+import '../models/position.dart';
+import '../repositories/cash_flow_repository.dart';
+import '../repositories/trade_repository.dart';
+import '../screens/cash_flow_screen.dart';
+import '../services/portfolio_service.dart';
 import 'trade_list_screen.dart';
 import 'position_list_screen.dart';
+import '../widgets/quick_action_tile.dart';
+import '../widgets/portfolio_summary.dart';
+import '../models/trade.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,6 +20,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final ScrollController _scrollController = ScrollController();
+  bool _isObscured = false;
+
   @override
   void initState() {
     super.initState();
@@ -47,6 +52,8 @@ class _HomeScreenState extends State<HomeScreen> {
           positions: positions,
         );
 
+    final recentTrades = trades.take(5).toList();
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -58,99 +65,157 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
 
           SliverToBoxAdapter(
-            child: Container(   //上方圖表佔位
-              height: 200,
-              margin: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.blueGrey.shade100,
-                borderRadius: BorderRadius.circular(16),   //四個角圓半徑
-              ),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('現金: $cash'),
-                    Text('市值: ${marketValue.toStringAsFixed(2)}'),
-                    Text('總資產: ${totalAsset.toStringAsFixed(2)}'),
-                  ],
-                ),
-              ),
+            child: PortfolioSummary(
+              cash: _isObscured ? 0 : cash,
+              marketValue: _isObscured ? 0 : marketValue,
+              totalAsset: _isObscured ? 0 : totalAsset,
+              isObscured: _isObscured,
+              onToggleObscure: () {
+                setState(() {
+                  _isObscured = !_isObscured;
+                });
+              },
             ),
           ),
 
-          SliverPadding( //下方按鈕區
-            padding: const EdgeInsets.all(16), //外圍距離
-            sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-              ),
-              delegate: SliverChildListDelegate(
-                [
-                  HomeMenuTile(
-                    icon: Icons.receipt_long,
-                    label: '交易明細',
-                    onTap: () { //導航用
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => TradeListScreen()
+          SliverToBoxAdapter( //中間按鈕區(橫向滑動)
+            child: Column(
+              children: [
+                SizedBox(
+                  height: 100,
+                  child: ListView(
+                    controller: _scrollController,
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    children: [
+                      QuickActionTile(
+                        icon: Icons.receipt_long,
+                        label: '交易明細',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => TradeListScreen()
+                            ),
+                          );
+                        },
+                      ),
+                      QuickActionTile(
+                        icon: Icons.inventory,
+                        label: '庫存明細',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => PositionListScreen()
+                            ),
+                          );
+                        },
+                      ),
+                      QuickActionTile(
+                        icon: Icons.calendar_month,
+                        label: '收益日曆',
+                        onTap: () {},
+                      ),
+                      QuickActionTile(
+                        icon: Icons.flag,
+                        label: '年度目標',
+                        onTap: () {},
+                      ),
+                      QuickActionTile(
+                        icon: Icons.show_chart,
+                        label: '各式圖表',
+                        onTap: () {},
+                      ),
+                      QuickActionTile(
+                        icon: Icons.savings,
+                        label: '股利紀錄',
+                        onTap: () {},
+                      ),
+                      QuickActionTile(
+                        icon: Icons.attach_money,
+                        label: '資金管理',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const CashFlowScreen()
+                            )
+                          );
+                        },
+                      ),
+                      QuickActionTile(
+                        icon: Icons.settings,
+                        label: '設定',
+                        onTap: () {},
+                      ),
+                    ],
+                  ),
+                ),
+
+                Padding( //滑動指示器
+                  padding: const EdgeInsets.only(top: 8, bottom: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 20,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          borderRadius: BorderRadius.circular(2),
                         ),
-                      );
-                    },
-                  ),
-                  HomeMenuTile(
-                    icon: Icons.inventory,
-                    label: '庫存明細',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => PositionListScreen()
+                      ),
+                      const SizedBox(width: 4),
+                      Container(
+                        width: 8,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.blueGrey.shade300,
+                          borderRadius: BorderRadius.circular(2),
                         ),
-                      );
-                    },
+                      ),
+                    ],
                   ),
-                  HomeMenuTile(
-                    icon: Icons.calendar_month,
-                    label: '收益日曆',
-                    onTap: () {},
+                ),
+              ],
+            ),
+          ),
+
+          SliverList( //最近交易
+            delegate: SliverChildBuilderDelegate( //選他因為是Lazy build意思是只建立螢幕需要的widget，比SliverChildListDelegate 更好
+              (context, index) {
+                if (index == 0) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      '最近交易',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  );
+                }
+
+                final trade = recentTrades[index - 1];
+
+                return ListTile(
+                  leading: Icon(
+                    trade.type == TradeType.buy
+                        ? Icons.trending_up
+                        : Icons.trending_down,
+                    color: trade.type == TradeType.buy
+                        ? Colors.red
+                        : Colors.green,
                   ),
-                  HomeMenuTile(
-                    icon: Icons.flag,
-                    label: '年度目標',
-                    onTap: () {},
-                  ),
-                  HomeMenuTile(
-                    icon: Icons.show_chart,
-                    label: '各式圖表',
-                    onTap: () {},
-                  ),
-                  HomeMenuTile(
-                    icon: Icons.savings,
-                    label: '股利紀錄',
-                    onTap: () {},
-                  ),
-                  HomeMenuTile(
-                    icon: Icons.attach_money,
-                    label: '資金管理',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const CashFlowScreen()
-                        )
-                      );
-                    },
-                  ),
-                  HomeMenuTile(
-                    icon: Icons.settings,
-                    label: '設定',
-                    onTap: () {},
-                  ),
-                ],
-              ),
+                  title: Text(trade.symbol),
+                  subtitle: Text('${trade.type == TradeType.buy ? '買入' : '賣出'} ${trade.quantity} 股'),
+                  trailing: Text(trade.price.toStringAsFixed(2)),
+                );
+              },
+
+              childCount: recentTrades.length + 1,
             ),
           ),
         ],

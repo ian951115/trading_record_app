@@ -1,4 +1,4 @@
-//主畫面功能按鈕的元件
+//平板型主畫面功能按鈕元件
 import 'package:flutter/material.dart';
 
 class HomeMenuTile extends StatelessWidget {
