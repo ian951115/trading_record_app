@@ -20,8 +20,10 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final ScrollController _scrollController = ScrollController();
   bool _isObscured = false;
+
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
 
   @override
   void initState() {
@@ -83,71 +85,105 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 SizedBox(
                   height: 100,
-                  child: ListView(
-                    controller: _scrollController,
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: PageView(
+                    controller: _pageController,
+                    onPageChanged: (index) {
+                      setState(() {
+                        _currentPage = index;
+                      });
+                    },
                     children: [
-                      QuickActionTile(
-                        icon: Icons.receipt_long,
-                        label: '交易明細',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => TradeListScreen()
+
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: QuickActionTile(
+                                icon: Icons.receipt_long,
+                                label: '交易明細',
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => TradeListScreen()
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
-                          );
-                        },
-                      ),
-                      QuickActionTile(
-                        icon: Icons.inventory,
-                        label: '庫存明細',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => PositionListScreen()
+                            Expanded(
+                              child: QuickActionTile(
+                                icon: Icons.inventory,
+                                label: '庫存明細',
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => PositionListScreen()
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
-                          );
-                        },
+                            Expanded(
+                              child: QuickActionTile(
+                                icon: Icons.calendar_month,
+                                label: '收益日曆',
+                                onTap: () {},
+                              ),
+                            ),
+                            Expanded(
+                              child: QuickActionTile(
+                                icon: Icons.flag,
+                                label: '年度目標',
+                                onTap: () {},
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      QuickActionTile(
-                        icon: Icons.calendar_month,
-                        label: '收益日曆',
-                        onTap: () {},
-                      ),
-                      QuickActionTile(
-                        icon: Icons.flag,
-                        label: '年度目標',
-                        onTap: () {},
-                      ),
-                      QuickActionTile(
-                        icon: Icons.show_chart,
-                        label: '各式圖表',
-                        onTap: () {},
-                      ),
-                      QuickActionTile(
-                        icon: Icons.savings,
-                        label: '股利紀錄',
-                        onTap: () {},
-                      ),
-                      QuickActionTile(
-                        icon: Icons.attach_money,
-                        label: '資金管理',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const CashFlowScreen()
-                            )
-                          );
-                        },
-                      ),
-                      QuickActionTile(
-                        icon: Icons.settings,
-                        label: '設定',
-                        onTap: () {},
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child:  QuickActionTile(
+                                icon: Icons.show_chart,
+                                label: '各式圖表',
+                                onTap: () {},
+                              ),
+                            ),
+                            Expanded(
+                              child:  QuickActionTile(
+                                icon: Icons.savings,
+                                label: '股利紀錄',
+                                onTap: () {},
+                              ),
+                            ),
+                            Expanded(
+                              child:  QuickActionTile(
+                                icon: Icons.attach_money,
+                                label: '資金管理',
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const CashFlowScreen()
+                                    )
+                                  );
+                                },
+                              ),
+                            ),
+                            Expanded(
+                              child:  QuickActionTile(
+                                icon: Icons.settings,
+                                label: '設定',
+                                onTap: () {},
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -157,25 +193,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: const EdgeInsets.only(top: 8, bottom: 16),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 20,
+                    children: List.generate(2, (index) { //2頁
+                      bool active = index == _currentPage;
+
+                      return AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        width: active ? 20 : 8,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: Colors.blue,
+                          color: active
+                              ? Colors.blue
+                              : Colors.blueGrey.shade300,
                           borderRadius: BorderRadius.circular(2),
                         ),
-                      ),
-                      const SizedBox(width: 4),
-                      Container(
-                        width: 8,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: Colors.blueGrey.shade300,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ],
+                      );
+                    }),
                   ),
                 ),
               ],
