@@ -1,6 +1,7 @@
 //主畫面UI
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:trading_record_app/screens/calendar_screen.dart';
 import '../models/position.dart';
 import '../repositories/cash_flow_repository.dart';
 import '../repositories/trade_repository.dart';
@@ -130,7 +131,14 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: QuickActionTile(
                                 icon: Icons.calendar_month,
                                 label: '收益日曆',
-                                onTap: () {},
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => CalendarScreen()
+                                    ),
+                                  );
+                                },
                               ),
                             ),
                             Expanded(
