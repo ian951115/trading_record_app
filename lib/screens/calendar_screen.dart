@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:trading_record_app/models/trade.dart';
+import '../models/trade.dart';
 import '../services/calendar_service.dart';
 import '../models/daily_pnl.dart';
 import '../repositories/trade_repository.dart';
@@ -20,17 +20,49 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   Map<DateTime, DailyPnl> dailyPnLMap = {};
 
-  Color getHeatmapColor(double pnl) {
+  Map<String, dynamic> getMonthStats() {
+    double totalPnL = 0;
+    int winDays = 0;
+    int tradeCount = 0;
+
+    for (final entry in dailyPnLMap.entries) {
+      final day = entry.key;
+      final daily = entry.value;
+
+      if (day.year == focusedDay.year && day.month == focusedDay.month) {
+        totalPnL += daily.pnl;
+        if (daily.pnl > 0) {
+          winDays++;
+        }
+
+        tradeCount += daily.trades.length;
+      }
+    }
+    final totalDays = dailyPnLMap.entries
+        .where((e) =>
+            e.key.year == focusedDay.year &&
+            e.key.month == focusedDay.month)
+        .length;
+    
+    double winRate = totalDays == 0 ? 0 : winDays / totalDays;
+
+    return {
+      'pnl': totalPnL,
+      'winRate': winRate,
+      'trades': tradeCount,
+    };
+  }
+
+  Color getHeatmapColor(double pnl, {bool isReverse = false}) { //熱力圖計算。isReverse配合之後的可顛倒設定
+    if (pnl == 0) return Colors.transparent;
     const maxValue = 10000;
 
-    double intensity = (pnl.abs() / maxValue).clamp(0.1, 0.8);
+    double intensity = (pnl.abs() / maxValue).clamp(0.05, 0.7);
 
     if (pnl > 0) {
-      return Colors.red.withValues(alpha: intensity);
-    } else if (pnl < 0) {
-      return Colors.green.withValues(alpha: intensity);
+      return (isReverse ? Colors.green : Colors.red).withValues(alpha: intensity);
     } else {
-      return Colors.transparent;
+      return (isReverse ? Colors.red : Colors.green).withValues(alpha: intensity);
     }
   }
 
@@ -71,10 +103,85 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return '$sign${absValue.toStringAsFixed(2)}';
   }
 
+  Widget _buildStatsCard(Map stats) { //統計卡 Widget
+    final pnl = stats['pnl'];
+    final winRate = stats['winRate'];
+    final trades = stats['trades'];
+    final monthLabel = '${focusedDay.year}/${focusedDay.month}';
+
+    return Container(
+      margin: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade400,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              monthLabel,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.black,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _statItem(
+                '月損益',
+                formatPnLDisplay(stats['pnl']),
+                stats['pnl'] >=0 ? Colors.red : Colors.green,
+              ),
+              _statItem(
+                '勝率',
+                '${(stats['winRate'] * 100).toStringAsFixed(1)}%',
+                Colors.white,
+              ),
+              _statItem(
+                '交易',
+                '${stats['trades']}',
+                Colors.white,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _statItem(String label, String value, Color color) { //統計項目UI
+    return Column(
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            color: Colors.black,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final repo = context.watch<TradeRepository>();
     final trades = repo.getAllTrades();
+    final stats = getMonthStats();
 
     dailyPnLMap = CalendarService.groupTradesByDay(trades);
 
@@ -82,71 +189,80 @@ class _CalendarScreenState extends State<CalendarScreen> {
       appBar: AppBar(
         title: const Text('收益日曆'),
       ),
+      body: Column(
+        children: [
+          _buildStatsCard(stats),
+          Expanded(
+            child: TableCalendar(
+              firstDay: DateTime(1961),
+              lastDay: DateTime(2100),
+              focusedDay: focusedDay,
+              rowHeight: 80, //讓格子變大
+              selectedDayPredicate: (day) {
+                return isSameDay(selectedDay, day);
+              },
+              onDaySelected: (selected, focused) {
+                setState(() {
+                  selectedDay = selected;
+                  focusedDay = focused;
+                });
+                _showDayTrades(selected);
+              },
+              onPageChanged: (focusedDay) {
+                setState(() {
+                  this.focusedDay = focusedDay;
+                });
+              },
+              calendarBuilders: CalendarBuilders(
+                defaultBuilder: (context, day, focusedDay) {
+                  final key =DateTime(day.year, day.month, day.day);
+                  final daily = dailyPnLMap[key];
 
-      body: TableCalendar(
-        firstDay: DateTime(1961),
-        lastDay: DateTime(2100),
-        focusedDay: focusedDay,
-
-        rowHeight: 80, //讓格子變大
-
-        selectedDayPredicate: (day) {
-          return isSameDay(selectedDay, day);
-        },
-
-        onDaySelected: (selected, focused) {
-          setState(() {
-            selectedDay = selected;
-            focusedDay = focused;
-          });
-
-          _showDayTrades(selected);
-        },
-
-        calendarBuilders: CalendarBuilders(
-          defaultBuilder: (context, day, focusedDay) {
-            final key =DateTime(day.year, day.month, day.day);
-            final daily = dailyPnLMap[key];
-
-            if (daily == null) {
-              return null;
-            }
-
-            final color = getHeatmapColor(daily.pnl);
-
-            return Container(
-              margin: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              padding: const EdgeInsets.all(4),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Text(
-                    '${day.day}',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
+                  return Container(
+                    margin: const EdgeInsets.all(2), //讓格子之間有小空隙產生網格感
+                    decoration: BoxDecoration(
+                      color: daily != null //如果沒資料，給一個淡的灰色底維持日曆完整形狀
+                          ? getHeatmapColor(daily.pnl)
+                          : Colors.grey.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(4),
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  if (daily.pnl !=0)
-                    Text(
-                      formatPnLDisplay(daily.pnl),
-                      style: const TextStyle(
-                        fontSize: 10,
-                        color: Colors.white,
-                      ),
+                    child: Column(
+                      children: [
+                        Align( //右上角日期
+                          alignment: Alignment.topRight,
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 2, right: 4),
+                            child: Text(
+                              '${day.day}',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const Spacer(),
+                        if (daily != null && daily.pnl != 0) //損益金額居中
+                          Text(
+                            formatPnLDisplay(daily.pnl),
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: daily.pnl >= 0
+                                  ? Colors.red
+                                  : Colors.green,
+                            ),
+                          ),
+                          const Spacer(),
+                      ],
                     ),
-                ],
+                  );
+                },
               ),
-            );
-          },
-        ),
-      ),
+            ),
+          )
+        ]
+      )
     );
   }
 }
