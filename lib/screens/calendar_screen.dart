@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:trading_record_app/domain/aggregation/year_aggregation.dart';
+import 'package:trading_record_app/domain/heatmap/heatmap_normalizer.dart';
 import '../models/trade.dart';
 import '../services/calendar_service.dart';
 import '../models/daily_pnl.dart';
@@ -78,9 +79,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   Color getMonthHeatmapColor(double pnl) {
-    if (pnl == 0) return Colors.grey.shade200;
-    if (pnl > 0) return Colors.red.withValues(alpha: 0.25);
-    return Colors.green.withValues(alpha: 0.25);
+    final maxAbs = getYearMaxAbs();
+    final n = HeatmapNormalizer.normalize(pnl, maxAbs);
+    if (n == 0) return Colors.grey.shade200;
+    if (n > 0) {
+      return Colors.red.withValues(alpha: 0.15 + 0.35 * n);
+    } else {
+      return Colors.green.withValues(alpha: 0.15 + 0.35 * n.abs());
+    }
   }
 
   void _showDayTrades(DateTime day) {
@@ -137,6 +143,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
       }
     }
     return streak;
+  }
+
+  double getYearMaxAbs() { //找最大值
+    double maxVal = 0;
+
+    for (final m in yearData.values) {
+      if (m.totalPnL.abs() > maxVal) {
+        maxVal = m.totalPnL.abs();
+      }
+    }
+
+    return maxVal;
   }
 
   void _toggleViewMode() { //年/月視圖切換按鈕
