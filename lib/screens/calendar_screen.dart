@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:trading_record_app/domain/aggregation/year_aggregation.dart';
 import '../models/trade.dart';
 import '../services/calendar_service.dart';
 import '../models/daily_pnl.dart';
@@ -11,6 +12,7 @@ import '../widgets/calendar/calendar_stats_card.dart';
 import '../widgets/calendar/day_trades_sheet.dart';
 import '../domain/filter/trade_filter.dart';
 import '../domain/calendar/view_mode.dart';
+import '../widgets/charts/mini_sparkline.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -23,6 +25,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   DateTime focusedDay = DateTime.now();
   DateTime? selectedDay;
   Map<DateTime, DailyPnl> dailyPnLMap = {};
+  Map<int, YearMonthData> yearData ={};
   CalendarViewMode _viewMode = CalendarViewMode.month;
 
   TradeFilter _filter = const TradeFilter();
@@ -72,6 +75,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
     } else {
       return (isReverse ? Colors.red : Colors.green).withValues(alpha: intensity);
     }
+  }
+
+  Color getMonthHeatmapColor(double pnl) {
+    if (pnl == 0) return Colors.grey.shade200;
+    if (pnl > 0) return Colors.red.withValues(alpha: 0.25);
+    return Colors.green.withValues(alpha: 0.25);
   }
 
   void _showDayTrades(DateTime day) {
@@ -138,21 +147,31 @@ class _CalendarScreenState extends State<CalendarScreen> {
     });
   }
 
-  Widget _buildYearViewPlaceholder() { //年視圖佔位
-    return const Center(
-      child: Text(
-        'Year View (coming soon)',
-        style: TextStyle(fontSize: 18),
+  Widget _buildYearViewPlaceholder() { //年視圖
+    return GridView.builder(
+      padding: const EdgeInsets.all(12),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 1.1,
       ),
+      itemCount: 12,
+      itemBuilder: (context, index) {
+        final month = index + 1;
+        final data = yearData[month];
+
+        return _buildYearMonthCell(month, data);
+      },
     );
   }
 
-  Widget _buildMonthCalendar() {
+  Widget _buildMonthCalendar() { //月視圖
     return TableCalendar(
       firstDay: DateTime(1961),
       lastDay: DateTime(2100),
       focusedDay: focusedDay,
-      rowHeight: 80, //讓格子變大
+      rowHeight: 74, //讓格子變大
       selectedDayPredicate: (day) {
         return isSameDay(selectedDay, day);
       },
@@ -210,11 +229,53 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
+  Widget _buildYearMonthCell(int month, YearMonthData? data) {
+    final pnl = data?.totalPnL ?? 0;
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          focusedDay = DateTime(focusedDay.year, month, 1);
+          _viewMode = CalendarViewMode.month;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: getMonthHeatmapColor(pnl),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '$month 月',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 4),
+            MiniSparkline(
+              data: data?.dailyPnLSequence ?? [],
+            ),
+            const Spacer(),
+            Text(
+              formatPnLDisplay(pnl),
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final repo = context.watch<TradeRepository>();
     repo.getAllTrades(); //為了trigger rebuild，rebuild仍依賴repo
     dailyPnLMap = CalendarService.groupTradesByDay(filteredTrades); //但資料來源變filter pipeline
+    yearData = calculateYearlyData(dailyPnLMap, focusedDay.year);
     final stats = getMonthStats();
     final streak = getWinStreak();
 

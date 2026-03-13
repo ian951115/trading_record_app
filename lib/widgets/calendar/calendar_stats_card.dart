@@ -20,7 +20,7 @@ class CalendarStatsCard extends StatelessWidget {
     final monthLabel = '${focusedDay.year}/${focusedDay.month}';
 
     return Container(
-      margin: const EdgeInsets.all(12),
+      margin: const EdgeInsets.symmetric(horizontal: 12,vertical: 4),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.grey.shade400,
