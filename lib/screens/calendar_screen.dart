@@ -28,6 +28,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   Map<DateTime, DailyPnl> dailyPnLMap = {};
   Map<int, YearMonthData> yearData ={};
   CalendarViewMode _viewMode = CalendarViewMode.month;
+  int currentYear = DateTime.now().year;
 
   TradeFilter _filter = const TradeFilter();
   List<Trade> get filteredTrades {
@@ -165,22 +166,63 @@ class _CalendarScreenState extends State<CalendarScreen> {
     });
   }
 
-  Widget _buildYearViewPlaceholder() { //年視圖
-    return GridView.builder(
-      padding: const EdgeInsets.all(12),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        childAspectRatio: 1.1,
+  Widget _buildYearHeader() { //年視圖上方總覽
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.chevron_left),
+            onPressed: () {
+              setState(() {
+                currentYear--;
+              });
+            },
+          ),
+          Text(
+            '$currentYear 年',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.chevron_right),
+            onPressed: () {
+              setState(() {
+                currentYear++;
+              });
+            },
+          ),
+        ],
       ),
-      itemCount: 12,
-      itemBuilder: (context, index) {
-        final month = index + 1;
-        final data = yearData[month];
+    );
+  }
 
-        return _buildYearMonthCell(month, data);
-      },
+  Widget _buildYearViewPlaceholder() { //年視圖
+    return Column(
+      children: [
+        _buildYearHeader(),
+        Expanded(
+          child: GridView.builder(
+            padding: const EdgeInsets.all(12),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: 1.1,
+            ),
+            itemCount: 12,
+            itemBuilder: (context, index) {
+              final month = index + 1;
+              final data = yearData[month];
+
+              return _buildYearMonthCell(month, data);
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -189,7 +231,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       firstDay: DateTime(1961),
       lastDay: DateTime(2100),
       focusedDay: focusedDay,
-      rowHeight: 74, //讓格子變大
+      rowHeight: 80, //讓格子變大
       selectedDayPredicate: (day) {
         return isSameDay(selectedDay, day);
       },
@@ -253,7 +295,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return GestureDetector(
       onTap: () {
         setState(() {
-          focusedDay = DateTime(focusedDay.year, month, 1);
+          focusedDay = DateTime(currentYear, month, 1);
           _viewMode = CalendarViewMode.month;
         });
       },
@@ -272,7 +314,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ),
             const SizedBox(height: 4),
             MiniSparkline(
-              data: data?.dailyPnLSequence ?? [],
+              data: data?.equitySequence ?? [],
             ),
             const Spacer(),
             Text(
@@ -293,7 +335,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final repo = context.watch<TradeRepository>();
     repo.getAllTrades(); //為了trigger rebuild，rebuild仍依賴repo
     dailyPnLMap = CalendarService.groupTradesByDay(filteredTrades); //但資料來源變filter pipeline
-    yearData = calculateYearlyData(dailyPnLMap, focusedDay.year);
+    yearData = calculateYearlyData(dailyPnLMap, currentYear);
     final stats = getMonthStats();
     final streak = getWinStreak();
 
