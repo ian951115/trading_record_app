@@ -12,6 +12,14 @@ enum TradeType {
   sell,
 }
 
+enum AssetType {
+  stock,
+  future,
+  crypto,
+  option,
+  other,
+}
+
 @HiveType(typeId: 0)
 class Trade {
   @HiveField(0)
@@ -36,6 +44,8 @@ class Trade {
   final String? note; //備註
   @HiveField(10)
   final List<String> tags; //策略/標籤
+  @HiveField(11)
+  final AssetType assetType;
 
   Trade({
     String? id,
@@ -49,6 +59,7 @@ class Trade {
     this.tax = 0,
     this.note,
     this.tags = const [],
+    this.assetType = AssetType.stock,
   }) : id = id ?? const Uuid().v4();
 
   double get amount => price * quantity;

@@ -1,20 +1,20 @@
 //下拉式選單的元件
 import 'package:flutter/material.dart';
 
-class TradeFilterBar extends StatefulWidget {
+class TradeDataFilterBar extends StatefulWidget {
   final ValueChanged<String> onChanged;
   final ValueChanged<DateTimeRange> onRangeChanged;
-  const TradeFilterBar({
+  const TradeDataFilterBar({
     super.key,
     required this.onChanged,
     required this.onRangeChanged,
   });
 
   @override
-  State<TradeFilterBar> createState() => _TradeFilterBarState();
+  State<TradeDataFilterBar> createState() => _TradeDataFilterBarState();
 }
 
-class _TradeFilterBarState extends State<TradeFilterBar> {
+class _TradeDataFilterBarState extends State<TradeDataFilterBar> {
   String selectedValue = 'all';
 
   @override

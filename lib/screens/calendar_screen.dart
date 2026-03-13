@@ -9,6 +9,7 @@ import '../repositories/trade_repository.dart';
 import '../widgets/calendar/calendar_day_cell.dart';
 import '../widgets/calendar/calendar_stats_card.dart';
 import '../widgets/calendar/day_trades_sheet.dart';
+import '../domain/filter/trade_filter.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -20,6 +21,13 @@ class CalendarScreen extends StatefulWidget {
 class _CalendarScreenState extends State<CalendarScreen> {
   DateTime focusedDay = DateTime.now();
   DateTime? selectedDay;
+
+  TradeFilter _filter = const TradeFilter();
+  List<Trade> get filteredTrades {
+    final repo = context.read<TradeRepository>();
+    final allTrades = repo.getAllTrades();
+    return applyTradeFilter(allTrades, _filter);
+  }
 
   Map<DateTime, DailyPnl> dailyPnLMap = {};
 
@@ -124,8 +132,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
   @override
   Widget build(BuildContext context) {
     final repo = context.watch<TradeRepository>();
-    final trades = repo.getAllTrades();
-    dailyPnLMap = CalendarService.groupTradesByDay(trades);
+    repo.getAllTrades(); //為了trigger rebuild，rebuild仍依賴repo
+    dailyPnLMap = CalendarService.groupTradesByDay(filteredTrades); //但資料來源變filter pipeline
     final stats = getMonthStats();
     final streak = getWinStreak();
 

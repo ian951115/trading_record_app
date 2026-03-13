@@ -42,7 +42,7 @@ class _PositionListScreenState extends State<PositionListScreen> {
       ),
       body: Column(
         children: [
-          PortfolioSummary(
+          PositionSummary(
             totalCost: totalCost,
             totalMarketValue: totalMarketValue,
             totalUnrealized: totalUnrealized,

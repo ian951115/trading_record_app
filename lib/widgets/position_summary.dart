@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 
-class PortfolioSummary extends StatelessWidget {
+class PositionSummary extends StatelessWidget {
   final double totalCost;
   final double totalMarketValue;
   final double totalUnrealized;
   final double totalReturn;
   final double rotationTurns;
   final VoidCallback onRefresh;
-  const PortfolioSummary({
+  const PositionSummary({
     super.key,
     required this.totalCost,
     required this.totalMarketValue,

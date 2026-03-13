@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:trading_record_app/repositories/trade_repository.dart';
 import '../models/trade.dart';
-import '../widgets/trade_filter_bar.dart';
+import '../widgets/trade_data_filter_bar.dart';
 import '../widgets/trade_tile.dart';
 import '../screens/add_trade_screen.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -85,7 +85,7 @@ class _TradeListScreenState extends State<TradeListScreen> {
       ),
       body: Column(
         children: [
-          TradeFilterBar(
+          TradeDataFilterBar(
             onChanged: (value) {
               setState(() {
                 selectedPeriod = value;
