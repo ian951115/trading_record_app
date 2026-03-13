@@ -1,6 +1,5 @@
 //主畫面總資產概覽
 import 'package:flutter/material.dart';
-import 'package:trading_record_app/models/position.dart';
 
 class PortfolioSummary extends StatelessWidget {
   final double cash;
