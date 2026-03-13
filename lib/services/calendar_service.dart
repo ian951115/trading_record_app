@@ -34,6 +34,7 @@ class CalendarService {
         date: date,
         pnl: pnl,
         trades: trades,
+        dividend: 0,
       );
     });
 

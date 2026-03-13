@@ -324,6 +324,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
+            if ((data?.totalDividend ?? 0) != 0)
+              Text(
+                'Div ${formatPnLDisplay(data!.totalDividend)}',
+                style: const TextStyle(
+                  fontSize: 10,
+                  color: Colors.blue,
+                ),
+              ),
           ],
         ),
       ),

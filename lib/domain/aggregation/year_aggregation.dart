@@ -8,6 +8,7 @@ class YearMonthData {
   final int winDays;
   final List<double> dailyPnLSequence;
   final List<double> equitySequence;
+  final double totalDividend;
 
   const YearMonthData({
     required this.month,
@@ -16,6 +17,7 @@ class YearMonthData {
     required this.winDays,
     required this.dailyPnLSequence,
     required this.equitySequence,
+    required this.totalDividend,
   });
 
   double get winRate =>
@@ -50,6 +52,7 @@ Map<int, YearMonthData> calculateYearlyData(
     List<double> pnlSeq = [];
     List<double> equitySeq = [];
     double equity = 0;
+    double dividend = 0;
 
     for (final d in dailies) {
       totalPnL += d.pnl;
@@ -59,6 +62,7 @@ Map<int, YearMonthData> calculateYearlyData(
 
       equity += d.pnl;
       equitySeq.add(equity);
+      dividend += d.dividend;
 
       if (d.pnl > 0) winDays++;
     }
@@ -70,6 +74,7 @@ Map<int, YearMonthData> calculateYearlyData(
       winDays: winDays,
       dailyPnLSequence: pnlSeq,
       equitySequence: equitySeq,
+      totalDividend: dividend,
     );
   }
   return result;
