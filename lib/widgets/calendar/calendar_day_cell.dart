@@ -1,4 +1,4 @@
-//日期格子顯示元件
+//日期格子資訊顯示元件
 import 'package:flutter/material.dart';
 import '../../models/daily_pnl.dart';
 

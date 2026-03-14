@@ -1,7 +1,7 @@
 //主畫面UI
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:trading_record_app/screens/calendar_screen.dart';
+import '../screens/calendar/calendar_screen.dart';
 import '../models/position.dart';
 import '../repositories/cash_flow_repository.dart';
 import '../repositories/trade_repository.dart';

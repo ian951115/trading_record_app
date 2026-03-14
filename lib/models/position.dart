@@ -1,4 +1,4 @@
-//庫存的計算
+//庫存的模型/範本及計算
 import 'trade.dart';
 
 class Position { //all
