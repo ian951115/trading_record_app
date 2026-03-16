@@ -1,7 +1,9 @@
 //年視圖格子
 import 'package:flutter/material.dart';
+import 'package:trading_record_app/services/calendar_service.dart';
 import '../../services/year_aggregation.dart';
 import '../../widgets/calendar/calendar_month_cell.dart';
+import '../../widgets/calendar/calendar_stats_card.dart';
 
 class YearCalendarView extends StatelessWidget {
   final int currentYear;
@@ -25,17 +27,26 @@ class YearCalendarView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final ratio = width < 400 ? 0.9 : width < 700 ? 1.05 : 1.2;
+
     return Column(
       children: [
         _buildHeader(),
+        //CalendarStatsCard(
+        //  focusedDay: DateTime(currentYear),
+        //  stats: ,
+        //  streak: 0,
+        //  formatPnL: formatPnL,
+        //),
         Expanded(
           child: GridView.builder(
             padding: const EdgeInsets.all(12),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 3,
               mainAxisSpacing: 12,
               crossAxisSpacing: 12,
-              childAspectRatio: 1.1,
+              childAspectRatio: ratio, //長寬比例
             ),
             itemCount: 12,
             itemBuilder: (context, index) {

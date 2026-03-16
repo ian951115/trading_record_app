@@ -90,6 +90,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final stats = CalendarService.calculateMonthStats(dailyPnLMap, focusedDay);
     final streak = CalendarService.calculateWinStreak(dailyPnLMap, focusedDay);
     final yearMaxAbs = HeatmapService.getYearMaxAbs(yearData);
+    final monthMaxAbs = HeatmapService.getMonthMaxAbs(dailyPnLMap, focusedDay);
 
     return Scaffold(
       appBar: AppBar(
@@ -108,56 +109,78 @@ class _CalendarScreenState extends State<CalendarScreen> {
       body: Column(
         children: [
           if (_viewMode == CalendarViewMode.month)
-            CalendarStatsCard(
-              focusedDay: focusedDay,
-              stats: stats,
-              streak: streak,
-              formatPnL: formatPnLDisplay,
+            SizedBox(
+              height: 160,
+              child: CalendarStatsCard(
+                focusedDay: focusedDay,
+                stats: stats,
+                streak: streak,
+                formatPnL: formatPnLDisplay,
+              ),
             ),
           Expanded(
-            child: _viewMode == CalendarViewMode.month
-                ? MonthCalendarView(
-                  focusedDay: focusedDay,
-                  selectedDay: selectedDay,
-                  dailyPnLMap: dailyPnLMap,
-                  formatPnL: formatPnLDisplay,
-                  heatmapColor: HeatmapService.dayPnLColor,
-                  onDaySelected: (selected, focused) {
-                    setState(() {
-                      selectedDay =selected;
-                      focusedDay = focused;
-                    });
-                    _showDayTrades(selected);
-                  },
-                  onPageChanged: (focused) {
-                    setState(() {
-                      focusedDay = focused;
-                    });
-                  },
-                )
-                : YearCalendarView(
-                  currentYear: currentYear,
-                  yearData: yearData,
-                  heatmapColor: (pnl) => HeatmapService.monthPnLColor(pnl, yearMaxAbs),
-                  formatPnL: formatPnLDisplay,
-                  onPrevYear: () {
-                    setState(() {
-                      currentYear--;
-                    });
-                  },
-                  onNextYear: () {
-                    setState(() {
-                      currentYear++;
-                    });
-                  },
-                  onMonthTap: (month) {
-                    setState(() {
-                      focusedDay = DateTime(currentYear, month, 1);
-                      _viewMode = CalendarViewMode.month;
-                    });
-                  },
-                ),
-          ),
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              transitionBuilder: (child, animation) {
+                final offsetAnimation = Tween<Offset>(
+                  begin: const Offset(0.05, 0),
+                  end: Offset.zero,
+                ).animate(animation);
+
+                return FadeTransition(
+                  opacity: animation,
+                  child: SlideTransition(
+                    position: offsetAnimation,
+                    child: child,
+                  ),
+                );
+              },
+              child: _viewMode == CalendarViewMode.month
+                  ? MonthCalendarView(
+                    key: const ValueKey('month'),
+                    focusedDay: focusedDay,
+                    selectedDay: selectedDay,
+                    dailyPnLMap: dailyPnLMap,
+                    formatPnL: formatPnLDisplay,
+                    heatmapColor: (pnl) => HeatmapService.dayPnLColor(pnl, monthMaxAbs),
+                    onDaySelected: (selected, focused) {
+                      setState(() {
+                        selectedDay =selected;
+                        focusedDay = focused;
+                      });
+                      _showDayTrades(selected);
+                    },
+                    onPageChanged: (focused) {
+                      setState(() {
+                        focusedDay = focused;
+                      });
+                    },
+                  )
+                  : YearCalendarView(
+                    key: const ValueKey('year'),
+                    currentYear: currentYear,
+                    yearData: yearData,
+                    heatmapColor: (pnl) => HeatmapService.monthPnLColor(pnl, yearMaxAbs),
+                    formatPnL: formatPnLDisplay,
+                    onPrevYear: () {
+                      setState(() {
+                        currentYear--;
+                      });
+                    },
+                    onNextYear: () {
+                      setState(() {
+                        currentYear++;
+                      });
+                    },
+                    onMonthTap: (month) {
+                      setState(() {
+                        focusedDay = DateTime(currentYear, month, 1);
+                        _viewMode = CalendarViewMode.month;
+                      });
+                    },
+                  ),
+            ),
+          )
         ],
       ),
     );

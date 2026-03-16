@@ -51,17 +51,21 @@ class CalendarDayCell extends StatelessWidget {
           ),
           const Spacer(),
           if (daily != null && daily!.pnl != 0) //下方資訊
-            Text(
-              formatPnL(daily!.pnl),
-              style: TextStyle(
-                fontSize: 8,
-                fontWeight: FontWeight.bold,
-                color: daily!.pnl >=0 ? Colors.red : Colors.green,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                formatPnL(daily!.pnl),
+                style: TextStyle(
+                  fontSize: 8,
+                  fontWeight: FontWeight.bold,
+                  color: daily!.pnl >=0 ? Colors.red : Colors.green,
+                ),
+                maxLines: 1,
               ),
             ),
           const Spacer(),
         ],
       ),
-    );
+    );//
   }
 }

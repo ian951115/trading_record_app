@@ -1,33 +1,36 @@
 //熱力圖顏色計算服務
 import 'package:flutter/material.dart';
+import 'package:trading_record_app/models/daily_pnl.dart';
 import '../utils/heatmap_normalizer.dart';
 import 'year_aggregation.dart';
 
 class HeatmapService {
-  static Color dayPnLColor(double pnl, {bool reverse = false}) {
+  static Color dayPnLColor(double pnl, double monthMaxAbs) {
+    final n = HeatmapNormalizer.normalize(pnl, monthMaxAbs);
+
     if (pnl == 0) return Colors.transparent;
 
-    const maxValue = 200000;
-    double intensity = (pnl.abs() / maxValue).clamp(0.05, 0.5);
-
     if (pnl > 0) {
-      return (reverse ? Colors.green : Colors.red)
-          .withValues(alpha: intensity);
+      return Colors.red.withValues(alpha: 0.15 + 0.35 * n);
     } else {
-      return (reverse ? Colors.red : Colors.green)
-          .withValues(alpha: intensity);
+      return Colors.green.withValues(alpha: 0.15 + 0.35 * n.abs());
     }
   }
 
   static Color monthPnLColor(double pnl, double yearMaxAbs) {
     final n = HeatmapNormalizer.normalize(pnl, yearMaxAbs);
 
+    if (n.abs() < 0.08) {
+      return Colors.grey.shade100;
+    }
+
     if (n == 0) return Colors.grey.shade200;
 
+    final intensity = 0.2 + 0.6 * n.abs();
     if (n > 0) {
-      return Colors.red.withValues(alpha: 0.15 + 0.35 * n);
+      return Colors.red.withValues(alpha: intensity);
     } else {
-      return Colors.green.withValues(alpha: 0.15 + 0.35 * n.abs());
+      return Colors.green.withValues(alpha: intensity);
     }
   }
 
@@ -39,7 +42,23 @@ class HeatmapService {
         maxVal = m.totalPnL.abs();
       }
     }
+    return maxVal;
+  }
 
+  static double getMonthMaxAbs(
+    Map<DateTime, DailyPnl> map,
+    DateTime focused,
+  ) {
+    double maxVal = 0;
+
+    for (final e in map.entries) {
+      if (e.key.year == focused.year &&
+          e.key.month == focused.month) {
+        if (e.value.pnl.abs() > maxVal) {
+          maxVal = e.value.pnl.abs();
+        }
+      }
+    }
     return maxVal;
   }
 }

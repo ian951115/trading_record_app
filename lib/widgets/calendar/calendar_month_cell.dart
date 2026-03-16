@@ -28,7 +28,7 @@ class CalendarMonthCell extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(8),
+        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 6),
         decoration: BoxDecoration(
           color: heatmapColor(pnl),
           borderRadius: BorderRadius.circular(12),
@@ -38,11 +38,21 @@ class CalendarMonthCell extends StatelessWidget {
           children: [
             Text('$month 月', style: const TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
-            MiniSparkline(data: data?.equitySequence ?? []),
+            SizedBox(
+              height: 28,
+              child: Opacity(
+                opacity: 0.75,
+                child: MiniSparkline(data: data?.equitySequence ?? []),
+              )
+            ),
             const Spacer(),
             Text(
               formatPnL(pnl),
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                fontSize: 13,
+                letterSpacing: 0.3,
+                fontWeight: FontWeight.bold
+              ),
             ),
             if ((data?.totalDividend ?? 0) != 0)
               Text(

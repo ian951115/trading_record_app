@@ -28,11 +28,14 @@ class MonthCalendarView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height; //螢幕高度(防overflow)
+    final rowHeight = screenHeight * 0.085;
+
     return TableCalendar(
       firstDay: DateTime(1961),
       lastDay: DateTime(2100),
       focusedDay: focusedDay,
-      rowHeight: 80, //格子高度
+      rowHeight: rowHeight, //格子高度
       selectedDayPredicate: (day) => isSameDay(selectedDay, day),
       onDaySelected: onDaySelected,
       onPageChanged: onPageChanged,

@@ -18,6 +18,16 @@ class CalendarStatsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) { //統計卡 Widget
     final monthLabel = '${focusedDay.year}/${focusedDay.month}';
+    final winColor = stats['winRate'] > 0.6
+        ? Colors.red
+        : stats['winRate'] < 0.4
+            ? Colors.green
+            : Colors.white;
+    final pnlColor = stats['pnl'] > 0
+        ? Colors.red
+        : stats['pnl'] < 0
+            ? Colors.green
+            : Colors.white;
 
     return Container(
       margin: const EdgeInsets.all(12),
@@ -45,20 +55,20 @@ class CalendarStatsCard extends StatelessWidget {
               _statItem(
                 '月損益',
                 formatPnL(stats['pnl']),
-                stats['pnl'] >=0 ? Colors.red : Colors.green,
+                pnlColor,
               ),
               _statItem(
                 '勝率',
                 '${(stats['winRate'] * 100).toStringAsFixed(1)}%',
-                Colors.white,
+                winColor,
               ),
               _statItem(
-                '交易',
+                '交易次數',
                 '${stats['trades']}',
                 Colors.white,
               ),
               _statItem(
-                '連勝',
+                '連續獲利',
                 '🔥$streak',
                 Colors.orange,
               ),
@@ -83,7 +93,7 @@ class CalendarStatsCard extends StatelessWidget {
         Text(
           value,
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 16, //之後改大小參數，且分上下排
             fontWeight: FontWeight.bold,
             color: color,
           ),

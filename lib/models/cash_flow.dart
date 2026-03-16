@@ -1,5 +1,4 @@
 //資金管理的儲存模板
-import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 
