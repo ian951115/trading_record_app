@@ -61,10 +61,12 @@ class _HomeScreenState extends State<HomeScreen> {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            title: const Text('交易紀錄'),
+            title: const Text(
+              '交易紀錄',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             centerTitle: true,
-            pinned: true, //往上滑後 AppBar 會固定在頂部
-            expandedHeight: 120, //展開高度
+            pinned: false,
           ),
 
           SliverToBoxAdapter(

@@ -39,6 +39,10 @@ class MonthCalendarView extends StatelessWidget {
       selectedDayPredicate: (day) => isSameDay(selectedDay, day),
       onDaySelected: onDaySelected,
       onPageChanged: onPageChanged,
+      headerStyle: const HeaderStyle(
+        formatButtonVisible: false,
+        titleCentered: true,
+      ),
       calendarStyle: const CalendarStyle(
         selectedDecoration: BoxDecoration(),
         todayDecoration: BoxDecoration(),
