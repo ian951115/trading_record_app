@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../screens/calendar/calendar_screen.dart';
-import '../models/position.dart';
+import '../services/position_service.dart';
 import '../repositories/cash_flow_repository.dart';
 import '../repositories/trade_repository.dart';
 import '../screens/cash_flow_screen.dart';
@@ -39,7 +39,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final trades = tradeRepo.getAllTrades();
     final cashFlows = cashRepo.getAllFlows();
 
-    final positions = buildPositions(trades);
+    final result = buildPositions(trades);
+    final positions = result.positions;
 
     final cash = PortfolioService.calculateCash(
       trades: trades,

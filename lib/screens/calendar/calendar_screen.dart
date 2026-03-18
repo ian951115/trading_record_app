@@ -1,7 +1,6 @@
 //收益日曆ui
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../services/year_aggregation.dart';
 import '../../models/trade.dart';
 import '../../services/calendar_service.dart';
 import '../../models/daily_pnl.dart';
@@ -13,6 +12,7 @@ import '../../models/calendar_view_mode.dart';
 import 'month_calendar_view.dart';
 import 'year_calendar_view.dart';
 import '../../services/heatmap_service.dart';
+import '../../services/position_service.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -85,8 +85,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
   Widget build(BuildContext context) {
     final repo = context.watch<TradeRepository>();
     repo.getAllTrades(); //為了trigger rebuild，rebuild仍依賴repo
-    dailyPnLMap = CalendarService.groupTradesByDay(filteredTrades); //但資料來源變filter pipeline
-    yearData = calculateYearlyData(dailyPnLMap, currentYear);
+    final result = buildPositions(filteredTrades);
+    final dailyPnLMap = CalendarService.groupTradesByDay(  //但資料來源變filter pipeline
+      filteredTrades,
+      result.tradePnLMap,
+    );
+    yearData = CalendarService.calculateYearlyData(dailyPnLMap, currentYear);
     final stats = CalendarService.calculateMonthStats(dailyPnLMap, focusedDay);
     final streak = CalendarService.calculateWinStreak(dailyPnLMap, focusedDay);
     final yearMaxAbs = HeatmapService.getYearMaxAbs(yearData);

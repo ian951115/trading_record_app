@@ -12,11 +12,17 @@ enum TradeType {
   sell,
 }
 
+@HiveType(typeId: 4)
 enum AssetType {
+  @HiveField(0)
   stock,
+  @HiveField(1)
   future,
+  @HiveField(2)
   crypto,
+  @HiveField(3)
   option,
+  @HiveField(4)
   other,
 }
 

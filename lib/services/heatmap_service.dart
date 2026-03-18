@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:trading_record_app/models/daily_pnl.dart';
 import '../utils/heatmap_normalizer.dart';
-import 'year_aggregation.dart';
+import '../services/calendar_service.dart';
 
 class HeatmapService {
   static Color dayPnLColor(double pnl, double monthMaxAbs) {

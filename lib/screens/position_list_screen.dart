@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../repositories/trade_repository.dart';
-import '../models/position.dart';
+import '../services/position_service.dart';
 import '../widgets/position_tile.dart';
 import '../widgets/position_summary.dart';
 
@@ -28,7 +28,8 @@ class _PositionListScreenState extends State<PositionListScreen> {
     final repository = context.watch<TradeRepository>();
     final trades = repository.getAllTrades();
 
-    final allPositions = buildPositions(trades); //庫存(包含剩餘股數=0)
+    final result = buildPositions(trades); //庫存(包含剩餘股數=0)
+    final allPositions = result.positions;
     final openPositions = allPositions.where((p) => p.quantity > 0).toList(); //庫存(>0)
 
     final totalMarketValue = openPositions.fold(0.0, (sum, p) => sum + p.marketValue);

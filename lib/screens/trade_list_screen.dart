@@ -1,7 +1,8 @@
 //交易明細頁面UI
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:trading_record_app/repositories/trade_repository.dart';
+import '../models/add_trade_result.dart';
+import '../repositories/trade_repository.dart';
 import '../models/trade.dart';
 import '../widgets/trade_data_filter_bar.dart';
 import '../widgets/trade_tile.dart';
@@ -71,14 +72,14 @@ class _TradeListScreenState extends State<TradeListScreen> {
       ),
       floatingActionButton: FloatingActionButton( //新增按鈕
         onPressed: () async {
-          final trade = await Navigator.push<Trade>(
+          final result = await Navigator.push<AddTradeResult>(
             context,
             MaterialPageRoute(
               builder: (context) => const AddTradeScreen(),
             ),
           );
-          if (trade != null) {
-            repository.addTrade(trade);
+          if (result != null) {
+            repository.addTrade(result.trade);
           }
         },
         child: const Icon(Icons.add),
@@ -112,14 +113,14 @@ class _TradeListScreenState extends State<TradeListScreen> {
                     children: [
                       SlidableAction( //編輯
                         onPressed: (_) async {
-                          final updateTrade = await Navigator.push<Trade>(
+                          final result = await Navigator.push<AddTradeResult>(
                             context,
                             MaterialPageRoute(
                               builder: (_) => AddTradeScreen(editingTrade: trade),
                             ),
                           );
-                          if(updateTrade != null) {
-                            repository.updateTrade(trade, updateTrade);
+                          if(result != null) {
+                            repository.updateTrade(trade, result.trade);
                           }
                         },
                         backgroundColor: Colors.blue,

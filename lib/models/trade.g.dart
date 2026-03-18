@@ -28,13 +28,14 @@ class TradeAdapter extends TypeAdapter<Trade> {
       tax: fields[8] as double,
       note: fields[9] as String?,
       tags: (fields[10] as List).cast<String>(),
+      assetType: fields[11] as AssetType,
     );
   }
 
   @override
   void write(BinaryWriter writer, Trade obj) {
     writer
-      ..writeByte(11)
+      ..writeByte(12)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -56,7 +57,9 @@ class TradeAdapter extends TypeAdapter<Trade> {
       ..writeByte(9)
       ..write(obj.note)
       ..writeByte(10)
-      ..write(obj.tags);
+      ..write(obj.tags)
+      ..writeByte(11)
+      ..write(obj.assetType);
   }
 
   @override
@@ -105,6 +108,60 @@ class TradeTypeAdapter extends TypeAdapter<TradeType> {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is TradeTypeAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class AssetTypeAdapter extends TypeAdapter<AssetType> {
+  @override
+  final int typeId = 4;
+
+  @override
+  AssetType read(BinaryReader reader) {
+    switch (reader.readByte()) {
+      case 0:
+        return AssetType.stock;
+      case 1:
+        return AssetType.future;
+      case 2:
+        return AssetType.crypto;
+      case 3:
+        return AssetType.option;
+      case 4:
+        return AssetType.other;
+      default:
+        return AssetType.stock;
+    }
+  }
+
+  @override
+  void write(BinaryWriter writer, AssetType obj) {
+    switch (obj) {
+      case AssetType.stock:
+        writer.writeByte(0);
+        break;
+      case AssetType.future:
+        writer.writeByte(1);
+        break;
+      case AssetType.crypto:
+        writer.writeByte(2);
+        break;
+      case AssetType.option:
+        writer.writeByte(3);
+        break;
+      case AssetType.other:
+        writer.writeByte(4);
+        break;
+    }
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AssetTypeAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

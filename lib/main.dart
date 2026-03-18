@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:trading_record_app/models/cash_flow.dart';
 import 'package:trading_record_app/models/trade.dart';
+import 'package:trading_record_app/models/dividend.dart';
 import 'package:trading_record_app/repositories/cash_flow_repository.dart';
 import '../screens/home_screen.dart';
 import 'package:provider/provider.dart';
@@ -13,8 +14,10 @@ void main() async {
 
   Hive.registerAdapter(TradeAdapter());
   Hive.registerAdapter(TradeTypeAdapter());
+  Hive.registerAdapter(AssetTypeAdapter());
   Hive.registerAdapter(CashFlowTypeAdapter());
   Hive.registerAdapter(CashFlowAdapter());
+  Hive.registerAdapter(DividendAdapter());
 
   runApp(
     MultiProvider(

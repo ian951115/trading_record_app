@@ -1,6 +1,7 @@
 //新增交易紀錄的頁面UI
 import 'package:flutter/material.dart';
-import 'package:trading_record_app/models/trade.dart';
+import '../models/trade.dart';
+import '../models/add_trade_result.dart';
 
 const Map<String, String> mockStockMap = {
   '2330': '台積電',
@@ -115,7 +116,7 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
       note: note.isEmpty ? null : note,
       tags: strategyTag.isEmpty ? [] : [strategyTag],
     );
-    Navigator.pop(context, trade);
+    Navigator.pop(context, AddTradeResult(trade: trade));
   }
 
   @override
