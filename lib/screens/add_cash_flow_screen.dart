@@ -1,4 +1,4 @@
-//資金新增 / 刪除頁面ui
+//入金/提領 頁面ui
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
@@ -85,7 +85,6 @@ class _AddCashFlowScreenState extends State<AddCashFlowScreen> {
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 decoration: const InputDecoration(
                   labelText: '金額',
-                  border: OutlineInputBorder(),
                 ),
                 validator: (value) { //像密碼錯誤的那種下方紅字提示
                   if (value == null || value.isEmpty) {
@@ -126,7 +125,6 @@ class _AddCashFlowScreenState extends State<AddCashFlowScreen> {
                 controller: _noteController,
                 decoration: const InputDecoration(
                   labelText: '備註(選填)',
-                  border: OutlineInputBorder(),
                 ),
               ),
 
