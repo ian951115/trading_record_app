@@ -3,11 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/add_trade_result.dart';
 import '../repositories/trade_repository.dart';
+import '../repositories/cash_flow_repository.dart';
 import '../models/trade.dart';
 import '../widgets/trade_data_filter_bar.dart';
 import '../widgets/trade_tile.dart';
 import '../screens/add_trade_screen.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import '../widgets/common/stats_strip.dart';
+import 'package:intl/intl.dart';
 
 class TradeListScreen extends StatefulWidget {
   const TradeListScreen({super.key});
@@ -20,7 +23,7 @@ class _TradeListScreenState extends State<TradeListScreen> {
   String selectedPeriod = 'all';
   DateTimeRange? customRange;
 
-  List<Trade> getFilteredTrades(List<Trade> allTrades) { //時間區間設定
+  List<Trade> getFilteredTrades(List<Trade> allTrades) { //時間區間篩選
     List<Trade> result;
 
     if(selectedPeriod == 'all') {
@@ -28,6 +31,7 @@ class _TradeListScreenState extends State<TradeListScreen> {
     } else {
       DateTime start;
       DateTime end = DateTime.now();
+
       if (selectedPeriod == 'custom' && customRange != null) { //自選
         start = customRange!.start;
         end = customRange!.end;
@@ -60,113 +64,287 @@ class _TradeListScreenState extends State<TradeListScreen> {
     return result;
   }
 
+  Map<String, dynamic> _calcStats(List<Trade> trades) { //計算統計數據
+    final formatter = NumberFormat('#,###');
+    final totalCount = trades.length; //交易筆數
+    final totalAmount = trades.fold( //總價金
+      0.0, (sum, t) => sum + t.amount,
+    );
+    final totalPnL = trades //損益
+        .where((t) => t.type == TradeType.sell)
+        .fold(0.0, (sum, t) => sum + t.netAmount);
+    final totalFee = trades.fold( //交易費用（手續費 + 證交稅）
+      0.0, (sum, t) => sum + t.fee + t.tax);
+    
+    return {
+      'count': totalCount.toString(),
+      'amount': formatter.format(totalAmount.toInt()),
+      'pnl': totalPnL >= 0
+          ? '+${formatter.format(totalPnL.toInt())}'
+          : formatter.format(totalPnL.toInt()),
+      'pnlColor': totalPnL >= 0
+          ? const Color(0xFFE8504A)
+          : const Color(0xFF3D9E6B),
+      'fee': formatter.format(totalFee.toInt()),
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
-    final repository = context.watch<TradeRepository>();
-    final allTrades = repository.getAllTrades(); //這兩行需在build裡，才有contxet
+    final tradeRepo = context.watch<TradeRepository>(); //需在build裡才有contxet
+    final cashRepo = context.watch<CashFlowRepository>();
+    final allTrades = tradeRepo.getAllTrades();
     final filteredTrades = getFilteredTrades(allTrades);
+    final stats = _calcStats(filteredTrades);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('交易明細'),
       ),
-      floatingActionButton: FloatingActionButton( //新增按鈕
+      body: Column(
+        children: [
+
+          // ── 篩選器 ────────────────────────
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _FilterChip(
+                    label: '全部',
+                    isActive: selectedPeriod == 'all',
+                    onTap: () => setState(() => selectedPeriod = 'all'),
+                  ),
+                  _FilterChip(
+                    label: '近一個月',
+                    isActive: selectedPeriod == '1m',
+                    onTap: () => setState(() => selectedPeriod = '1m'),
+                  ),
+                  _FilterChip(
+                    label: '近半年',
+                    isActive: selectedPeriod == '6m',
+                    onTap: () => setState(() => selectedPeriod = '6m'),
+                  ),
+                  _FilterChip(
+                    label: '近一年',
+                    isActive: selectedPeriod == '1y',
+                    onTap: () => setState(() => selectedPeriod = '1y'),
+                  ),
+                  _FilterChip(
+                    label: '近五年',
+                    isActive: selectedPeriod == '5y',
+                    onTap: () => setState(() => selectedPeriod = '5y'),
+                  ),
+                  _FilterChip(
+                    label: '自選',
+                    isActive: selectedPeriod == 'custom',
+                    onTap: () async {
+                      final range = await showDateRangePicker(
+                        context: context,
+                        firstDate: DateTime(1961),
+                        lastDate: DateTime.now(),
+                        initialDateRange: customRange,
+                      );
+                      if (range != null) {
+                        setState(() {
+                          selectedPeriod = 'custom';
+                          customRange = range;
+                        });
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const Divider(height: 1), //分隔線寬
+
+          // ── 統計列 ────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
+            child: StatsStrip(
+              cells: [
+                StatCell(
+                  label: '交易筆數',
+                  value: stats['count'],
+                ),
+                StatCell(
+                  label: '總價金',
+                  value: stats['amount'],
+                ),
+                StatCell(
+                  label: '損益',
+                  value: stats['pnl'],
+                  valueColor: stats['pnlColor'],
+                ),
+                StatCell(
+                  label: '交易費用',
+                  value: stats['fee'],
+                ),
+              ],
+            ),
+          ),
+
+          // ── 交易列表 ──────────────────────
+          Expanded(
+            child: filteredTrades.isEmpty
+                ? const Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                            Icons.receipt_long_outlined,
+                            size: 48,
+                            color: Color(0xFFE4E7ED),
+                        ),
+                        SizedBox(height: 12),
+                        Text(
+                          '尚無交易紀錄',
+                          style: TextStyle(
+                            color: Color(0xFF9AA3B2),
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 24),
+                  itemCount: filteredTrades.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 8), //_:不會用到此參數
+                  itemBuilder: (context, index) {
+                    final trade = filteredTrades[index];
+                    return Slidable(
+                      key: ValueKey(trade.id),
+                      endActionPane: ActionPane(
+                        motion: const DrawerMotion(),
+                        children: [
+                          SlidableAction( //編輯
+                            onPressed: (_) async {
+                              final result = await Navigator.push<AddTradeResult>(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => AddTradeScreen(editingTrade: trade),
+                                ),
+                              );
+                              if(result != null) {
+                                tradeRepo.updateTrade(trade, result.trade);
+                              }
+                            },
+                            backgroundColor: Color(0xFF4A6FA5),
+                            foregroundColor: Colors.white,
+                            icon: Icons.edit_outlined,
+                            label: '編輯',
+                          ),
+                          SlidableAction( //刪除
+                            onPressed: (_) async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (_) => AlertDialog(
+                                  title: const Text('刪除交易'),
+                                  content: const Text('確定要刪除這筆交易嗎?'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context, false),
+                                      child: const Text('取消'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context, true),
+                                      child: const Text(
+                                        '刪除',
+                                        style: TextStyle(color: Color(0xFFE8504A)),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if(confirm == true) {
+                                tradeRepo.removeTrade(trade);
+                              }
+                            },
+                            backgroundColor: Color(0xFFE8504A),
+                            foregroundColor: Colors.white,
+                            icon: Icons.delete_outline,
+                            label: '刪除',
+                            borderRadius: const BorderRadius.horizontal(
+                              right: Radius.circular(12)
+                            ),
+                          ),
+                        ],
+                      ),
+                      child: TradeTile(trade: trade),
+                    );
+                  },
+                ),
+          ),
+        ],
+      ),
+
+      // ── 新增按鈕 ──────────────────────────
+      floatingActionButton: FloatingActionButton(
         onPressed: () async {
           final result = await Navigator.push<AddTradeResult>(
             context,
             MaterialPageRoute(
-              builder: (context) => const AddTradeScreen(),
+              builder: (_) => const AddTradeScreen(),
             ),
           );
           if (result != null) {
-            repository.addTrade(result.trade);
+            tradeRepo.addTrade(result.trade);
+            if (result.autoDeposit != null) { //同時記錄入金
+              cashRepo.addFlow(result.autoDeposit!);
+            }
           }
         },
         child: const Icon(Icons.add),
       ),
-      body: Column(
-        children: [
-          TradeDataFilterBar(
-            onChanged: (value) {
-              setState(() {
-                selectedPeriod = value;
-              });
-            },
-            onRangeChanged: (range) {
-              setState(() {
-                selectedPeriod = 'custom';
-                customRange = range;
-              });
-            },
+    );
+  }
+}
+
+class _FilterChip extends StatelessWidget { //篩選器Chip
+  final String label;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _FilterChip({
+    required this.label,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+        decoration: BoxDecoration(
+          color: isActive
+              ? const Color(0xFF4A6FA5)
+              : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isActive
+                ? const Color(0xFF4A6FA5)
+                : const Color(0xFFE4E7ED),
           ),
-          const Divider(height: 1), //分隔線寬
-          Expanded(
-            child: ListView.separated(
-              itemCount: filteredTrades.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 4), //_:不會用到此參數
-              itemBuilder: (context, index) {
-                final trade = filteredTrades[index];
-                return Slidable(
-                  key: ValueKey(trade.hashCode),
-                  endActionPane: ActionPane(
-                    motion: const DrawerMotion(),
-                    children: [
-                      SlidableAction( //編輯
-                        onPressed: (_) async {
-                          final result = await Navigator.push<AddTradeResult>(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => AddTradeScreen(editingTrade: trade),
-                            ),
-                          );
-                          if(result != null) {
-                            repository.updateTrade(trade, result.trade);
-                          }
-                        },
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        icon: Icons.edit,
-                        label: '編輯',
-                      ),
-                      SlidableAction( //刪除
-                        onPressed: (_) async {
-                          final confirm = await showDialog(
-                            context: context,
-                            builder: (_) => AlertDialog(
-                              title: const Text('刪除交易'),
-                              content: const Text('確定要刪除這筆交易嗎?'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context, false),
-                                  child: const Text('取消'),
-                                ),
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context, true),
-                                  child: const Text(
-                                    '刪除',
-                                    style: TextStyle(color: Colors.red),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                          if(confirm == true) {
-                            repository.removeTrade(trade);
-                          }
-                        },
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
-                        icon: Icons.delete,
-                        label: '刪除',
-                      ),
-                    ],
-                  ),
-                  child: TradeTile(trade: trade),
-                );
-              },
-            ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: isActive
+                ? Colors.white
+                : const Color(0xFF5A6375),
           ),
-        ],
+        ),
       ),
     );
   }

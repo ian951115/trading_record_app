@@ -437,10 +437,6 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
   }
 }
 
-// ══════════════════════════════════════════════
-// 私有小元件（只在這個頁面用）
-// ══════════════════════════════════════════════
-
 class _AppTextField extends StatelessWidget {
   final String label;
   final String? hint;
