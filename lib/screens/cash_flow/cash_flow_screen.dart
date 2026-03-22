@@ -1,13 +1,14 @@
 //資金管理頁面ui
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../../widgets/common/stats_strip.dart';
 import '../../models/cash_flow.dart';
 import '../../repositories/cash_flow_repository.dart';
 import '../../repositories/trade_repository.dart';
+import '../../repositories/settings_repository.dart';
 import 'add_cash_flow_screen.dart';
 import '../../services/portfolio_service.dart';
-import 'package:intl/intl.dart';
 
 class CashFlowScreen extends StatelessWidget {
   const CashFlowScreen({super.key});
@@ -32,7 +33,11 @@ class CashFlowScreen extends StatelessWidget {
     //資金水位（現金 / 淨入金）
     final waterLevel = netCash == 0 ? 0.0 : (cash / netCash).clamp(0.0, 1.0);
     final waterPct = (waterLevel * 100).toStringAsFixed(1);
-    final isLow = waterLevel < 0.3;
+    final settingsRepo = context.watch<SettingsRepository>();
+    final threshold = settingsRepo.isReady
+        ? settingsRepo.settings.waterLevelThreshold
+        : 0.3;
+    final isLow = waterLevel < threshold;
 
     final cashColor = cash >= 0
         ? const Color(0xFF1A1F2E)

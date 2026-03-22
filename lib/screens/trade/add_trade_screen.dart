@@ -1,10 +1,12 @@
 //新增交易紀錄的頁面UI
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/trade.dart';
 import '../../models/add_trade_result.dart';
 import '../../models/cash_flow.dart';
 import '../../widgets/common/form_card.dart';
 import '../../widgets/common/section_title.dart';
+import '../../repositories/settings_repository.dart';
 
 const Map<String, String> mockStockMap = {
   '2330': '台積電',
@@ -38,7 +40,16 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
   double? taxRateOverride;
   double get feeRate => feeRateOverride ?? defaultFeeRate;
   double get taxRate => taxRateOverride ?? defaultTaxRate;
-  double get feeAmount => price * quantity * feeRate; //手續費(實際需再改，例如:必須大於1元等)
+  double get feeAmount {
+    if(!mounted) return price * quantity * feeRate;
+    final settings = context.read<SettingsRepository>().settings;
+    final calculated = price * quantity * feeRate;
+    //判斷以股還是以張
+    final minFee = quantity >= 1000
+        ? settings.minFeePerLot
+        : settings.minFeePerShare;
+    return calculated < minFee ? minFee : calculated;
+  }
   double get taxAmount => price * quantity * taxRate; //證交稅
   double get totalAmount { //總金額
     final base = price * quantity;
@@ -62,6 +73,18 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
   void initState() { //初始狀態設定
     super.initState();
     autoDepositAmount = totalAmount;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final settings = context.read<SettingsRepository>().settings;
+      setState(() {
+        defaultFeeRate = settings.defaultFeeRate;
+        defaultTaxRate = settings.defaultTaxRate;
+        autoDepositEnabled = settings.autoDepositDefault;
+        //更新controller顯示值
+        feeRateController.text = (defaultFeeRate * 100).toStringAsFixed(4);
+        taxRateController.text = (defaultTaxRate * 100).toStringAsFixed(3);
+      });
+    });
 
     if(widget.editingTrade != null) { //是編輯就把資料塞回
       final t = widget.editingTrade!;
