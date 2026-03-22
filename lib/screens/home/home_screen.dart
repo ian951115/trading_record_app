@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:trading_record_app/models/add_trade_result.dart';
+import 'package:trading_record_app/screens/settings/settings_screen.dart';
 import '../../repositories/cash_flow_repository.dart';
 import '../../repositories/trade_repository.dart';
 import '../cash_flow/cash_flow_screen.dart';
@@ -65,44 +66,15 @@ class _HomeScreenState extends State<HomeScreen> {
             title: const Text('交易紀錄'),
             actions: [
               IconButton(
-                icon: Icon(
-                  _isObscured
-                      ? Icons.visibility_off_outlined
-                      : Icons.visibility_outlined,
-                  color: const Color(0xFF4A6FA5),
+                icon: const Icon(
+                  Icons.settings_outlined,
+                  color: Color(0xFF4A6FA5),
                 ),
-                onPressed: () => setState(() => _isObscured = !_isObscured),
-              ),
-              Padding( //快速新增按鈕
-                padding: const EdgeInsets.only(right: 8),
-                child: IconButton(
-                  icon: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEBF0F8),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.add,
-                      size: 18,
-                      color: Color(0xFF4A6FA5),
-                    ),
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const SettingsScreen(),
                   ),
-                  onPressed: () async {
-                    final result = await Navigator.push<AddTradeResult>(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const AddTradeScreen(),
-                      ),
-                    );
-                    if (result != null) {
-                      tradeRepo.addTrade(result.trade);
-                      if (result.autoDeposit != null) {
-                        cashRepo.addFlow(result.autoDeposit!);
-                      }
-                    }
-                  },
                 ),
               ),
             ],
@@ -121,93 +93,126 @@ class _HomeScreenState extends State<HomeScreen> {
               delegate: SliverChildListDelegate([
                 
                 // ── Hero 卡片 ──────────────────
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Color(0xFF3D5A8A),
-                        Color(0xFF4A6FA5),
-                        Color(0xFF5E85BE),
-                      ],
+                Stack(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Color(0xFF3D5A8A),
+                            Color(0xFF4A6FA5),
+                            Color(0xFF5E85BE),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF4A6FA5).withValues(alpha: 0.3),
+                            blurRadius: 16,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          //第一行：標籤 + 佔位（讓眼睛按鈕的空間）
+                          Row(
+                            children: [
+                              const Text(
+                                '總資產估值',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.white70,
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                              const Spacer(),
+                              const SizedBox(width: 36), //眼睛按鈕的佔位
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _isObscured
+                                ? '＊＊＊＊＊'
+                                : formatter.format(totalAsset.toInt()),
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          const Divider(color: Colors.white24, height: 1),
+                          const SizedBox(height: 14),
+                          //只有有入金資料才顯示現金和市值
+                          if (hasCashData)
+                            Row(
+                              children: [
+                                _HeroStat(
+                                  label: '現金餘額',
+                                  value: _isObscured
+                                      ? '＊＊＊'
+                                      : formatter.format(cash.toInt()),
+                                ),
+                                const _HeroDivider(),
+                                _HeroStat(
+                                  label: '持倉市值',
+                                  value: _isObscured
+                                      ? '＊＊＊'
+                                      : formatter.format(marketValue.toInt()),
+                                ),
+                              ],
+                            )
+                          else
+                            Row(
+                              children: [
+                                _HeroStat(
+                                  label: '持倉市值',
+                                  value: _isObscured
+                                      ? '＊＊＊'
+                                      : formatter.format(marketValue.toInt()),
+                                ),
+                                const _HeroDivider(),
+                                _HeroStat(
+                                  label: '持倉檔數',
+                                  value: positions
+                                      .where((p) => p.quantity > 0)
+                                      .length
+                                      .toString(),
+                                ),
+                              ],
+                            ),
+                        ],
+                      ),
                     ),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF4A6FA5).withValues(alpha: 0.3),
-                        blurRadius: 16,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        '總資產估值',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.white70,
-                          letterSpacing: 1.2,
+
+                    Positioned( //右上角眼睛按鈕
+                      top: 8,
+                      right: 8,
+                      child: GestureDetector(
+                        onTap: () => setState(() => _isObscured = !_isObscured),
+                        child: Container(
+                          width: 32, height: 32,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            _isObscured
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                            size: 16,
+                            color: Colors.white70,
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _isObscured
-                            ? '＊＊＊＊＊'
-                            : formatter.format(totalAsset.toInt()),
-                        style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Divider(color: Colors.white24, height: 1),
-                      const SizedBox(height: 14),
-                      //只有有入金資料才顯示現金和市值
-                      if (hasCashData)
-                        Row(
-                          children: [
-                            _HeroStat(
-                              label: '現金餘額',
-                              value: _isObscured
-                                  ? '＊＊＊'
-                                  : formatter.format(cash.toInt()),
-                            ),
-                            const _HeroDivider(),
-                            _HeroStat(
-                              label: '持倉市值',
-                              value: _isObscured
-                                  ? '＊＊＊'
-                                  : formatter.format(marketValue.toInt()),
-                            ),
-                          ],
-                        )
-                      else
-                        Row(
-                          children: [
-                            _HeroStat(
-                              label: '持倉市值',
-                              value: _isObscured
-                                  ? '＊＊＊'
-                                  : formatter.format(marketValue.toInt()),
-                            ),
-                            const _HeroDivider(),
-                            _HeroStat(
-                              label: '持倉檔數',
-                              value: positions
-                                  .where((p) => p.quantity > 0)
-                                  .length
-                                  .toString(),
-                            ),
-                          ],
-                        ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
 
                 const SizedBox(height: 12),
@@ -368,6 +373,23 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final result = await Navigator.push<AddTradeResult>(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const AddTradeScreen(),
+            ),
+          );
+          if (result != null) {
+            tradeRepo.addTrade(result.trade);
+            if (result.autoDeposit != null) {
+              cashRepo.addFlow(result.autoDeposit!);
+            }
+          }
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }

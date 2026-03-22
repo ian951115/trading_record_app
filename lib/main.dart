@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:trading_record_app/models/cash_flow.dart';
-import 'package:trading_record_app/models/trade.dart';
-import 'package:trading_record_app/models/dividend.dart';
-import 'package:trading_record_app/repositories/cash_flow_repository.dart';
-import 'screens/home/home_screen.dart';
 import 'package:provider/provider.dart';
-import 'repositories/trade_repository.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import '../../models/cash_flow.dart';
+import '../../models/trade.dart';
+import '../../models/dividend.dart';
+import '../../models/app_settings.dart';
+import '../repositories/cash_flow_repository.dart';
+import '../repositories/trade_repository.dart';
+import '../repositories/settings_repository.dart';
+import 'screens/home/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,6 +20,7 @@ void main() async {
   Hive.registerAdapter(CashFlowTypeAdapter());
   Hive.registerAdapter(CashFlowAdapter());
   Hive.registerAdapter(DividendAdapter());
+  Hive.registerAdapter(AppSettingsAdapter());
 
   runApp(
     MultiProvider(
@@ -28,6 +31,9 @@ void main() async {
         ChangeNotifierProvider(
           create: (_) => CashFlowRepository(),
         ),
+        ChangeNotifierProvider(
+          create: (_) => SettingsRepository(),
+        )
       ],
       child: const TradingRecordApp(),
     ),
