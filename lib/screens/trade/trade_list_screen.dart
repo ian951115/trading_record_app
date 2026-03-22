@@ -1,15 +1,15 @@
 //交易明細頁面UI
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/add_trade_result.dart';
-import '../repositories/trade_repository.dart';
-import '../repositories/cash_flow_repository.dart';
-import '../models/trade.dart';
-import '../widgets/trade_data_filter_bar.dart';
-import '../widgets/trade_tile.dart';
-import '../screens/add_trade_screen.dart';
+import '../../models/add_trade_result.dart';
+import '../../repositories/trade_repository.dart';
+import '../../repositories/cash_flow_repository.dart';
+import '../../models/trade.dart';
+import '../../widgets/trade_data_filter_bar.dart';
+import '../../widgets/trade/trade_tile.dart';
+import 'add_trade_screen.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import '../widgets/common/stats_strip.dart';
+import '../../widgets/common/stats_strip.dart';
 import 'package:intl/intl.dart';
 
 class TradeListScreen extends StatefulWidget {

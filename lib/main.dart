@@ -3,7 +3,7 @@ import 'package:trading_record_app/models/cash_flow.dart';
 import 'package:trading_record_app/models/trade.dart';
 import 'package:trading_record_app/models/dividend.dart';
 import 'package:trading_record_app/repositories/cash_flow_repository.dart';
-import '../screens/home_screen.dart';
+import 'screens/home/home_screen.dart';
 import 'package:provider/provider.dart';
 import 'repositories/trade_repository.dart';
 import 'package:hive_flutter/hive_flutter.dart';
