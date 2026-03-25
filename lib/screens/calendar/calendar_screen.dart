@@ -100,13 +100,37 @@ class _CalendarScreenState extends State<CalendarScreen> {
       appBar: AppBar(
         title: const Text('收益日曆'),
         actions: [
-          IconButton(
-            icon: Icon(
-              _viewMode == CalendarViewMode.month
-                  ? Icons.grid_view
-                  : Icons.calendar_view_month
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFEBF0F8),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFC5D4EC)),
+              ),
+              child: Row(
+                children: [
+                  _ViewToggleBtn(
+                    label: '月',
+                    isActive: _viewMode == CalendarViewMode.month,
+                    onTap: () {
+                      if (_viewMode != CalendarViewMode.month) {
+                        _toggleViewMode();
+                      }
+                    },
+                  ),
+                  _ViewToggleBtn(
+                    label: '年',
+                    isActive: _viewMode == CalendarViewMode.year,
+                    onTap: () {
+                      if (_viewMode != CalendarViewMode.year) {
+                        _toggleViewMode();
+                      }
+                    },
+                  ),
+                ],
+              ),
             ),
-            onPressed: _toggleViewMode,
           ),
         ],
       ),
@@ -186,6 +210,41 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ),
           )
         ],
+      ),
+    );
+  }
+}
+
+class _ViewToggleBtn extends StatelessWidget {
+  final String label;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _ViewToggleBtn({
+    required this.label,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 12,vertical: 6),
+        decoration: BoxDecoration(
+          color: isActive ? const Color(0xFF4A6FA5) : Colors.transparent,
+          borderRadius: BorderRadius.circular(7)
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: isActive ? Colors.white : const Color(0xFF4A6FA5)
+          ),
+        ),
       ),
     );
   }

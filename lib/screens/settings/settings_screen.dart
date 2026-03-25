@@ -159,7 +159,7 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  // ── Bottom Sheets ────────────────────────
+  // ── 底部表單 ────────────────────────
 
   void _showPnlMethodSheet(
     BuildContext context,
@@ -284,9 +284,7 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
-// ══════════════════════════════════════════════
-// Bottom Sheet 元件
-// ══════════════════════════════════════════════
+//底部表單內容
 
 class _PnlMethodSheet extends StatelessWidget {
   final SettingsRepository repo;
@@ -398,7 +396,7 @@ class _MinFeeSheetState extends State<_MinFeeSheet> {
             style: TextStyle(fontSize: 12, color: Color(0xFF9AA3B2)),
           ),
           const SizedBox(height: 16),
-          Row(
+          Row( //輸入區
             children: [
               Expanded(
                 child: _SheetField(
@@ -416,7 +414,7 @@ class _MinFeeSheetState extends State<_MinFeeSheet> {
             ],
           ),
           const SizedBox(height: 20),
-          SizedBox(
+          SizedBox( //儲存
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {
@@ -481,7 +479,7 @@ class _NumberInputSheetState extends State<_NumberInputSheet> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const _SheetHandle(),
-          Text(
+          Text( //標題
             widget.title,
             style: const TextStyle(
               fontSize: 16,
@@ -490,7 +488,7 @@ class _NumberInputSheetState extends State<_NumberInputSheet> {
             ),
           ),
           const SizedBox(height: 16),
-          TextField(
+          TextField( //輸入框
             controller: _controller,
             autofocus: true,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -500,7 +498,7 @@ class _NumberInputSheetState extends State<_NumberInputSheet> {
             ),
           ),
           const SizedBox(height: 20),
-          SizedBox(
+          SizedBox( //按鈕
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {
@@ -590,7 +588,7 @@ class _AboutCard extends StatelessWidget { //名稱及版本顯示
   }
 }
 
-class _SectionLabel extends StatelessWidget { //設定標題
+class _SectionLabel extends StatelessWidget { //區塊標題
   final String title;
   const _SectionLabel({required this.title});
 
@@ -611,7 +609,7 @@ class _SectionLabel extends StatelessWidget { //設定標題
   }
 }
 
-class _SettingsGroup extends StatelessWidget { //設定群組
+class _SettingsGroup extends StatelessWidget { //區塊
   final List<Widget> children;
   const _SettingsGroup({required this.children});
 
@@ -635,7 +633,7 @@ class _SettingsGroup extends StatelessWidget { //設定群組
   }
 }
 
-class _SettingsDivider extends StatelessWidget {
+class _SettingsDivider extends StatelessWidget { //分隔線
   @override
   Widget build(BuildContext context) {
     return const Divider(height: 1, indent: 56);
@@ -667,7 +665,7 @@ class _SettingsToggleRow extends StatelessWidget { //開關切換
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          Container(
+          Container( //左邊徽章
             width: 32, height: 32,
             decoration: BoxDecoration(
               color: iconBg,
@@ -676,7 +674,7 @@ class _SettingsToggleRow extends StatelessWidget { //開關切換
             child: Icon(icon, size: 16, color: iconColor),
           ),
           const SizedBox(width: 12),
-          Expanded(
+          Expanded( //中間資訊
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -740,7 +738,7 @@ class _SettingsNavRow extends StatelessWidget { //點擊彈出下方表單
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           children: [
-            Container(
+            Container( //左邊徽章
               width: 32, height: 32,
               decoration: BoxDecoration(
                 color: iconBg,
@@ -749,7 +747,7 @@ class _SettingsNavRow extends StatelessWidget { //點擊彈出下方表單
               child: Icon(icon, size: 16, color: iconColor),
             ),
             const SizedBox(width: 12),
-            Expanded(
+            Expanded( //中間資訊
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -771,7 +769,7 @@ class _SettingsNavRow extends StatelessWidget { //點擊彈出下方表單
                 ],
               ),
             ),
-            if (value != null) ...[
+            if (value != null) ...[ //右邊顯示設定值
               Text(
                 value!,
                 style: const TextStyle(
@@ -782,7 +780,7 @@ class _SettingsNavRow extends StatelessWidget { //點擊彈出下方表單
               ),
               const SizedBox(width: 4),
             ],
-            const Icon(
+            const Icon( //最右邊箭頭
               Icons.chevron_right,
               size: 18,
               color: Color(0xFF9AA3B2),
@@ -794,7 +792,7 @@ class _SettingsNavRow extends StatelessWidget { //點擊彈出下方表單
   }
 }
 
-class _SheetHandle extends StatelessWidget {
+class _SheetHandle extends StatelessWidget { //底部表單上方佔位
   const _SheetHandle();
 
   @override
@@ -846,7 +844,7 @@ class _OptionTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Expanded(
+            Expanded( //選項文本區
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -871,7 +869,7 @@ class _OptionTile extends StatelessWidget {
                 ],
               ),
             ),
-            if (isSelected)
+            if (isSelected) //右邊勾勾
               const Icon(
                 Icons.check_circle,
                 color: Color(0xFF4A6FA5),

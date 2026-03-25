@@ -1,5 +1,6 @@
-//每日交易表單的顯示元件
+//點擊日期彈出的交易明細Bottom Sheet元件
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../models/trade.dart';
 
 class DayTradesSheet extends StatelessWidget {
@@ -9,6 +10,7 @@ class DayTradesSheet extends StatelessWidget {
   final ScrollController scrollController;
 
   const DayTradesSheet({
+    super.key,
     required this.date,
     required this.trades,
     required this.pnl,
@@ -17,44 +19,198 @@ class DayTradesSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      controller: scrollController,
-      padding: const EdgeInsets.all(16),        
-      children: [
-        Text(
-          '${date.year}-${date.month}-${date.day}',
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          '當日損益: ${pnl.toStringAsFixed(0)}',
-          style: TextStyle(
-            color: pnl >= 0 ? Colors.red : Colors.green,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 16),
-        if (trades.isEmpty)
-          const Text('沒有交易'),
-        
-        ...trades.map((t) {
-          return ListTile(
-            title: Text(t.symbol),
-            subtitle: Text(t.type.name),
-            trailing: Text(
-              t.netAmount.toStringAsFixed(0),
-              style: TextStyle(
-                color: t.netAmount >= 0
-                    ? Colors.red
-                    : Colors.green,
+    final formatter = NumberFormat('#,###');
+    final weekdays = ['一', '二', '三', '四', '五', '六', '日'];
+    final weekday = weekdays[date.weekday - 1];
+    final dateStr = '${date.year} 年 ${date.month} 月 ${date.day} 日（$weekday）';
+
+    final pnlColor = pnl > 0
+        ? const Color(0xFFE8504A)
+        : pnl < 0
+            ? const Color(0xFF3D9E6B)
+            : const Color(0xFF9AA3B2);
+
+    final pnlText = pnl == 0
+        ? '—'
+        : (pnl > 0 ? '+' : '') + formatter.format(pnl.toInt());
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: ListView(
+        controller: scrollController,
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+        children: [
+          Center( //拖曳把手
+            child: Container(
+              width: 36, height: 4,
+              margin: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE4E7ED),
+                borderRadius: BorderRadius.circular(2),
               ),
             ),
-          );
-        }),
-      ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    dateStr,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1A1F2E),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${trades.length} 筆交易',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: Color(0xFF9AA3B2),
+                    ),
+                  ),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  const Text(
+                    '當日損益',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Color(0xFF9AA3B2),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    pnlText,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: pnlColor,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 14),
+          const Divider(height: 1),
+          const SizedBox(height: 12),
+
+          if (trades.isEmpty) //交易列表
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Text(
+                  '這天沒有交易紀錄',
+                  style: TextStyle(
+                    color: Color(0xFF9AA3B2),
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            )
+          else
+            ...trades.map((t) => _TradeTile(trade: t, formatter: formatter)),
+        ],
+      ),
+    );
+  }
+}
+
+class _TradeTile extends StatelessWidget {
+  final Trade trade;
+  final NumberFormat formatter;
+
+  const _TradeTile({
+    required this.trade,
+    required this.formatter,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isBuy = trade.type == TradeType.buy;
+    final badgeColor = isBuy
+        ? const Color(0xFFEBF0F8)
+        : const Color(0xFFFFF3E0);
+    final badgeTextColor = isBuy
+        ? const Color(0xFF4A6FA5)
+        : const Color(0xFFE07B20);
+
+    final netText = isBuy
+        ? '-${formatter.format(trade.buyCost.toInt())}'
+        : '+${formatter.format(trade.sellIncome.toInt())}';
+    final neyColor = isBuy
+        ? const Color(0xFF3D9E6B)
+        : const Color(0xFFE8504A);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF7F8FA),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE4E7ED)),
+      ),
+      child: Row(
+        children: [
+          Container( //買/賣 徽章
+            width: 32, height: 32,
+            decoration: BoxDecoration(
+              color: badgeColor,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              isBuy ? '買' : '賣',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: badgeTextColor,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded( //名稱 + 數量
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${trade.name} (${trade.symbol})',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1A1F2E),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${trade.quantity} 股 @ ${trade.price}',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFF9AA3B2),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Text( //應收付
+            netText,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: neyColor,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import '../../models/cash_flow.dart';
 import '../../models/trade.dart';
 import '../../models/dividend.dart';
@@ -12,6 +13,7 @@ import 'screens/home/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('zh_TW');
   await Hive.initFlutter(); //初始化hive
 
   Hive.registerAdapter(TradeAdapter());

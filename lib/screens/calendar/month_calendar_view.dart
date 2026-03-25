@@ -39,15 +39,35 @@ class MonthCalendarView extends StatelessWidget {
       selectedDayPredicate: (day) => isSameDay(selectedDay, day),
       onDaySelected: onDaySelected,
       onPageChanged: onPageChanged,
-      headerStyle: const HeaderStyle(
+      headerStyle: HeaderStyle(
         formatButtonVisible: false,
         titleCentered: true,
+        titleTextFormatter: (date, locale) =>
+            '${date.year} 年 ${date.month} 月',
+        titleTextStyle: const TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w700,
+          color: Color(0xFF1A1F2E)
+        )
       ),
       calendarStyle: const CalendarStyle(
         selectedDecoration: BoxDecoration(),
         todayDecoration: BoxDecoration(),
         outsideDaysVisible: false,
       ),
+      daysOfWeekStyle: const DaysOfWeekStyle(
+        weekdayStyle: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: Color(0xFF9AA3B2),
+        ),
+        weekendStyle: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: Color(0xFFE8504A),
+        ),
+      ),
+      locale: 'zh_TW',
       calendarBuilders: CalendarBuilders(
         selectedBuilder: (context, day, _) {
           final key = DateTime(day.year, day.month, day.day);
