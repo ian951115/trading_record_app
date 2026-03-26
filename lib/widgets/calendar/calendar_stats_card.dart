@@ -73,7 +73,7 @@ class CalendarStatsCard extends StatelessWidget {
                 label: '月損益',
                 value: pnl == 0
                     ? '—'
-                    : (pnl > 0 ? '+' : '-') + formatter.format(pnl.toInt()),
+                    : (pnl > 0 ? '+' : '') + formatter.format(pnl.toInt()),
                 valueColor: pnlColor,
               ),
               const _Divider(),

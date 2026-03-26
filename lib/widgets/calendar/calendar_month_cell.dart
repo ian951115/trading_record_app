@@ -1,5 +1,6 @@
 //月份格子資訊顯示元件
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../services/calendar_service.dart';
 import '../charts/mini_sparkline.dart';
 
@@ -23,41 +24,95 @@ class CalendarMonthCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final formatter = NumberFormat('#,###');
     final pnl = data?.totalPnL ?? 0;
+    final hasData = data != null && data!.tradeCount > 0;
+
+    Color bgColor;
+    Color borderColor;
+    if (!hasData) {
+      bgColor = Colors.white;
+      borderColor = const Color(0xFFE4E7ED);
+    } else if (pnl > 0) {
+      bgColor = const Color(0xFFFDF0EF);
+      borderColor = const Color(0xFFF5C4C2);
+    } else if (pnl < 0) {
+      bgColor = const Color(0xFFEEF7F2);
+      borderColor = const Color(0xFFB8DFC9);
+    } else {
+      bgColor = const Color(0xFFF7F8FA);
+      borderColor = const Color(0xFFE4E7ED);
+    }
+
+    final pnlColor = pnl > 0
+        ? const Color(0xFFE8504A)
+        : pnl < 0
+            ? const Color(0xFF3D9E6B)
+            : const Color(0xFF9AA3B2);
+
+    final pnlText = !hasData
+        ? '—'
+        : (pnl > 0 ? '+' : '') + formatter.format(pnl.toInt());
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+        padding: EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: heatmapColor(pnl),
+          color: bgColor,
           borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: borderColor),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 4,
+              offset: const Offset(0, 1),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('$month 月', style: const TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 4),
-            SizedBox(
-              height: 28,
-              child: Opacity(
-                opacity: 0.75,
-                child: MiniSparkline(data: data?.equitySequence ?? []),
-              )
-            ),
-            const Spacer(),
-            Text(
-              formatPnL(pnl),
+            Text( //月份標題
+              '$month 月',
               style: const TextStyle(
-                fontSize: 13,
-                letterSpacing: 0.3,
-                fontWeight: FontWeight.bold
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF5A6375),
               ),
             ),
-            if ((data?.totalDividend ?? 0) != 0)
+            if (hasData) //迷你走勢線（有資料才顯示）
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: SizedBox(
+                  height: 20,
+                  child: Opacity(
+                    opacity: 0.6,
+                    child: MiniSparkline(
+                      data: data!.equitySequence,
+                    ),
+                  ),
+                ),
+              )
+            else
+              const SizedBox(height: 28),
+
+            const Spacer(),
+            Text( //損益金額
+              pnlText,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: pnlColor,
+              ),
+            ),
+
+            if (hasData) //交易筆數 + 勝率
               Text(
-                'Div ${formatPnL(data!.totalDividend)}',
-                style: const TextStyle(fontSize: 10, color: Colors.blue),
+                '${data!.tradeCount} 筆・${(data!.winRate * 100).toStringAsFixed(0)}%',
+                style: const TextStyle(
+                  fontSize: 9,
+                  color: Color(0xFF9AA3B2),
+                ),
               ),
           ],
         ),

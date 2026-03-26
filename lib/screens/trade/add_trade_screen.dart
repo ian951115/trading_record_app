@@ -40,16 +40,7 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
   double? taxRateOverride;
   double get feeRate => feeRateOverride ?? defaultFeeRate;
   double get taxRate => taxRateOverride ?? defaultTaxRate;
-  double get feeAmount {
-    if(!mounted) return price * quantity * feeRate;
-    final settings = context.read<SettingsRepository>().settings;
-    final calculated = price * quantity * feeRate;
-    //判斷以股還是以張
-    final minFee = quantity >= 1000
-        ? settings.minFeePerLot
-        : settings.minFeePerShare;
-    return calculated < minFee ? minFee : calculated;
-  }
+  double get feeAmount => price * quantity * feeRate;
   double get taxAmount => price * quantity * taxRate; //證交稅
   double get totalAmount { //總金額
     final base = price * quantity;
@@ -135,6 +126,16 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
   }
 
   void _saveTrade() { //儲存交易
+    double finalFee = feeAmount;
+    if (mounted) {
+      final settings = context.read<SettingsRepository>().settings;
+      //判斷以股還是以張
+      final minFee = quantity >= 1000
+          ? settings.minFeePerLot
+          : settings.minFeePerShare;
+      if (finalFee < minFee) finalFee = minFee;
+    }
+
     final trade = Trade(
       date: selectedDate,
       symbol: stockCode,
@@ -142,7 +143,7 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
       type: isBuy ? TradeType.buy : TradeType.sell,
       price: price,
       quantity: quantity,
-      fee: feeAmount,
+      fee: finalFee,
       tax: isBuy ? 0 : taxAmount,
       note: note.isEmpty ? null : note,
       tags: strategyTag.isEmpty ? [] : [strategyTag],
