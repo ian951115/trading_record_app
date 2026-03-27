@@ -1,12 +1,13 @@
 //庫存模型
-import 'trade.dart';
 
 class Position { //all
   final String symbol;
   final String name;
   int quantity = 0; //現在還剩幾股
   double totalCost = 0; //尚未賣出的持倉成本
-  double realizedPnL =0; //已實現損益（賣出） PnL=Profit and Loss
+  double realizedPnL =0; //已實現損益（賣出）PnL=Profit and Loss
+  double? livePrice; //API拉取的現價（null=尚未取得）
+  DateTime? firstBuyDate; //第一次買入日期
 
   Position({
     required this.symbol,
@@ -15,9 +16,16 @@ class Position { //all
 
   double get avgCost => quantity == 0 ? 0 : totalCost / quantity;
 
-  double get mockPrice => avgCost * 1.05; //暫時假設漲5%，只是讓畫面能跑
-  double get marketValue => mockPrice * quantity; //市值
+  //現價優先用 livePrice，沒有的話用 avgCost*1.05（暫時假設）
+  double get currentPrice => livePrice ?? avgCost * 1.05;
+
+  double get marketValue => currentPrice * quantity; //市值
   double get unrealizedPnL => marketValue - totalCost; //未實現損益
   double get unrealizedReturn => //未實現報酬率
        totalCost == 0 ? 0 : (unrealizedPnL / totalCost) * 100;
+
+  int get holdingDays { //持有天數計算
+    if (firstBuyDate == null || quantity == 0) return 0;
+    return DateTime.now().difference(firstBuyDate!).inDays;
+  }
 }
