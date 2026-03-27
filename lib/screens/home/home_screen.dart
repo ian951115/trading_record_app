@@ -11,7 +11,6 @@ import '../../services/position_service.dart';
 import '../../services/portfolio_service.dart';
 import '../trade/trade_list_screen.dart';
 import '../position/position_list_screen.dart';
-import '../cash_flow/cash_flow_screen.dart';
 import '../calendar/calendar_screen.dart';
 import '../trade/add_trade_screen.dart';
 import '../../widgets/common/stats_strip.dart';

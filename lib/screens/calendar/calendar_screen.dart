@@ -36,9 +36,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return applyTradeFilter(allTrades, _filter);
   }
 
-  void _showDayTrades(DateTime day) {
+  void _showDayTrades(DateTime day, Map<DateTime, DailyPnl> map) {
     final key = DateTime(day.year, day.month, day.day);
-    final daily = dailyPnLMap[key];
+    final daily = map[key];
     final trades = daily?.trades ?? [];
 
     showModalBottomSheet(
@@ -46,7 +46,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       isScrollControlled: true,
       builder: (_) {
         return DraggableScrollableSheet(
-          initialChildSize: 0.4,
+          initialChildSize: 0.45,
           minChildSize: 0.25,
           maxChildSize: 0.9,
           expand: false,
@@ -176,7 +176,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         selectedDay =selected;
                         focusedDay = focused;
                       });
-                      _showDayTrades(selected);
+                      _showDayTrades(selected, dailyPnLMap);
                     },
                     onPageChanged: (focused) {
                       setState(() {
