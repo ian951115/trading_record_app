@@ -2,8 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import 'package:trading_record_app/models/add_trade_result.dart';
-import 'package:trading_record_app/screens/settings/settings_screen.dart';
+import '../../models/add_trade_result.dart';
+import '../settings/settings_screen.dart';
 import '../../repositories/cash_flow_repository.dart';
 import '../../repositories/trade_repository.dart';
 import '../cash_flow/cash_flow_screen.dart';
