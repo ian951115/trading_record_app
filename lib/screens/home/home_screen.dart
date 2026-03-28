@@ -11,6 +11,7 @@ import '../../services/position_service.dart';
 import '../../services/portfolio_service.dart';
 import '../trade/trade_list_screen.dart';
 import '../position/position_list_screen.dart';
+import '../position/stock_performance_screen.dart';
 import '../calendar/calendar_screen.dart';
 import '../trade/add_trade_screen.dart';
 import '../charts/charts_screen.dart';
@@ -320,11 +321,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         MaterialPageRoute(builder: (_) => const CashFlowScreen())),
                     ),
                     _QuickItem(
-                      icon: Icons.more_horiz,
-                      label: '更多',
-                      color: const Color(0xFFF7F8FA),
-                      iconColor: const Color(0xFF9AA3B2),
-                      onTap: () {},
+                      icon: Icons.bar_chart,
+                      label: '個股績效',
+                      color: const Color(0xFFEBF0F8),
+                      iconColor: const Color(0xFF4A6FA5),
+                      onTap: () => Navigator.push(context,
+                      MaterialPageRoute(builder: (_) => const StockPerformanceScreen())),
                     ),
                   ],
                 ),
