@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../repositories/trade_repository.dart';
+import '../../repositories/dividend_repository.dart';
 import '../../services/position_service.dart';
 import '../../services/stock_price_service.dart';
 import '../../models/position.dart';
@@ -64,7 +65,14 @@ class _PositionListScreenState extends State<PositionListScreen>
   Widget build(BuildContext context) {
     final repository = context.watch<TradeRepository>();
     final trades = repository.getAllTrades();
-    final result = buildPositions(trades); //庫存(包含剩餘股數=0)
+    final divRepo = context.watch<DividendRepository>();
+    final dividends = divRepo.getAllDividends();
+
+    final result = buildPositions(
+      trades,
+      dividends: dividends,
+    );
+
     final formatter = NumberFormat('#,###');
 
     final allPositions = result.positions;

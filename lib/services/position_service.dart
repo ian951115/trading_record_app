@@ -2,6 +2,7 @@
 import '../models/trade.dart';
 import '../models/position.dart';
 import '../models/stock_performance.dart';
+import '../models/dividend.dart';
 
 class PositionResult { //buildPositions的回傳結果
   final List<Position> positions;
@@ -24,7 +25,10 @@ class BuyLot { //某一次買進的剩餘股數與價格
 }
 
 //庫存計算服務
-PositionResult buildPositions(List<Trade> trades) { //FIFO主函式
+PositionResult buildPositions(
+  List<Trade> trades, {
+  List<Dividend> dividends = const [],
+}) { //FIFO主函式
   final Map<String, Position> positionMap = {}; //存每檔股票的最終庫存
   final Map<String, List<BuyLot>> buyLotMap = {}; //存FIFO用的買進批次
   final Map<String, double> tradePnLMap = {};
@@ -84,6 +88,22 @@ PositionResult buildPositions(List<Trade> trades) { //FIFO主函式
       tradePnLMap[trade.id] = thisTradeRealizedPnL; //記錄這筆賣出的損益
     }
   }
+
+    // 🆕 在 return 之前，套用股票股利
+  final sortedDivs = dividends
+    .where((d) => d.type == DividendType.stock)
+    .toList()
+    ..sort((a,b) => a.date.compareTo(b.date));
+
+  for (final div in sortedDivs) {
+    final pos = positionMap[div.symbol];
+    if (pos == null || pos.quantity == 0) continue;
+    // 增加股數，成本不變 → 均價稀釋
+    pos.quantity += div.shareAmount;
+    // totalCost 不變，avgCost 自動被 getter 重算
+  }
+
+
   return PositionResult(
     positions: positionMap.values.toList(),
     tradePnLMap: tradePnLMap,

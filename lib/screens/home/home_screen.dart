@@ -15,6 +15,7 @@ import '../position/stock_performance_screen.dart';
 import '../calendar/calendar_screen.dart';
 import '../trade/add_trade_screen.dart';
 import '../charts/charts_screen.dart';
+import '../dividend/dividend_screen.dart';
 import '../../widgets/common/stats_strip.dart';
 import '../../widgets/trade/trade_tile.dart';
 
@@ -310,7 +311,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       label: '股利紀錄',
                       color: const Color(0xFFEEF7F2),
                       iconColor: const Color(0xFF3D9E6B),
-                      onTap: () {},
+                      onTap: () => Navigator.push(context,
+                      MaterialPageRoute(builder: (_) => const DividendScreen())),
                     ),
                     _QuickItem(
                       icon: Icons.account_balance_wallet_outlined,

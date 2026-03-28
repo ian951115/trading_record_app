@@ -9,6 +9,7 @@ import '../../models/app_settings.dart';
 import '../repositories/cash_flow_repository.dart';
 import '../repositories/trade_repository.dart';
 import '../repositories/settings_repository.dart';
+import '../repositories/dividend_repository.dart';
 import 'screens/home/home_screen.dart';
 
 void main() async {
@@ -22,6 +23,7 @@ void main() async {
   Hive.registerAdapter(CashFlowTypeAdapter());
   Hive.registerAdapter(CashFlowAdapter());
   Hive.registerAdapter(DividendAdapter());
+  Hive.registerAdapter(DividendTypeAdapter());
   Hive.registerAdapter(AppSettingsAdapter());
 
   runApp(
@@ -35,6 +37,9 @@ void main() async {
         ),
         ChangeNotifierProvider(
           create: (_) => SettingsRepository(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => DividendRepository(),
         )
       ],
       child: const TradingRecordApp(),
