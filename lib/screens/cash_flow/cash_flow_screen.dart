@@ -203,7 +203,7 @@ class CashFlowScreen extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            isLow ? '⚠️ 水位偏低（低於 30%）' : '水位正常',
+                            isLow ? '⚠️ 水位偏低（低於 ${threshold * 100}%）' : '水位正常',
                             style: TextStyle(
                               fontSize: 10,
                               color: isLow

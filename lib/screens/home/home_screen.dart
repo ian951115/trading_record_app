@@ -13,6 +13,7 @@ import '../trade/trade_list_screen.dart';
 import '../position/position_list_screen.dart';
 import '../calendar/calendar_screen.dart';
 import '../trade/add_trade_screen.dart';
+import '../charts/charts_screen.dart';
 import '../../widgets/common/stats_strip.dart';
 import '../../widgets/trade/trade_tile.dart';
 
@@ -300,7 +301,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       label: '各式圖表',
                       color: const Color(0xFFEBF0F8),
                       iconColor: const Color(0xFF4A6FA5),
-                      onTap: () {},
+                      onTap: () => Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => const ChartsScreen())),
                     ),
                     _QuickItem(
                       icon: Icons.savings_outlined,
