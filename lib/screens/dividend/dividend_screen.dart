@@ -1,4 +1,4 @@
-//
+//股利頁面
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -10,8 +10,7 @@ import 'add_dividend_screen.dart';
 class DividendScreen extends StatefulWidget {
   const DividendScreen({super.key});
   @override
-  State<DividendScreen> createState()
-      => _DividendScreenState();
+  State<DividendScreen> createState() => _DividendScreenState();
 }
 
 enum _DivFilter { all, cash, stock }
@@ -35,127 +34,156 @@ class _DividendScreenState extends State<DividendScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('股利紀錄')),
-      body: Column(children: [
-        Expanded(child: ListView(children: [
-          // Hero 卡片
-          Container(
-            margin: const EdgeInsets.fromLTRB(14,12,14,0),
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFF2D6A4F),Color(0xFF3D9E6B)],
-              ),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [BoxShadow(
-                color: const Color(0xFF3D9E6B)
-                    .withValues(alpha: 0.3),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
-              )],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView(
               children: [
-                const Text('累計股利收入', style: TextStyle(
-                  fontSize:10, color:Colors.white60,
-                  letterSpacing:1)),
-                const SizedBox(height: 4),
-                Text(
-                  formatter.format(
-                    repo.totalCashDividend.toInt()),
-                  style: const TextStyle(
-                    fontSize:24, fontWeight:FontWeight.w700,
-                    color:Colors.white)),
-                const SizedBox(height: 14),
-                const Divider(color:Colors.white24, height:1),
-                const SizedBox(height: 12),
-                Row(children: [
-                  _DivHeroStat(label:'現金股利',
-                    value: formatter.format(
-                      repo.totalCashDividend.toInt())),
-                  _DivHeroDivider(),
-                  _DivHeroStat(label:'股票股利',
-                    value: '${repo.totalShareDividend} 股'),
-                  _DivHeroDivider(),
-                  _DivHeroStat(label:'扣費後淨額',
-                    value: formatter.format(
-                      repo.totalNetCashDividend.toInt()),
-                    valueColor: const Color(0xFFB8F0D0)),
-                ]),
+                Container( //Hero卡片
+                  margin: const EdgeInsets.fromLTRB(14, 12, 14, 0),
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFF2D6A4F),Color(0xFF3D9E6B)],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [BoxShadow(
+                      color: const Color(0xFF3D9E6B).withValues(alpha: 0.3),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    )],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        '累計股利收入',
+                        style: TextStyle(
+                          fontSize:10,
+                          color:Colors.white60,
+                          letterSpacing:1,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        formatter.format(repo.totalCashDividend.toInt()),
+                        style: const TextStyle(
+                          fontSize:24, fontWeight:FontWeight.w700,
+                          color:Colors.white)),
+                      const SizedBox(height: 14),
+                      const Divider(color:Colors.white24, height:1),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          _DivHeroStat(
+                            label:'現金股利',
+                            value: formatter.format(repo.totalCashDividend.toInt()),
+                          ),
+                          _DivHeroDivider(),
+                          _DivHeroStat(
+                            label:'股票股利',
+                            value: '${repo.totalShareDividend} 股',
+                          ),
+                          _DivHeroDivider(),
+                          _DivHeroStat(
+                            label:'扣費後淨額',
+                            value: formatter.format(repo.totalNetCashDividend.toInt()),
+                            valueColor: const Color(0xFFB8F0D0),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+          
+                Padding( //Stats
+                  padding: const EdgeInsets.symmetric(horizontal:14),
+                  child: StatsStrip(
+                    cells: [
+                      StatCell(
+                        label:'配息次數',
+                        value: '${all.length}',
+                      ),
+                      StatCell(
+                        label:'二代健保',
+                        value: formatter.format(repo.totalHealthInsurance.toInt()),
+                      ),
+                      StatCell(
+                        label:'手續費',
+                        value: formatter.format(repo.totalFee.toInt()),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+          
+                SingleChildScrollView( //Filter chips
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal:14, vertical:6),
+                  child: Row(
+                    children: [
+                      _DivFilterChip(
+                        label:'全部',
+                        isActive: _filter == _DivFilter.all,
+                        onTap: () => setState(() => _filter = _DivFilter.all),
+                      ),
+                      _DivFilterChip(
+                        label:'現金股利',
+                        isActive: _filter == _DivFilter.cash,
+                        onTap: () => setState(() => _filter = _DivFilter.cash),
+                      ),
+                      _DivFilterChip(
+                        label:'股票股利',
+                        isActive: _filter == _DivFilter.stock,
+                        onTap: () => setState(() => _filter = _DivFilter.stock),
+                      ),
+                    ],
+                  ),
+                ),
+          
+                Padding( //列表標題
+                  padding: const EdgeInsets.fromLTRB(14, 4, 14, 8),
+                  child: Text(
+                    '股利紀錄',
+                    style: const TextStyle(
+                      fontSize:14,
+                      fontWeight:FontWeight.w700,
+                      color:Color(0xFF1A1F2E),
+                    ),
+                  ),
+                ),
+          
+                if (filtered.isEmpty) //列表
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(32),
+                      child: Text(
+                        '尚無股利紀錄',
+                        style: TextStyle(color: Color(0xFF9AA3B2)),
+                      ),
+                    ),      
+                  )
+                else
+                  ...filtered.map((d) => _DividendTile(
+                    dividend: d,
+                    formatter: formatter,
+                    onDelete: () => repo.removeDividend(d.id),
+                  )),
+                const SizedBox(height: 80),
               ],
             ),
           ),
-
-          const SizedBox(height: 10),
-          // Stats
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal:14),
-            child: StatsStrip(cells: [
-              StatCell(label:'配息次數',
-                value: '${all.length}'),
-              StatCell(label:'二代健保',
-                value: formatter.format(
-                  repo.totalHealthInsurance.toInt())),
-              StatCell(label:'手續費',
-                value: formatter.format(
-                  repo.totalFee.toInt())),
-            ]),
-          ),
-
-          const SizedBox(height: 8),
-          // Filter chips
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(
-              horizontal:14, vertical:6),
-            child: Row(children: [
-              _DivFilterChip(label:'全部',
-                isActive: _filter==_DivFilter.all,
-                onTap: ()=>setState(
-                  ()=>_filter=_DivFilter.all)),
-              _DivFilterChip(label:'現金股利',
-                isActive: _filter==_DivFilter.cash,
-                onTap: ()=>setState(
-                  ()=>_filter=_DivFilter.cash)),
-              _DivFilterChip(label:'股票股利',
-                isActive: _filter==_DivFilter.stock,
-                onTap: ()=>setState(
-                  ()=>_filter=_DivFilter.stock)),
-            ]),
-          ),
-
-          // 列表標題
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14,4,14,8),
-            child: Text('股利紀錄', style: const TextStyle(
-              fontSize:14, fontWeight:FontWeight.w700,
-              color:Color(0xFF1A1F2E))),
-          ),
-
-          // 列表
-          if (filtered.isEmpty)
-            const Center(child: Padding(
-              padding: EdgeInsets.all(32),
-              child: Text('尚無股利紀錄',
-                style: TextStyle(
-                  color: Color(0xFF9AA3B2))),
-            ))
-          else
-            ...filtered.map((d) => _DividendTile(
-              dividend: d,
-              formatter: formatter,
-              onDelete: () => repo.removeDividend(d.id),
-            )),
-          const SizedBox(height: 80),
-        ])),
-      ]),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFF3D9E6B),
         onPressed: () => Navigator.push(context,
-          MaterialPageRoute(
-            builder: (_) => const AddDividendScreen())),
+          MaterialPageRoute(builder: (_) => const AddDividendScreen())),
         child: const Icon(Icons.add),
       ),
     );
@@ -171,25 +199,34 @@ class _DivHeroStat extends StatelessWidget { //Hero統計小元件
   });
   @override
   Widget build(BuildContext context) => Expanded(
-    child: Column(children: [
-      Text(label, style: const TextStyle(
-        fontSize:9, color:Colors.white60)),
-      const SizedBox(height: 3),
-      Text(value, style: TextStyle(
-        fontSize:12, fontWeight:FontWeight.w700,
-        color:valueColor)),
-    ]),
+    child: Column(
+      children: [
+        Text(
+          label,
+          style: const TextStyle(fontSize:9, color:Colors.white60),
+        ),
+        const SizedBox(height: 3),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize:12,
+            fontWeight:FontWeight.w700,
+            color:valueColor,
+          ),
+        ),
+      ],
+    ),
   );
 }
 
-class _DivHeroDivider extends StatelessWidget { //篩選 Chip
+class _DivHeroDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     width:1, height:28, color:Colors.white24,
     margin: const EdgeInsets.symmetric(horizontal:4));
 }
 
-class _DivFilterChip extends StatelessWidget {
+class _DivFilterChip extends StatelessWidget { //篩選Chip
   final String label;
   final bool isActive;
   final VoidCallback onTap;
@@ -203,21 +240,27 @@ class _DivFilterChip extends StatelessWidget {
     child: AnimatedContainer(
       duration: const Duration(milliseconds:150),
       margin: const EdgeInsets.only(right:8),
-      padding: const EdgeInsets.symmetric(
-        horizontal:14, vertical:6),
+      padding: const EdgeInsets.symmetric(horizontal:14, vertical:6),
       decoration: BoxDecoration(
         color: isActive
-            ? const Color(0xFF3D9E6B) : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isActive
             ? const Color(0xFF3D9E6B)
-            : const Color(0xFFE4E7ED)),
+            : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isActive
+              ? const Color(0xFF3D9E6B)
+              : const Color(0xFFE4E7ED)),
       ),
-      child: Text(label, style: TextStyle(
-        fontSize:12, fontWeight:FontWeight.w600,
-        color: isActive
-            ? Colors.white
-            : const Color(0xFF5A6375))),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize:12,
+          fontWeight:FontWeight.w600,
+          color: isActive
+              ? Colors.white
+              : const Color(0xFF5A6375),
+        ),
+      ),
     ),
   );
 }
@@ -246,101 +289,115 @@ class _DividendTile extends StatelessWidget { //股利卡片
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
         color: const Color(0xFFE8504A),
-        child: const Icon(Icons.delete_outline,
-          color: Colors.white),
+        child: const Icon(Icons.delete_outline, color: Colors.white),
       ),
       onDismissed: (_) => onDelete(),
       child: Container(
-        margin: const EdgeInsets.fromLTRB(14,0,14,8),
+        margin: const EdgeInsets.fromLTRB(14, 0, 14, 8),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: const Color(0xFFE4E7ED)),
+          border: Border.all(color: const Color(0xFFE4E7ED)),
           boxShadow: [BoxShadow(
             color: Colors.black.withValues(alpha:0.04),
             blurRadius:4, offset: const Offset(0,1),
           )],
         ),
-        child: Row(children: [
-          // 左側圖示
-          Container(
-            width:36, height:36,
-            decoration: BoxDecoration(
-              color: isCash
-                  ? const Color(0xFFEEF7F2)
-                  : const Color(0xFFEBF0F8),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              isCash
-                  ? Icons.payments_outlined
-                  : Icons.trending_up,
-              size:18,
-              color: isCash
-                  ? const Color(0xFF3D9E6B)
-                  : const Color(0xFF4A6FA5),
-            ),
-          ),
-          const SizedBox(width: 12),
-          // 中間資訊
-          Expanded(child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(children: [
-                Text('${d.name} (${d.symbol})',
-                  style: const TextStyle(
-                    fontSize:13, fontWeight:FontWeight.w700,
-                    color:Color(0xFF1A1F2E))),
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal:6, vertical:1),
-                  decoration: BoxDecoration(
-                    color: isCash
-                        ? const Color(0xFFEEF7F2)
-                        : const Color(0xFFEBF0F8),
-                    borderRadius: BorderRadius.circular(4)),
-                  child: Text(isCash ? '現金' : '股票',
-                    style: TextStyle(fontSize:9,
-                      fontWeight:FontWeight.w700,
-                      color: isCash
-                          ? const Color(0xFF3D9E6B)
-                          : const Color(0xFF4A6FA5))),
-                ),
-              ]),
-              const SizedBox(height: 2),
-              Text(
+        child: Row(
+          children: [
+            Container( //左側圖示
+              width:36, height:36,
+              decoration: BoxDecoration(
+                color: isCash
+                    ? const Color(0xFFEEF7F2)
+                    : const Color(0xFFEBF0F8),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
                 isCash
-                  ? '$dateStr · 每股 ${d.cashAmount / (d.shareAmount > 0 ? d.shareAmount : 1)} 元'
-                  : '$dateStr · 配股 ${d.shareAmount} 股',
-                style: const TextStyle(
-                  fontSize:11, color:Color(0xFF9AA3B2))),
-            ],
-          )),
-          // 右側金額
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                isCash
-                  ? '+${formatter.format(d.cashAmount.toInt())}'
-                  : '+${d.shareAmount} 股',
-                style: TextStyle(
-                  fontSize:14, fontWeight:FontWeight.w700,
-                  color: isCash
+                    ? Icons.payments_outlined
+                    : Icons.trending_up,
+                size:18,
+                color: isCash
                     ? const Color(0xFF3D9E6B)
-                    : const Color(0xFF4A6FA5))),
-              if (isCash && d.netCashAmount != d.cashAmount)
+                    : const Color(0xFF4A6FA5),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(//中間資訊
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text( //名稱及股號
+                        '${d.name} (${d.symbol})',
+                        style: const TextStyle(
+                          fontSize:13,
+                          fontWeight:FontWeight.w700,
+                          color:Color(0xFF1A1F2E),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Container( //分類標籤
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: isCash
+                              ? const Color(0xFFEEF7F2)
+                              : const Color(0xFFEBF0F8),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          isCash ? '現金' : '股票',
+                          style: TextStyle(
+                            fontSize:9,
+                            fontWeight:FontWeight.w700,
+                            color: isCash
+                                ? const Color(0xFF3D9E6B)
+                                : const Color(0xFF4A6FA5),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text( //第二排日期及數量
+                    isCash
+                      ? '$dateStr · 每股 ${d.cashAmount / (d.shareAmount > 0 ? d.shareAmount : 1)} 元'
+                      : '$dateStr · 配股 ${d.shareAmount} 股',
+                    style: const TextStyle(fontSize:11, color:Color(0xFF9AA3B2)),
+                  ),
+                ],
+              ),
+            ),
+            Column( //右側金額
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
                 Text(
-                  '淨 ${formatter.format(d.netCashAmount.toInt())}',
-                  style: const TextStyle(
-                    fontSize:10,
-                    color:Color(0xFF9AA3B2))),
-            ],
-          ),
-        ]),
+                  isCash
+                    ? '+${formatter.format(d.cashAmount.toInt())}'
+                    : '+${d.shareAmount} 股',
+                  style: TextStyle(
+                    fontSize:14,
+                    fontWeight:FontWeight.w700,
+                    color: isCash
+                        ? const Color(0xFF3D9E6B)
+                        : const Color(0xFF4A6FA5),
+                  ),
+                ),
+                if (isCash && d.netCashAmount != d.cashAmount)
+                  Text(
+                    '淨 ${formatter.format(d.netCashAmount.toInt())}',
+                    style: const TextStyle(
+                      fontSize:10,
+                      color:Color(0xFF9AA3B2),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

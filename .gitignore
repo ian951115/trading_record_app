@@ -43,3 +43,15 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# --- 專屬補充：Hive 本地資料庫與快取 ---
+# 排除 Hive 產生的資料檔與鎖定檔
+*.hive
+*.lock
+/local_storage/ 
+
+# --- 編輯器與環境設定 ---
+# 排除 VS Code 的個人偏好設定
+.vscode/
+# 如果未來有用到 API Key 的環境變數檔
+.env

@@ -8,7 +8,7 @@ import '../services/calendar_service.dart';
 
 class ChartService {
 
-  // ① 總資產變化曲線資料
+  //總資產變化曲線資料
   // 回傳每個有交易或入金的日期對應的總資產
   static List<AssetDataPoint> buildAssetHistory({
     required List<Trade> trades,
@@ -49,7 +49,7 @@ class ChartService {
     return result;
   }
 
-  // ② 每月損益長條圖資料
+  //每月損益長條圖資料
   static Map<int, double> buildMonthlyPnL({
     required List<Trade> trades,
     required int year,
@@ -67,7 +67,7 @@ class ChartService {
     return result;
   }
 
-  // ③ 持股佔比圓餅圖資料
+  //持股佔比圓餅圖資料
   static List<HoldingShare> buildHoldingShares(
     List<Position> openPositions,
   ) {
@@ -82,10 +82,10 @@ class ChartService {
       percentage: p.marketValue / total * 100,
     )).toList()
     ..sort((a,b) =>
-      b.marketValue.compareTo(a.marketValue));
+      b.marketValue.compareTo(a.marketValue)); //依市值排序
   }
 
-  // ④ 策略績效長條圖資料
+  //策略績效長條圖資料
   static List<StrategyPerf> buildStrategyPerf(
     List<Trade> trades,
     Map<String, double> tradePnLMap,
@@ -94,7 +94,7 @@ class ChartService {
 
     for (final trade in trades) {
       for (final tag in trade.tags) {
-        map.putIfAbsent(tag, () => _StratAccum(name: tag));
+        map.putIfAbsent(tag, () => _StratAccum(name: tag)); //新增特定標籤累加器
         final acc = map[tag]!;
         acc.tradeCount++;
         final pnl = tradePnLMap[trade.id] ?? 0;
@@ -117,40 +117,46 @@ class ChartService {
 }
 
 // ── 資料模型 ──
-class AssetDataPoint {
+class AssetDataPoint { //資產資料模型
   final DateTime date;
   final double totalAsset;
   final double cash;
   final double marketValue;
   const AssetDataPoint({
-    required this.date, required this.totalAsset,
-    required this.cash, required this.marketValue,
+    required this.date,
+    required this.totalAsset,
+    required this.cash,
+    required this.marketValue,
   });
 }
 
-class HoldingShare {
+class HoldingShare { //持股市值與占比模型
   final String symbol;
   final String name;
   final double marketValue;
   final double percentage;
   const HoldingShare({
-    required this.symbol, required this.name,
-    required this.marketValue, required this.percentage,
+    required this.symbol,
+    required this.name,
+    required this.marketValue,
+    required this.percentage,
   });
 }
 
-class StrategyPerf {
+class StrategyPerf { //個股績效模型
   final String name;
   final double totalPnL;
   final int tradeCount;
   final double winRate;
   const StrategyPerf({
-    required this.name, required this.totalPnL,
-    required this.tradeCount, required this.winRate,
+    required this.name,
+    required this.totalPnL,
+    required this.tradeCount,
+    required this.winRate,
   });
 }
 
-class _StratAccum {
+class _StratAccum { //累加器
   final String name;
   double totalPnL = 0;
   int tradeCount = 0;

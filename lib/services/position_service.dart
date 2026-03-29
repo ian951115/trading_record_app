@@ -89,20 +89,16 @@ PositionResult buildPositions(
     }
   }
 
-    // 🆕 在 return 之前，套用股票股利
-  final sortedDivs = dividends
+  final sortedDivs = dividends //找出股票股利並排序
     .where((d) => d.type == DividendType.stock)
     .toList()
     ..sort((a,b) => a.date.compareTo(b.date));
 
   for (final div in sortedDivs) {
-    final pos = positionMap[div.symbol];
-    if (pos == null || pos.quantity == 0) continue;
-    // 增加股數，成本不變 → 均價稀釋
-    pos.quantity += div.shareAmount;
-    // totalCost 不變，avgCost 自動被 getter 重算
+    final pos = positionMap[div.symbol]; //指向該商品的空間
+    if (pos == null || pos.quantity == 0) continue; //無剩餘則跳過(?應該要考慮時間差)
+    pos.quantity += div.shareAmount; //總成本不變(?需考慮手續費和稅)均價自動被getter重算
   }
-
 
   return PositionResult(
     positions: positionMap.values.toList(),

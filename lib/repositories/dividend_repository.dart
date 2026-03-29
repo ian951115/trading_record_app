@@ -1,4 +1,4 @@
-//
+//股利計算服務
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import '../models/dividend.dart';
@@ -12,7 +12,9 @@ class DividendRepository extends ChangeNotifier {
 
   bool get isReady => _isReady;
 
-  DividendRepository() { _init(); }
+  DividendRepository() {
+    _init();
+  }
 
   Future<void> _init() async {
     _box = await Hive.openBox<Dividend>(boxName);
@@ -53,22 +55,21 @@ class DividendRepository extends ChangeNotifier {
       ..sort((a,b) => b.date.compareTo(a.date));
   }
 
-  // 統計方法
-  double get totalCashDividend => _dividends
+  double get totalCashDividend => _dividends //總現金股利
     .where((d) => d.type == DividendType.cash)
-    .fold(0.0, (s,d) => s + d.cashAmount);
+    .fold(0.0, (s, d) => s + d.cashAmount);
 
-  double get totalNetCashDividend => _dividends
+  double get totalNetCashDividend => _dividends //總淨現金股利
     .where((d) => d.type == DividendType.cash)
-    .fold(0.0, (s,d) => s + d.netCashAmount);
+    .fold(0.0, (s, d) => s + d.netCashAmount);
 
-  double get totalFee => _dividends
-    .fold(0.0, (s,d) => s + d.fee);
+  double get totalFee => _dividends //總手續費
+    .fold(0.0, (s, d) => s + d.fee);
 
-  double get totalHealthInsurance => _dividends
-    .fold(0.0, (s,d) => s + d.healthInsurance);
+  double get totalHealthInsurance => _dividends //總二代健保
+    .fold(0.0, (s, d) => s + d.healthInsurance);
 
-  int get totalShareDividend => _dividends
+  int get totalShareDividend => _dividends //總股票股利
     .where((d) => d.type == DividendType.stock)
-    .fold(0, (s,d) => s + d.shareAmount);
+    .fold(0, (s, d) => s + d.shareAmount);
 }
