@@ -1,7 +1,7 @@
 //交易資料庫存取邏輯
 import 'package:flutter/foundation.dart';
-import '../models/trade.dart';
 import 'package:hive/hive.dart';
+import '../models/trade.dart';
 
 class TradeRepository extends ChangeNotifier {
   static const String boxName = 'tradesBox';

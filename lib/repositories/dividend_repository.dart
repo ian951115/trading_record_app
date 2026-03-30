@@ -1,4 +1,4 @@
-//股利計算服務
+//股利資料庫存取邏輯
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import '../models/dividend.dart';

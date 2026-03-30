@@ -1,8 +1,8 @@
 //交易明細顯示元件
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../models/trade.dart';
 import '../common/info_item.dart';
+import '../../models/trade.dart';
 
 class TradeTile extends StatefulWidget {
   final Trade trade;

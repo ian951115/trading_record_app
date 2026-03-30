@@ -4,9 +4,9 @@ import 'package:provider/provider.dart';
 import '../../models/trade.dart';
 import '../../models/add_trade_result.dart';
 import '../../models/cash_flow.dart';
+import '../../repositories/settings_repository.dart';
 import '../../widgets/common/form_card.dart';
 import '../../widgets/common/section_title.dart';
-import '../../repositories/settings_repository.dart';
 
 const Map<String, String> mockStockMap = {
   '2330': '台積電',

@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../models/add_trade_result.dart';
-import '../settings/settings_screen.dart';
 import '../../repositories/cash_flow_repository.dart';
 import '../../repositories/trade_repository.dart';
-import '../cash_flow/cash_flow_screen.dart';
 import '../../services/position_service.dart';
 import '../../services/portfolio_service.dart';
+import '../../widgets/common/stats_strip.dart';
+import '../../widgets/trade/trade_tile.dart';
 import '../trade/trade_list_screen.dart';
 import '../position/position_list_screen.dart';
 import '../position/stock_performance_screen.dart';
@@ -16,8 +16,8 @@ import '../calendar/calendar_screen.dart';
 import '../trade/add_trade_screen.dart';
 import '../charts/charts_screen.dart';
 import '../dividend/dividend_screen.dart';
-import '../../widgets/common/stats_strip.dart';
-import '../../widgets/trade/trade_tile.dart';
+import '../settings/settings_screen.dart';
+import '../cash_flow/cash_flow_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

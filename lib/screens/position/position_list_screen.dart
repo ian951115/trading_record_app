@@ -2,11 +2,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../../models/position.dart';
 import '../../repositories/trade_repository.dart';
 import '../../repositories/dividend_repository.dart';
 import '../../services/position_service.dart';
 import '../../services/stock_price_service.dart';
-import '../../models/position.dart';
 import '../../widgets/position/position_tile.dart';
 
 class PositionListScreen extends StatefulWidget {

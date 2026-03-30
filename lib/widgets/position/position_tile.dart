@@ -1,12 +1,11 @@
 //庫存明細顯示元件
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../models/position.dart';
 import '../common/info_item.dart';
+import '../../models/position.dart';
 
 class PositionTile extends StatefulWidget {
   final Position position;
-  
   const PositionTile({
     super.key,
     required this.position,

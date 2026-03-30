@@ -1,5 +1,4 @@
 //庫存模型
-
 class Position { //all
   final String symbol;
   final String name;

@@ -131,8 +131,13 @@ class _StockPerformanceScreenState extends State<StockPerformanceScreen> {
                   ),
                 ),
                 StatCell(
-                  label: '平均勝率',
-                  value: '${(overallWinRate*100).toStringAsFixed(0)}%',
+                  label: '平均持有天數',
+                  value: () {
+                    final openList = allPerfs.where((p) => p.isOpen && (p.holdingDays ?? 0) > 0).toList();
+                    if (openList.isEmpty) return '—';
+                    final avg = openList.fold(0, (s, p) => s + (p.holdingDays ?? 0)) / openList.length;
+                    return '$avg 天';
+                  }(),
                 ),
               ],
             ),
@@ -289,7 +294,7 @@ class _PerfTileState extends State<_PerfTile> {
         f.format(p.totalRealizedPnL.toInt());
 
     return GestureDetector(
-      onTap: () => setState(()=>isExpanded=!isExpanded),
+      onTap: () => setState(() => isExpanded =! isExpanded),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.all(14),
@@ -310,7 +315,7 @@ class _PerfTileState extends State<_PerfTile> {
             Row(
               children: [
                 Container( //左側方格
-                  width:44, height:44,
+                  width: 44, height: 44,
                   decoration: BoxDecoration(
                     color: p.isOpen
                         ? const Color(0xFFEBF0F8)
@@ -337,8 +342,8 @@ class _PerfTileState extends State<_PerfTile> {
                           Text(
                             p.name,
                             style: const TextStyle(
-                              fontSize:13,
-                              fontWeight:FontWeight.w700,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
                               color: Color(0xFF1A1F2E),
                             ),
                           ),
@@ -403,40 +408,76 @@ class _PerfTileState extends State<_PerfTile> {
                   children: [
                     const Divider(height: 1),
                     const SizedBox(height: 10),
-                    Row( //上排資訊
+
+                    Row( //第一排：買入成本、賣出收入、已實現損益
                       children: [
                         Expanded(
                           child: _DItem(
-                            label:'買入成本',
-                            value:f.format(p.totalBuyAmount.toInt()),
+                            label: '買入成本',
+                            value: f.format(p.totalBuyAmount.toInt()),
                           ),
                         ),
                         Expanded(
                           child: _DItem(
-                            label:'賣出收入',
-                            value:f.format(p.totalSellAmount.toInt()),
+                            label: '賣出收入',
+                            value: f.format(p.totalSellAmount.toInt()),
                           ),
                         ),
                         Expanded(
                           child: _DItem(
-                            label:'勝率',
-                            value:'${(p.winRate*100).toStringAsFixed(0)}%',
+                            label: '勝率',
+                            value: '${(p.winRate * 100).toStringAsFixed(0)}%',
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    
+                    const SizedBox(height: 10),
+
+                    Row( //第二排：持有天數、報酬率、交易次數
+                      children: [
+                        Expanded(
+                          child: _DItem(
+                            label: '持有天數',
+                            value: p.isOpen
+                                ? '${p.holdingDays} 天'
+                                : '—',
+                          ),
+                        ),
+                        Expanded(
+                          child: _DItem(
+                            label: '報酬率',
+                            value: p.totalBuyAmount == 0
+                                ? '—'
+                                : '${p.totalRealizedPnL >= 0 ? '+' : ''}'
+                                  '${(p.totalRealizedPnL / p.totalBuyAmount * 100).toStringAsFixed(1)}%',
+                            valueColor: p.totalRealizedPnL >= 0
+                                ? const Color(0xFFE8504A)
+                                : const Color(0xFF3D9E6B),
+                          ),
+                        ),
+                        Expanded(
+                          child: _DItem(
+                            label: '交易次數',
+                            value: '買${p.totalBuyCount} 賣${p.totalSellCount}',
+                          ),
+                        )
+                      ],
+                    ),
+
+                    const SizedBox(height: 10),
+
                     Column( //勝率條
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
+                            const Text( //進度條左上
                               '勝率',
                               style: TextStyle(fontSize:10, color:Color(0xFF9AA3B2)),
                             ),
-                            Text(
+                            Text( //進度條右上
                               p.totalSellCount == 0
                                 ? '尚無賣出紀錄'
                                 : '${p.winCount}/${p.totalSellCount}',
@@ -480,7 +521,12 @@ class _PerfTileState extends State<_PerfTile> {
 
 class _DItem extends StatelessWidget {
   final String label, value;
-  const _DItem({required this.label, required this.value});
+  final Color? valueColor;
+  const _DItem({
+    required this.label,
+    required this.value,
+    this.valueColor,
+  });
   @override
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -492,10 +538,10 @@ class _DItem extends StatelessWidget {
       const SizedBox(height: 2),
       Text(
         value,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize:12,
           fontWeight:FontWeight.w600,
-          color:Color(0xFF1A1F2E),
+          color: valueColor ?? const Color(0xFF1A1F2E),
         ),
       ),
     ],

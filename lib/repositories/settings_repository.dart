@@ -1,4 +1,4 @@
-//設定資料存取
+//設定資料存取邏輯
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import '../models/app_settings.dart';
