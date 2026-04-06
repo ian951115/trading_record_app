@@ -2,14 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import '../../models/cash_flow.dart';
-import '../../models/trade.dart';
-import '../../models/dividend.dart';
-import '../../models/app_settings.dart';
-import '../repositories/cash_flow_repository.dart';
-import '../repositories/trade_repository.dart';
-import '../repositories/settings_repository.dart';
-import '../repositories/dividend_repository.dart';
+import 'models/cash_flow.dart';
+import 'models/trade.dart';
+import 'models/dividend.dart';
+import 'models/app_settings.dart';
+import 'models/recurring_plan.dart';
+import 'models/annual_goal.dart';
+import 'repositories/cash_flow_repository.dart';
+import 'repositories/trade_repository.dart';
+import 'repositories/settings_repository.dart';
+import 'repositories/dividend_repository.dart';
+import 'repositories/recurring_repository.dart';
+import 'repositories/annual_goal_repository.dart';
 import 'screens/home/home_screen.dart';
 
 void main() async {
@@ -17,6 +21,7 @@ void main() async {
   await initializeDateFormatting('zh_TW');
   await Hive.initFlutter(); //初始化hive
 
+  // ── Adapter 註冊 ──────────────────────────────
   Hive.registerAdapter(TradeAdapter());
   Hive.registerAdapter(TradeTypeAdapter());
   Hive.registerAdapter(AssetTypeAdapter());
@@ -25,6 +30,9 @@ void main() async {
   Hive.registerAdapter(DividendAdapter());
   Hive.registerAdapter(DividendTypeAdapter());
   Hive.registerAdapter(AppSettingsAdapter());
+  Hive.registerAdapter(RecurringFrequencyAdapter());
+  Hive.registerAdapter(RecurringPlanAdapter());
+  Hive.registerAdapter(AnnualGoalAdapter());
 
   runApp(
     MultiProvider(
@@ -40,7 +48,13 @@ void main() async {
         ),
         ChangeNotifierProvider(
           create: (_) => DividendRepository(),
-        )
+        ),
+        ChangeNotifierProvider(
+          create: (_) => RecurringRepository(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => AnnualGoalRepository(),
+        ),
       ],
       child: const TradingRecordApp(),
     ),
