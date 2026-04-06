@@ -7,7 +7,8 @@ import '../../widgets/common/form_card.dart';
 import '../../widgets/common/section_title.dart';
 
 class AddCashFlowScreen extends StatefulWidget {
-  const AddCashFlowScreen({super.key});
+  final CashFlow? existingFlow;
+  const AddCashFlowScreen({super.key, this.existingFlow});
 
   @override
   State<AddCashFlowScreen> createState() =>_AddCashFlowScreenState();
@@ -25,8 +26,15 @@ class _AddCashFlowScreenState extends State<AddCashFlowScreen> {
   @override
   void initState() {
     super.initState();
-    _amountController = TextEditingController();
-    _noteController = TextEditingController();
+    final f = widget.existingFlow;
+    _type = f?.type ?? CashFlowType.deposit;
+    _selectedDate = f?.date ?? DateTime.now();
+    _amount = f?.amount ?? 0;
+    _note = f?.note ?? '';
+    _amountController = TextEditingController(
+      text: f != null ? f.amount.toStringAsFixed(0) : '',
+    );
+    _noteController = TextEditingController(text: f?.note ?? '');
   }
 
   @override
@@ -45,14 +53,26 @@ class _AddCashFlowScreenState extends State<AddCashFlowScreen> {
     }
 
     final cashRepo = context.read<CashFlowRepository>();
-    final flow = CashFlow(
-      date: _selectedDate,
-      type: _type,
-      amount: _amount,
-      note: _note.isEmpty ? null : _note,
-    );
+    final existing = widget.existingFlow;
 
-    await cashRepo.addFlow(flow);
+    if (existing != null) { //編輯模式：用原本的id建新物件，再update
+      final updated = CashFlow(
+        id: existing.id, //保留原本id
+        date: _selectedDate,
+        type: _type,
+        amount: _amount,
+        note: _note.isEmpty ? null : _note,
+      );
+      await cashRepo.updateFlow(updated);
+    } else { //新增模式
+      final flow = CashFlow(
+        date: _selectedDate,
+        type: _type,
+        amount: _amount,
+        note: _note.isEmpty ? null : _note,
+      );
+      await cashRepo.addFlow(flow);
+    }
     Navigator.pop(context);
   }
 
@@ -64,7 +84,7 @@ class _AddCashFlowScreenState extends State<AddCashFlowScreen> {
           icon: const Icon(Icons.close),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('新增資金紀錄'),
+        title: Text(widget.existingFlow != null ? '編輯資金紀錄' : '新增資金紀錄'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

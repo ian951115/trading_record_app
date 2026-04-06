@@ -1,6 +1,4 @@
 //統計資料計算服務
-import 'package:flutter/material.dart';
-
 import '../models/trade.dart';
 import '../models/cash_flow.dart';
 import '../services/position_service.dart';
