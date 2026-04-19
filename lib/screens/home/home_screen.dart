@@ -19,6 +19,7 @@ import '../dividend/dividend_screen.dart';
 import '../settings/settings_screen.dart';
 import '../cash_flow/cash_flow_screen.dart';
 import '../recurring/recurring_screen.dart';
+import '../goals/annual_goal_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -294,11 +295,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     _QuickItem(
                       icon: Icons.flag_circle_outlined,
-                      label: '定期定額(暫)',
-                      color: const Color(0xFFF7F8FA),
-                      iconColor: const Color(0xFF9AA3B2),
+                      label: '年度目標',
+                      color: const Color(0xFFEBF0F8),
+                      iconColor: const Color(0xFF4A6FA5),
                       onTap: () => Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => RecurringScreen())),
+                        MaterialPageRoute(builder: (_) => AnnualGoalScreen())),
                     ),
                     _QuickItem(
                       icon: Icons.show_chart,
