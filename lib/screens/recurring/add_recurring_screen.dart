@@ -207,7 +207,7 @@ class _AddRecurringScreenState extends State<AddRecurringScreen> {
                   const SizedBox(height: 10),
                   Wrap(
                     spacing: 6, runSpacing: 6, //主軸及垂直軸間隔
-                    children: List.generate(28, (i) {
+                    children: List.generate(31, (i) {
                       final day = i + 1;
                       final isSelected = _selectedDays.contains(day);
                       return GestureDetector(

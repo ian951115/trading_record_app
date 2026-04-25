@@ -139,7 +139,7 @@ class RecurringScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(7),
                           ),
                           child: const Text(
-                            '取消',
+                            '去入帳 →',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 12,
@@ -393,16 +393,6 @@ class _EmptyState extends StatelessWidget {
           const Text(
             '點擊右下角 + 新增第一個計畫',
             style: TextStyle(fontSize: 12, color: Color(0xFF9AA3B2)),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () => Navigator.push(context,
-              MaterialPageRoute(
-                builder: (_) => const AddRecurringScreen(),
-              )
-            ),
-            icon: const Icon(Icons.add, size: 16),
-            label: const Text('新增計畫'),
           ),
         ],
       ),

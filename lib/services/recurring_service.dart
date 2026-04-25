@@ -6,12 +6,10 @@ import '../models/trade.dart';
 class PendingEntry {
   final RecurringPlan plan;
   final DateTime scheduledDate; //應扣款日
-  final bool isWeekend; //是否週六日（僅顯示警示用）
 
   const PendingEntry({
     required this.plan,
     required this.scheduledDate,
-    this.isWeekend = false,
   });
 }
 
@@ -29,10 +27,11 @@ class RecurringService {
 
     while (!cursor.isAfter(today)) {
       for (final day in plan.dayOfMonth) {
-        //避免月份沒有該天（e.g. 2月沒有30日）
-        try {
-          final d = DateTime(cursor.year, cursor.month, day);
-          //不早於開始日，且不晚於今天
+        try{
+          DateTime d = DateTime(cursor.year, cursor.month, day);
+          //周末順延
+          if (d.weekday == DateTime.saturday) d = d.add(const Duration(days: 2));
+          if (d.weekday == DateTime.sunday) d = d.add(const Duration(days: 1));
           if (!d.isBefore(plan.startDate) && !d.isAfter(today)) {
             result.add(d);
           }
@@ -43,7 +42,6 @@ class RecurringService {
       //移到下個月
       cursor = DateTime(cursor.year, cursor.month + 1, 1);
     }
-
     return result..sort();
   }
 
@@ -66,12 +64,9 @@ class RecurringService {
     return scheduled
         .where((d) => !buyDates.contains(d)) //找出預計要買但還沒買的天
         .map((d) {
-          final isWeekend = d.weekday == DateTime.saturday ||
-                            d.weekday == DateTime.sunday;
           return PendingEntry(
             plan: plan,
             scheduledDate: d,
-            isWeekend: isWeekend,
           );
         })
         .toList();

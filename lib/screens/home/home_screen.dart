@@ -295,11 +295,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     _QuickItem(
                       icon: Icons.flag_circle_outlined,
-                      label: '年度目標(暫時)',
+                      label: '年度目標',
                       color: const Color(0xFFEBF0F8),
                       iconColor: const Color(0xFF4A6FA5),
                       onTap: () => Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => RecurringScreen())),
+                        MaterialPageRoute(builder: (_) => AnnualGoalScreen())),
                     ),
                     _QuickItem(
                       icon: Icons.show_chart,

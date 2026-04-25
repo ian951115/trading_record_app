@@ -52,10 +52,13 @@ class _ConfirmRecurringScreenState extends State<ConfirmRecurringScreen> {
       //預設全部勾選（週末的除外）
       for (final e in entries) {
         final key = _key(e);
-        _checked[key] = !e.isWeekend;
-        _qtyControllers[key] = TextEditingController();
-        _priceControllers[key] = TextEditingController();
-        _feeControllers[key] = TextEditingController(text: defaultFee.toStringAsFixed(0));
+        _checked[key] = true;
+        _qtyControllers[key] = TextEditingController()
+          ..addListener(() => setState(() {}));
+        _priceControllers[key] = TextEditingController()
+          ..addListener(() => setState(() {}));
+        _feeControllers[key] = TextEditingController(text: defaultFee.toStringAsFixed(0))
+          ..addListener(() => setState(() {}));
       }
     });
     //非同步批次查價
@@ -99,7 +102,11 @@ class _ConfirmRecurringScreenState extends State<ConfirmRecurringScreen> {
     double total = 0;
     for (final e in _pending) {
       final key = _key(e);
-      if (_checked[key] == true) total += e.plan.amountPerTime;
+      if (_checked[key] != true) continue; //有問題就跳過
+      final qty = int.tryParse(_qtyControllers[key]?.text ?? '') ?? 0;
+      final price = double.tryParse(_priceControllers[key]?.text ?? '') ?? 0;
+      final fee = double.tryParse(_feeControllers[key]?.text ?? '') ?? 0;
+      total += qty * price + fee;
     }
     return total;
   }
@@ -147,6 +154,7 @@ class _ConfirmRecurringScreenState extends State<ConfirmRecurringScreen> {
 
     setState(() => _isSaving = false);
     if (mounted) {
+      Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('已完成入帳！'))
       );
@@ -166,7 +174,7 @@ class _ConfirmRecurringScreenState extends State<ConfirmRecurringScreen> {
     final fmt = NumberFormat('#,###');
 
     return Scaffold(
-      appBar: AppBar(title: const Text('補帳確認')),
+      appBar: AppBar(title: const Text('入帳確認')),
       body: _pending.isEmpty
           ? const Center(
             child: Text(
@@ -183,6 +191,13 @@ class _ConfirmRecurringScreenState extends State<ConfirmRecurringScreen> {
                 child: ListView(
                   padding: const EdgeInsets.all(14),
                   children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Text(
+                        '請確認每筆的股數、成交價及手續費後再送出，價格為系統自動抓取，僅供參考。',
+                        style: TextStyle(fontSize: 12, color: Color(0xFF9AA3B2)),
+                      ),
+                    ),
                     ..._pending.map((e) => _EntryTile(
                       entry: e,
                       isChecked: _checked[_key(e)] ?? false,
@@ -229,7 +244,6 @@ class _ConfirmRecurringScreenState extends State<ConfirmRecurringScreen> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    SizedBox(height: 12),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -341,7 +355,7 @@ class _EntryTile extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 // 第二行：日期 + 星期
-                Row(
+                Row( //row可以移除?
                   children: [
                     Text(
                       '$dateStr（$weekday）',
@@ -349,23 +363,6 @@ class _EntryTile extends StatelessWidget {
                         fontSize: 11, color: Color(0xFF9AA3B2),
                       ),
                     ),
-                    if (e.isWeekend) ...[
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 5, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFF3E0),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Text(
-                          '假日',
-                          style: TextStyle(
-                            fontSize: 10, color: Color(0xFFE07B20),
-                          ),
-                        ),
-                      ),
-                    ],
                   ],
                 ),
                 const SizedBox(height: 8),
