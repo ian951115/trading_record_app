@@ -49,4 +49,25 @@ class StockPriceService {
     await Future.wait(futures);
     return result;
   }
+
+  //查詢歷史收盤價格
+  static Future<double?> fetchHistoricalClose(String symbol, DateTime date) async {
+    final ticker = '${symbol}.TW';
+    final p1 = date.millisecondsSinceEpoch ~/ 1000;
+    final url = Uri.parse(
+      'https://query1.finance.yahoo.com/v8/finance/chart/$ticker'
+      '?interval=1d&period1=$p1&period2=${p1 + 86400}'
+    );
+
+    try {
+      final res = await http.get(url, headers: {'User-Agent': 'Mozilla/5.0'});
+      if (res.statusCode != 200) return null;
+      final data = jsonDecode(res.body);
+      final result = data['chart']['result'];
+      if (result == null || result.isEmpty) return null;
+      final closes = result[0]['indicators']['quote'][0]['close'];
+      if (closes == null || closes.isEmpty) return null;
+      return (closes[0] as num).toDouble();
+    } catch (_) {return null;}
+  }
 }

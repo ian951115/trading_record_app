@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:trading_record_app/repositories/settings_repository.dart';
 import '../../models/trade.dart';
 import '../../repositories/recurring_repository.dart';
 import '../../repositories/trade_repository.dart';
@@ -20,6 +21,8 @@ class _ConfirmRecurringScreenState extends State<ConfirmRecurringScreen> {
   final Map<String, bool> _checked = {};
   // 手動輸入股數：key 同上
   final Map<String, TextEditingController> _qtyControllers = {};
+  final Map<String, TextEditingController> _priceControllers = {};
+  final Map<String, TextEditingController> _feeControllers = {};
   // 現價快取
   final Map<String, double?> _priceCache = {};
 
@@ -39,6 +42,7 @@ class _ConfirmRecurringScreenState extends State<ConfirmRecurringScreen> {
   void _loadPending() {
     final recurringRepo = context.read<RecurringRepository>();
     final tradeRepo = context.read<TradeRepository>();
+    final defaultFee = context.read<SettingsRepository>().settings.recurringFeeDefault;
     final entries = RecurringService.getAllPendingEntries(
       activePlans: recurringRepo.getActive(),
       allTrades: tradeRepo.getAllTrades(),
@@ -50,29 +54,39 @@ class _ConfirmRecurringScreenState extends State<ConfirmRecurringScreen> {
         final key = _key(e);
         _checked[key] = !e.isWeekend;
         _qtyControllers[key] = TextEditingController();
+        _priceControllers[key] = TextEditingController();
+        _feeControllers[key] = TextEditingController(text: defaultFee.toStringAsFixed(0));
       }
     });
-    //非同步批次查現價
+    //非同步批次查價
     _fetchPrice(entries);
   }
 
   Future<void> _fetchPrice(List<PendingEntry> entries) async {
-    final symbols = entries.map((e) => e.plan.symbol).toSet().toList();
-    for (final sym in symbols) {
-      final price = await StockPriceService.fetchPrice(sym);
-      if (mounted) setState(() => _priceCache[sym] = price);
-    }
-    //用現價估算股數並填入 controller（若 controller 為空）
     for (final e in entries) {
       final key = _key(e);
-      final price = _priceCache[e.plan.symbol];
-      final ctrl = _qtyControllers[key];
-      if (ctrl != null && ctrl.text.isEmpty && price != null && price > 0) {
+      final today = DateTime.now();
+      final d = e.scheduledDate;
+      double? price;
+      // 過去日期查歷史價，今天或未來查現價
+      if (d.isBefore(DateTime(today.year, today.month, today.day))) {
+        price = await StockPriceService.fetchHistoricalClose(e.plan.symbol, d);
+      }
+      price ??= await StockPriceService.fetchPrice(e.plan.symbol);
+      if (!mounted) return;
+      setState(() => _priceCache[e.plan.symbol] = price);
+      //填入成交價
+      final pCtrl = _priceControllers[key];
+      if (pCtrl != null && pCtrl.text.isEmpty && price != null)
+        pCtrl.text = price.toStringAsFixed(2);
+      //估算股數
+      final qCtrl = _qtyControllers[key];
+      if (qCtrl != null && qCtrl.text.isEmpty && price != null && price > 0) {
         final est = RecurringService.estimateShares(
           amount: e.plan.amountPerTime,
           price: price,
         );
-        if (mounted) setState(() => ctrl.text = '$est');
+        if (mounted) setState(() => qCtrl.text = '$est');
       }
     }
   }
@@ -112,9 +126,11 @@ class _ConfirmRecurringScreenState extends State<ConfirmRecurringScreen> {
       final qtyText = _qtyControllers[key]?.text ?? '';
       final qty = int.tryParse(qtyText) ?? 0;
       if (qty <= 0) continue; //股數為0跳過
+      final fee = double.tryParse(_feeControllers[key]?.text ?? '') ?? 1.0;
 
       //計算成交價（金額 ÷ 股數）
-      final price = e.plan.amountPerTime / qty;
+      final priceText = _priceControllers[key]?.text ?? '';
+      final price = double.tryParse(priceText) ?? (e.plan.amountPerTime / qty);
 
       final trade = Trade(
         date: e.scheduledDate,
@@ -123,7 +139,7 @@ class _ConfirmRecurringScreenState extends State<ConfirmRecurringScreen> {
         type: TradeType.buy,
         price: price,
         quantity: qty,
-        fee: 0, //定期定額手續費另計，此處留0
+        fee: fee,
         note: '定期定額',
       );
       await tradeRepo.addTrade(trade);
@@ -140,6 +156,8 @@ class _ConfirmRecurringScreenState extends State<ConfirmRecurringScreen> {
   @override
   void dispose() {
     for (final c in _qtyControllers.values) c.dispose();
+    for (final c in _priceControllers.values) c.dispose();
+    for (final c in _feeControllers.values) c.dispose();
     super.dispose();
   }
 
@@ -173,6 +191,8 @@ class _ConfirmRecurringScreenState extends State<ConfirmRecurringScreen> {
                       onToggle: (v) => setState(
                         () => _checked[_key(e)] = v,
                       ),
+                      priceCtrl: _priceControllers[_key(e)]!,
+                      feeCtrl: _feeControllers[_key(e)]!,
                     )),
                     const SizedBox(height: 16),
                   ],
@@ -240,6 +260,8 @@ class _EntryTile extends StatelessWidget {
   final TextEditingController qtyCtrl;
   final double? price; //現價（可能為 null）
   final ValueChanged<bool> onToggle;
+  final TextEditingController priceCtrl;
+  final TextEditingController feeCtrl;
 
   const _EntryTile({
     required this.entry,
@@ -247,6 +269,8 @@ class _EntryTile extends StatelessWidget {
     required this.qtyCtrl,
     required this.price,
     required this.onToggle,
+    required this.priceCtrl,
+    required this.feeCtrl,
   });
 
   @override
@@ -258,6 +282,11 @@ class _EntryTile extends StatelessWidget {
         '/${d.day.toString().padLeft(2,"0")}';
     final weekdays = ['一','二','三','四','五','六','日'];
     final weekday = weekdays[d.weekday - 1];
+
+    final qty = int.tryParse(qtyCtrl.text) ?? 0;
+    final priceText = double.tryParse(priceCtrl.text) ?? 0;
+    final fee = double.tryParse(feeCtrl.text) ?? 0;
+    final calcAmount = qty * priceText + fee;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -373,6 +402,57 @@ class _EntryTile extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            '成交價',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Color(0xFF9AA3B2),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          SizedBox(
+                            height: 36,
+                            child: TextField(
+                              controller: priceCtrl,
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              style: const TextStyle(fontSize: 13),
+                              decoration: const InputDecoration(
+                                contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                hintText: '自動抓取',
+                                suffixText: '元',
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('手續費', style: TextStyle(fontSize: 10, color: Color(0xFF9AA3B2))),
+                          const SizedBox(height: 4),
+                          SizedBox(
+                            height: 36,
+                            child: TextField(
+                              controller: feeCtrl,
+                              keyboardType: TextInputType.number,
+                              style: const TextStyle(fontSize: 13),
+                              decoration: const InputDecoration(
+                                contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                suffixText: '元',
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
                     Column( //金額(固定)
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
@@ -385,7 +465,9 @@ class _EntryTile extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${fmt.format(e.plan.amountPerTime.toInt())} 元',
+                          calcAmount > 0
+                              ? '${fmt.format(calcAmount.toInt())} 元'
+                              : '--元',
                           style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,

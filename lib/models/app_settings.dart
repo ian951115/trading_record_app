@@ -29,6 +29,9 @@ class AppSettings extends HiveObject {
   @HiveField(7)
   bool autoDepositDefault; //同時記錄入金預設值
 
+  @HiveField(8, defaultValue: 1.0)
+  double recurringFeeDefault; //定期定額預設手續費（元）
+
   AppSettings({
     this.redUpGreenDown = true,
     this.pnlMethod = 'fifo',
@@ -38,5 +41,6 @@ class AppSettings extends HiveObject {
     this.minFeePerLot = 20.0,
     this.waterLevelThreshold = 0.3,
     this.autoDepositDefault = false,
+    this.recurringFeeDefault = 1.0,
   });
 }

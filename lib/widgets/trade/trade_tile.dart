@@ -6,9 +6,11 @@ import '../../models/trade.dart';
 
 class TradeTile extends StatefulWidget {
   final Trade trade;
+  final double? realizedPnL;
   const TradeTile({
     super.key,
     required this.trade,
+    this.realizedPnL,
   });
 
   @override
@@ -35,11 +37,11 @@ class _TradeTileState extends State<TradeTile> {
         ? '-${formatter.format(trade.buyCost.toInt())}'
         : '+${formatter.format(trade.sellIncome.toInt())}';
 
-    // 右側損益（只有賣出才顯示，買入顯示 --）
-    // 注意：這裡用 netAmount 是暫時的，
-    // 之後接真實損益資料時再替換
-    final pnlText = isBuy ? '--' : null;
-    final pnlColor = trade.netAmount >= 0
+    final pnl = widget.realizedPnL;
+    final pnlDisplay = isBuy
+        ? '--'
+        : (pnl != null ? '${pnl >= 0 ? '+' : ''}${formatter.format(pnl.toInt())}' : '--');
+    final pnlColor = (pnl ?? 0) >= 0
         ? const Color(0xFFE8504A)
         : const Color(0xFF3D9E6B);
 
@@ -68,7 +70,6 @@ class _TradeTileState extends State<TradeTile> {
         ),
         child: Column(
           children: [
-
             // ── 主要列 ──────────────────────
             Row(
               children: [
@@ -132,11 +133,11 @@ class _TradeTileState extends State<TradeTile> {
                     ),
                     const SizedBox(width: 2),
                     Text( //下排：損益（賣出才有）或 --
-                      pnlText ?? '+${formatter.format(trade.netAmount.toInt())}',
+                      pnlDisplay,
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: pnlText != null
+                        color: (isBuy || pnl == null)
                             ? const Color(0xFF9AA3B2)
                             : pnlColor,
                       ),

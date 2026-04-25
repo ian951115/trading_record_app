@@ -7,6 +7,7 @@ import '../../models/add_trade_result.dart';
 import '../../models/trade.dart';
 import '../../repositories/trade_repository.dart';
 import '../../repositories/cash_flow_repository.dart';
+import '../../services/position_service.dart';
 import '../../widgets/common/stats_strip.dart';
 import '../../widgets/trade/trade_tile.dart';
 import 'add_trade_screen.dart';
@@ -63,7 +64,7 @@ class _TradeListScreenState extends State<TradeListScreen> {
     return result;
   }
 
-  Map<String, dynamic> _calcStats(List<Trade> trades) { //計算統計數據
+  Map<String, dynamic> _calcStats(List<Trade> trades, Map<String, double> pnlMap) { //計算統計數據
     final formatter = NumberFormat('#,###');
     final totalCount = trades.length; //交易筆數
     final totalAmount = trades.fold( //總價金
@@ -71,7 +72,7 @@ class _TradeListScreenState extends State<TradeListScreen> {
     );
     final totalPnL = trades //損益
         .where((t) => t.type == TradeType.sell)
-        .fold(0.0, (sum, t) => sum + t.netAmount);
+        .fold(0.0, (sum, t) => sum + (pnlMap[t.id] ?? 0));
     final totalFee = trades.fold( //交易費用（手續費 + 證交稅）
       0.0, (sum, t) => sum + t.fee + t.tax);
     
@@ -94,7 +95,8 @@ class _TradeListScreenState extends State<TradeListScreen> {
     final cashRepo = context.watch<CashFlowRepository>();
     final allTrades = tradeRepo.getAllTrades();
     final filteredTrades = getFilteredTrades(allTrades);
-    final stats = _calcStats(filteredTrades);
+    final pnlMap = buildPositions(allTrades).tradePnLMap;
+    final stats = _calcStats(filteredTrades, pnlMap);
 
     return Scaffold(
       appBar: AppBar(
@@ -274,7 +276,7 @@ class _TradeListScreenState extends State<TradeListScreen> {
                           ),
                         ],
                       ),
-                      child: TradeTile(trade: trade),
+                      child: TradeTile(trade: trade, realizedPnL: pnlMap[trade.id]),
                     );
                   },
                 ),

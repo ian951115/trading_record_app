@@ -58,7 +58,8 @@ class RecurringService {
     final buyDates = allTrades
         .where((t) =>
             t.symbol == plan.symbol &&
-            t.type == TradeType.buy)
+            t.type == TradeType.buy &&
+            t.note == '定期定額')
         .map((t) => DateTime(t.date.year, t.date.month, t.date.day))
         .toSet();
 

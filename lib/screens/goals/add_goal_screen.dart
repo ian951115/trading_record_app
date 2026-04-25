@@ -70,15 +70,15 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
 
     if (existing != null) {
       await repo.update(existing.copyWith(
-        year:      _year,
+        year: _year,
         targetPnL: _target,
-        note:      _note.isEmpty ? null : _note,
+        note: _note.isEmpty ? null : _note,
       ));
     } else {
       await repo.add(AnnualGoal(
-        year:      _year,
+        year: _year,
         targetPnL: _target,
-        note:      _note.isEmpty ? null : _note,
+        note: _note.isEmpty ? null : _note,
       ));
     }
     if (mounted) Navigator.pop(context);

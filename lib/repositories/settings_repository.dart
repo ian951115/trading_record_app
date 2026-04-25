@@ -83,4 +83,10 @@ class SettingsRepository extends ChangeNotifier {
     await _settings.save();
     notifyListeners();
   }
+
+  Future<void> updateRecurringFee(double fee) async {
+    settings.recurringFeeDefault = fee;
+    await settings.save();
+    notifyListeners();
+  }
 }

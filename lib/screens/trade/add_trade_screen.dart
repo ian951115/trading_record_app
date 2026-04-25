@@ -32,7 +32,7 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
   String stockCode = '';
   String stockName = '';
   String note = '';
-  String strategyTag = '';
+  List<String> strategyTags = [];
 
   double defaultFeeRate = 0.000855; //預設手續費率0.0855%
   double defaultTaxRate = 0.003; //預設證交稅率0.3%
@@ -57,7 +57,6 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
   late final TextEditingController feeRateController;
   late final TextEditingController taxRateController;
   late final TextEditingController noteController;
-  late final TextEditingController strategytagController;
   late final TextEditingController autoDepositController;
 
   @override
@@ -86,7 +85,7 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
       stockCode = t.symbol;
       stockName = t.name;
       note = t.note ?? '';
-      strategyTag = t.tags.join(',');
+      strategyTags = List.from(t.tags);
       if(price > 0 && quantity > 0) {
         feeRateOverride = t.fee / (price * quantity);
         taxRateOverride = t.tax / (price * quantity);
@@ -102,7 +101,6 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
     taxRateController = TextEditingController(
       text: (taxRate * 100).toStringAsFixed(3),);
     noteController = TextEditingController(text: note);
-    strategytagController = TextEditingController(text: strategyTag);
     autoDepositController = TextEditingController(
       text: totalAmount.toStringAsFixed(0));
   }
@@ -115,7 +113,6 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
     feeRateController.dispose();
     taxRateController.dispose();
     noteController.dispose();
-    strategytagController.dispose();
     autoDepositController.dispose();
     super.dispose();
   }
@@ -137,6 +134,7 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
     }
 
     final trade = Trade(
+      id: widget.editingTrade?.id,
       date: selectedDate,
       symbol: stockCode,
       name: stockName,
@@ -146,7 +144,7 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
       fee: finalFee,
       tax: isBuy ? 0 : taxAmount,
       note: note.isEmpty ? null : note,
-      tags: strategyTag.isEmpty ? [] : [strategyTag],
+      tags: strategyTags,
     );
 
     CashFlow? autoDeposit;
@@ -358,10 +356,9 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
                     onChanged: (v) => setState(() => note = v),
                   ),
                   const SizedBox(height: 12),
-                  _AppTextField(
-                    label: '策略標籤',
-                    controller: strategytagController,
-                    onChanged: (v) => setState(() => strategyTag = v),
+                  _TagsField(
+                    tags: strategyTags,
+                    onChanged: (tags) => setState(() => strategyTags = tags),
                   ),
                 ],
               ),
@@ -681,4 +678,71 @@ class _ReadOnlyField extends StatelessWidget { //唯讀元件(名稱)
       ],
     );
   }
+}
+
+class _TagsField extends StatefulWidget {
+  final List<String> tags;
+  final ValueChanged<List<String>> onChanged;
+  const _TagsField({required this.tags, required this.onChanged});
+  
+  @override
+  State<_TagsField> createState() => _TagsFieldState();
+}
+
+class _TagsFieldState extends State<_TagsField> {
+  final _ctrl = TextEditingController();
+
+  void _add() { //新增標籤
+    final v = _ctrl.text.trim();
+    if (v.isEmpty || widget.tags.contains(v)) {_ctrl.clear(); return;} //檢查是否已有標籤
+    widget.onChanged([...widget.tags, v]); //無則新增
+    _ctrl.clear();
+  }
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text(
+        '策略標籤',
+        style: TextStyle(
+          fontSize: 12,
+          color: Color(0xFF9AA3B2),
+        ),
+      ),
+      const SizedBox(height: 8),
+      if (widget.tags.isNotEmpty) Wrap(
+        spacing: 6,
+        runSpacing: 4,
+        children: widget.tags.map((tag) => Chip(
+          label: Text(tag, style: const TextStyle(fontSize: 12)),
+          deleteIcon: const Icon(Icons.close, size: 14),
+          onDeleted: () => widget.onChanged(widget.tags.where((t) => t != tag).toList()),
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+        )).toList(),
+      ),
+      Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _ctrl,
+              decoration: const InputDecoration(
+                hintText: '輸入後按 + 新增',
+                isDense: true,
+                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              ),
+              onSubmitted: (_) => _add(),
+            ),
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            icon: const Icon(Icons.add_circle_outline),
+            onPressed: _add,
+            color: const Color(0xFF4A6FA5),
+          ),
+        ],
+      ),
+    ],
+  );
 }

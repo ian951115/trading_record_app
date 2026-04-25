@@ -25,13 +25,14 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       minFeePerLot: fields[5] as double,
       waterLevelThreshold: fields[6] as double,
       autoDepositDefault: fields[7] as bool,
+      recurringFeeDefault: fields[8] == null ? 1.0 : fields[8] as double,
     );
   }
 
   @override
   void write(BinaryWriter writer, AppSettings obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.redUpGreenDown)
       ..writeByte(1)
@@ -47,7 +48,9 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       ..writeByte(6)
       ..write(obj.waterLevelThreshold)
       ..writeByte(7)
-      ..write(obj.autoDepositDefault);
+      ..write(obj.autoDepositDefault)
+      ..writeByte(8)
+      ..write(obj.recurringFeeDefault);
   }
 
   @override

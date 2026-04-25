@@ -38,14 +38,27 @@ class TradeRepository extends ChangeNotifier {
 
   Future<void> removeTrade(Trade trade) async { //刪除
     if (!_isReady) return;
-    await _box.delete(trade.id);
+
+    final key = _box.keys.firstWhere(
+      (k) => _box.get(k)?.id == trade.id,
+      orElse: () => trade.id,
+    );
+
+    await _box.delete(key);
     _reloadTrades();
     notifyListeners();
   }
 
   Future<void> updateTrade(Trade oldTrade, Trade newTrade) async { //更新
     if (!_isReady) return;
-    await _box.put(oldTrade.id, newTrade);
+
+    // 找出 box 裡實際對應這個 trade 物件的 key
+    final key = _box.keys.firstWhere(
+      (k) => _box.get(k)?.id == oldTrade.id,
+      orElse: () => oldTrade.id, //找不到就用 oldTrade.id（新資料）
+    );
+
+    await _box.put(key, newTrade);
     _reloadTrades();  
     notifyListeners();
   }

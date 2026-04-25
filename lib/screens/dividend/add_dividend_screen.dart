@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/dividend.dart';
 import '../../repositories/dividend_repository.dart';
+import '../../repositories/trade_repository.dart';
+import '../../services/position_service.dart';
 import '../../widgets/common/form_card.dart';
 import '../../widgets/common/section_title.dart';
 

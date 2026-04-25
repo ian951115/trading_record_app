@@ -40,7 +40,13 @@ class SettingsScreen extends StatelessWidget {
                 title: '紅漲綠跌',
                 subtitle: '台灣慣例，關閉後改為綠漲紅跌',
                 value: settings.redUpGreenDown,
-                onChanged: (v) => settingsRepo.updateColorScheme(v),
+                onChanged: (v) {
+                  if (!v) {
+                    _showComingSoon(context, '綠漲紅跌');
+                    return;
+                  }
+                  settingsRepo.updateColorScheme(v);
+                },
               ),
             ],
           ),
@@ -58,7 +64,14 @@ class SettingsScreen extends StatelessWidget {
                 title: '損益計算方式',
                 subtitle: '影響庫存成本與已實現損益',
                 value: settings.pnlMethod == 'fifo' ? 'FIFO' : '加權平均',
-                onTap: () => _showPnlMethodSheet(context, settingsRepo),
+                onTap: () {
+                  if (settings.pnlMethod == 'fifo') {
+                    _showComingSoon(context, '加權平均計算');
+                    return;
+                  }
+                  settingsRepo.updatePnLMethod(settings.pnlMethod);
+                  _showPnlMethodSheet(context, settingsRepo);
+                },
               ),
               _SettingsDivider(),
               _SettingsNavRow(
@@ -89,6 +102,32 @@ class SettingsScreen extends StatelessWidget {
                 subtitle: '低於此金額時使用最低費用',
                 value: '股 ${settings.minFeePerShare.toInt()}元・張 ${settings.minFeePerLot.toInt()}元',
                 onTap: () => _showMinFeeSheet(context, settingsRepo),
+              ),
+              _SettingsDivider(),
+              _SettingsNavRow(
+                icon: Icons.currency_exchange,
+                iconBg: const Color(0xFFEBF0F8),
+                iconColor: const Color(0xFF4A6FA5),
+                title: '定期定額手續費',
+                subtitle: '每筆定期定額入帳的預設手續費',
+                value: '${settings.recurringFeeDefault.toInt()}元',
+                onTap: () => showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                  ),
+                  builder: (_) => _NumberInputSheet(
+                    title: '定期定額費率',
+                    hint: '例如 1',
+                    suffix: '元',
+                    initialValue: settings.recurringFeeDefault.toStringAsFixed(0),
+                    onSave: (v) {
+                      final fee = double.tryParse(v);
+                      if (fee != null) settingsRepo.updateRecurringFee(fee);
+                    },
+                  ),
+                ),
               ),
             ],
           ),
@@ -133,12 +172,7 @@ class SettingsScreen extends StatelessWidget {
                 iconColor: const Color(0xFF9AA3B2),
                 title: '匯出資料',
                 subtitle: '匯出為 CSV 檔案',
-                onTap: () {
-                  //之後實作
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('匯出功能即將推出')),
-                  );
-                },
+                onTap: () => _showComingSoon(context, '匯出資料'),
               ),
               _SettingsDivider(),
               _SettingsNavRow(
@@ -282,10 +316,25 @@ class SettingsScreen extends StatelessWidget {
       ),
     );
   }
+
+  void _showComingSoon(BuildContext context, String feature) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(feature),
+        content: const Text('此功能開發中，敬請期待！'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('了解'),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 //底部表單內容
-
 class _PnlMethodSheet extends StatelessWidget {
   final SettingsRepository repo;
   const _PnlMethodSheet({required this.repo});
