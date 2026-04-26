@@ -43,19 +43,25 @@ class AnnualGoalScreen extends StatelessWidget {
 }
 
 // ── 年度目標卡片 ─────────────────────────────
-class _GoalCard extends StatelessWidget {
+class _GoalCard extends StatefulWidget {
   final AnnualGoal goal;
   final List<Trade> trades;
-
   const _GoalCard({required this.goal, required this.trades});
+
+  @override
+  State<_GoalCard> createState() => _GoalCardState();
+}
+
+class _GoalCardState extends State<_GoalCard> {
+  bool _expanded = false;
 
   // 計算該年已實現損益
   double _calcYearPnL() {
-    final result = buildPositions(trades);
+    final result = buildPositions(widget.trades);
     final pnlMap = result.tradePnLMap;
     double total = 0;
-    for (final t in trades) {
-      if (t.type == TradeType.sell && t.date.year == goal.year) {
+    for (final t in widget.trades) {
+      if (t.type == TradeType.sell && t.date.year == widget.goal.year) {
         total += pnlMap[t.id] ?? 0;
       }
     }
@@ -66,7 +72,7 @@ class _GoalCard extends StatelessWidget {
     switch (action) {
       case 'edit':
         Navigator.push(context, MaterialPageRoute(
-          builder: (_) => AddGoalScreen(existingGoal: goal)),
+          builder: (_) => AddGoalScreen(existingGoal: widget.goal)),
         );
         break;
       case 'delete':
@@ -80,7 +86,7 @@ class _GoalCard extends StatelessWidget {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('確認刪除'),
-        content: Text('刪除 ${goal.year} 年度目標？'),
+        content: Text('刪除 ${widget.goal.year} 年度目標？'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -94,14 +100,13 @@ class _GoalCard extends StatelessWidget {
       ),
     );
     if (ok == true && context.mounted) {
-      context.read<AnnualGoalRepository>().delete(goal.id);
+      context.read<AnnualGoalRepository>().delete(widget.goal.id);
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
+    final goal = widget.goal;
     final fmt = NumberFormat('#,###');
     final now = DateTime.now();
     final yearPnL = _calcYearPnL();
@@ -147,157 +152,227 @@ class _GoalCard extends StatelessWidget {
 
     final sign = yearPnL >= 0 ? '+' : '';
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: borderColor),
-        boxShadow: [BoxShadow(
-          color: Colors.black.withValues(alpha: 0.04),
-          blurRadius: 6,
-          offset: const Offset(0, 2),
-        )],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── 第一行：年份 + badge + 選單 ────
-          Row(
-            children: [
-              Text(
-                '${goal.year} 年',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF1A1F2E),
+    return GestureDetector(
+      onTap: () => setState(() => _expanded = !_expanded),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: borderColor),
+          boxShadow: [BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          )],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── 第一行：年份 + badge + 選單 ────
+            Row(
+              children: [
+                Text(
+                  '${goal.year} 年',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1A1F2E),
+                  ),
                 ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: badgeBg,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    badgeText!,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: badgeFg,
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () => setState(() => _expanded = !_expanded),
+                  child: AnimatedRotation(
+                    turns: _expanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 150),
+                    child: const Icon(
+                      Icons.expand_more,
+                      size: 20,
+                      color: Color(0xFF9AA3B2),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 12),
+
+            // ── 損益 vs 目標 ────────────────
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      '已實現損益',
+                      style: TextStyle(fontSize: 11, color: Color(0xFF9AA3B2)),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '$sign${fmt.format(yearPnL.toInt())}',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: barColor,
+                      ),
+                    ),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    const Text(
+                      '目標',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF9AA3B2),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      fmt.format(goal.targetPnL.toInt()),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF5A6375),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 10),
+
+            // ── 進度條 ──────────────────────
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 8,
+                backgroundColor: const Color(0xFFE4E7ED),
+                valueColor: AlwaysStoppedAnimation<Color>(barColor),
               ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: badgeBg,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  badgeText!,
+            ),
+
+            const SizedBox(height: 6),
+
+            // ── 進度百分比 + 備註 ───────────
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '${(progress * 100).toStringAsFixed(1)}%',
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: badgeFg,
+                    color: barColor,
                   ),
                 ),
-              ),
-              const Spacer(),
-              PopupMenuButton<String>(
-                icon: const Icon(
-                  Icons.more_vert,
-                  size: 18,
-                  color: Color(0xFF9AA3B2),
-                ),
-                onSelected: (v) => _onMenu(context, v),
-                itemBuilder: (_) => [
-                  const PopupMenuItem(value: 'edit', child: Text('編輯')),
-                  const PopupMenuItem(
-                    value: 'delete',
-                    child: Text(
-                      '刪除',
-                      style: TextStyle(color: Color(0xFFE8504A)),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          // ── 損益 vs 目標 ────────────────
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    '已實現損益',
-                    style: TextStyle(fontSize: 11, color: Color(0xFF9AA3B2)),
-                  ),
-                  const SizedBox(height: 2),
+                if (goal.note?.isNotEmpty == true)
                   Text(
-                    '$sign${fmt.format(yearPnL.toInt())}',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: barColor,
-                    ),
-                  ),
-                ],
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  const Text(
-                    '目標',
-                    style: TextStyle(
+                    goal.note!,
+                    style: const TextStyle(
                       fontSize: 11,
                       color: Color(0xFF9AA3B2),
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    fmt.format(goal.targetPnL.toInt()),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF5A6375),
+              ],
+            ),
+            if (_expanded) ...[
+              const SizedBox(height: 12),
+              const Divider(height: 1),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => Navigator.push(context,MaterialPageRoute(
+                        builder: (_) => AddGoalScreen(existingGoal: goal))),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEBF0F8),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.edit_outlined,
+                              size: 14,
+                              color: Color(0xFF4A6FA5),
+                            ),
+                            SizedBox(width: 4),
+                            Text(
+                              '編輯',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF4A6FA5),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => _confirmDelete(context),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFDF0EF),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.delete_outline,
+                              size: 14,
+                              color: Color(0xFFE8504A),
+                            ),
+                            SizedBox(width: 4),
+                            Text(
+                              '刪除',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFFE8504A),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ],
               ),
             ],
-          ),
-
-          const SizedBox(height: 10),
-
-          // ── 進度條 ──────────────────────
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 8,
-              backgroundColor: const Color(0xFFE4E7ED),
-              valueColor: AlwaysStoppedAnimation<Color>(barColor),
-            ),
-          ),
-
-          const SizedBox(height: 6),
-
-          // ── 進度百分比 + 備註 ───────────
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '${(progress * 100).toStringAsFixed(1)}%',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: barColor,
-                ),
-              ),
-              if (goal.note?.isNotEmpty == true)
-                Text(
-                  goal.note!,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: Color(0xFF9AA3B2),
-                  ),
-                ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

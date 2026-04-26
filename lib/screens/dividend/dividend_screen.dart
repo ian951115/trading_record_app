@@ -172,7 +172,34 @@ class _DividendScreenState extends State<DividendScreen> {
                   ...filtered.map((d) => _DividendTile(
                     dividend: d,
                     formatter: formatter,
-                    onDelete: () => repo.removeDividend(d.id),
+                    onDelete: () async {
+                      final ok = await showDialog<bool>(
+                        context: context,
+                        builder: (_) => AlertDialog(
+                          title: const Text('確認刪除'),
+                          content: const Text('確定要刪除這筆股利紀錄？\n此操作無法復原。'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text('取消'),
+                            ),
+                            TextButton(
+                              style: TextButton.styleFrom(
+                                foregroundColor: const Color(0xFFE8504A)),
+                              onPressed: () => Navigator.pop(context, true),
+                              child: const Text('刪除'),
+                            ),
+                          ],
+                        ),
+                      );
+                      if (ok == true) repo.removeDividend(d.id);
+                    },
+                    onEdit: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => AddDividendScreen(), //暫無編輯功能
+                      ),
+                    ),
                   )),
                 const SizedBox(height: 80),
               ],
@@ -265,137 +292,232 @@ class _DivFilterChip extends StatelessWidget { //篩選Chip
   );
 }
 
-class _DividendTile extends StatelessWidget { //股利卡片
+class _DividendTile extends StatefulWidget { //股利卡片
   final Dividend dividend;
   final NumberFormat formatter;
   final VoidCallback onDelete;
+  final VoidCallback onEdit;
+
   const _DividendTile({
-    required this.dividend, required this.formatter,
+    required this.dividend,
+    required this.formatter,
     required this.onDelete,
+    required this.onEdit,
   });
 
   @override
+  State<_DividendTile> createState() => _DividendTileState();
+}
+
+class _DividendTileState extends State<_DividendTile> {
+  bool _expanded = false;
+
+  @override
   Widget build(BuildContext context) {
-    final d = dividend;
+    final d = widget.dividend;
     final isCash = d.type == DividendType.cash;
     final dateStr = '${d.date.year}/'
         '${d.date.month.toString().padLeft(2,'0')}/'
         '${d.date.day.toString().padLeft(2,'0')}';
 
-    return Dismissible(
-      key: ValueKey(d.id),
-      direction: DismissDirection.endToStart,
-      background: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        color: const Color(0xFFE8504A),
-        child: const Icon(Icons.delete_outline, color: Colors.white),
-      ),
-      onDismissed: (_) => onDelete(),
+    return GestureDetector(
+      onTap: () => setState(() => _expanded = !_expanded),
       child: Container(
-        margin: const EdgeInsets.fromLTRB(14, 0, 14, 8),
-        padding: const EdgeInsets.all(14),
+        margin: const EdgeInsets.only(bottom: 8),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFE4E7ED)),
+          border: Border.all(
+            color: _expanded
+                ? const Color(0xFF4A6FA5)
+                : const Color(0xFFE4E7ED),
+            width: _expanded ? 1.5 : 1,
+          ),
           boxShadow: [BoxShadow(
             color: Colors.black.withValues(alpha:0.04),
             blurRadius:4, offset: const Offset(0,1),
           )],
         ),
-        child: Row(
+        child: Column(
           children: [
-            Container( //左側圖示
-              width:36, height:36,
-              decoration: BoxDecoration(
-                color: isCash
-                    ? const Color(0xFFEEF7F2)
-                    : const Color(0xFFEBF0F8),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(
-                isCash
-                    ? Icons.payments_outlined
-                    : Icons.trending_up,
-                size:18,
-                color: isCash
-                    ? const Color(0xFF3D9E6B)
-                    : const Color(0xFF4A6FA5),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(//中間資訊
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            // ── 主行（永遠顯示）──────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+              child:  Row(
                 children: [
-                  Row(
+                  Container( //左側圖示
+                    width:36, height:36,
+                    decoration: BoxDecoration(
+                      color: isCash
+                          ? const Color(0xFFEEF7F2)
+                          : const Color(0xFFEBF0F8),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      isCash
+                          ? Icons.payments_outlined
+                          : Icons.trending_up,
+                      size:18,
+                      color: isCash
+                          ? const Color(0xFF3D9E6B)
+                          : const Color(0xFF4A6FA5),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded( //中間資訊
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text( //名稱及股號
+                              '${d.name} (${d.symbol})',
+                              style: const TextStyle(
+                                fontSize:13,
+                                fontWeight:FontWeight.w700,
+                                color:Color(0xFF1A1F2E),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Container( //分類標籤
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: isCash
+                                    ? const Color(0xFFEEF7F2)
+                                    : const Color(0xFFEBF0F8),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                isCash ? '現金' : '股票',
+                                style: TextStyle(
+                                  fontSize:9,
+                                  fontWeight:FontWeight.w700,
+                                  color: isCash
+                                      ? const Color(0xFF3D9E6B)
+                                      : const Color(0xFF4A6FA5),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text( //第二排日期及數量
+                          isCash
+                            ? '$dateStr · 每股 ${d.cashAmount / (d.shareAmount > 0 ? d.shareAmount : 1)} 元'
+                            : '$dateStr · 配股 ${d.shareAmount} 股',
+                          style: const TextStyle(fontSize:11, color:Color(0xFF9AA3B2)),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Column( //右側金額
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text( //名稱及股號
-                        '${d.name} (${d.symbol})',
-                        style: const TextStyle(
-                          fontSize:13,
+                      Text(
+                        isCash
+                          ? '+${widget.formatter.format(d.cashAmount.toInt())}'
+                          : '+${d.shareAmount} 股',
+                        style: TextStyle(
+                          fontSize:14,
                           fontWeight:FontWeight.w700,
-                          color:Color(0xFF1A1F2E),
+                          color: isCash
+                              ? const Color(0xFF3D9E6B)
+                              : const Color(0xFF4A6FA5),
                         ),
                       ),
-                      const SizedBox(width: 6),
-                      Container( //分類標籤
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: isCash
-                              ? const Color(0xFFEEF7F2)
-                              : const Color(0xFFEBF0F8),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          isCash ? '現金' : '股票',
-                          style: TextStyle(
-                            fontSize:9,
-                            fontWeight:FontWeight.w700,
-                            color: isCash
-                                ? const Color(0xFF3D9E6B)
-                                : const Color(0xFF4A6FA5),
-                          ),
+                      if (isCash && d.netCashAmount != d.cashAmount)
+                      Text(
+                        '淨 ${widget.formatter.format(d.netCashAmount.toInt())}',
+                        style: const TextStyle(
+                          fontSize:10,
+                          color:Color(0xFF9AA3B2),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 2),
-                  Text( //第二排日期及數量
-                    isCash
-                      ? '$dateStr · 每股 ${d.cashAmount / (d.shareAmount > 0 ? d.shareAmount : 1)} 元'
-                      : '$dateStr · 配股 ${d.shareAmount} 股',
-                    style: const TextStyle(fontSize:11, color:Color(0xFF9AA3B2)),
-                  ),
                 ],
               ),
             ),
-            Column( //右側金額
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  isCash
-                    ? '+${formatter.format(d.cashAmount.toInt())}'
-                    : '+${d.shareAmount} 股',
-                  style: TextStyle(
-                    fontSize:14,
-                    fontWeight:FontWeight.w700,
-                    color: isCash
-                        ? const Color(0xFF3D9E6B)
-                        : const Color(0xFF4A6FA5),
-                  ),
-                ),
-                if (isCash && d.netCashAmount != d.cashAmount)
-                  Text(
-                    '淨 ${formatter.format(d.netCashAmount.toInt())}',
-                    style: const TextStyle(
-                      fontSize:10,
-                      color:Color(0xFF9AA3B2),
+
+            // ── 展開行（編輯/刪除按鈕）──────────
+            if (_expanded) ...[
+              Divider(
+                height: 1,
+                color: const Color(0xFFE4E7ED),
+                indent: 14,
+                endIndent: 14,
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => widget.onEdit,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEBF0F8),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.edit_outlined,
+                                size: 14,
+                                color: Color(0xFF4A6FA5),
+                              ),
+                              SizedBox(width: 4),
+                              Text(
+                                '編輯',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF4A6FA4),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-              ],
-            ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => widget.onDelete,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFDF0EF),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.delete_outline,
+                                size: 14,
+                                color: Color(0xFFE8504A),
+                              ),
+                              SizedBox(width: 4),
+                              Text(
+                                '刪除',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFFE8504A),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),

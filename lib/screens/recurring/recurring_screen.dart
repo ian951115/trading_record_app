@@ -176,22 +176,28 @@ class RecurringScreen extends StatelessWidget {
 }
 
 // ── 計畫 Tile ────────────────────────────────
-class _RecurringTile extends StatelessWidget {
+class _RecurringTile extends StatefulWidget {
   final RecurringPlan plan;
   final List trades; //用於計算下次扣款
-
   const _RecurringTile({required this.plan, required this.trades});
+
+  @override
+  State<_RecurringTile> createState() => _RecurringTileState();
+}
+
+class _RecurringTileState extends State<_RecurringTile> {
+  bool _expanded = false;
 
   void _onMenu(BuildContext context, String action) {
     final repo = context.read<RecurringRepository>();
     switch (action) {
       case 'edit':
         Navigator.push(context, MaterialPageRoute(
-          builder: (_) => AddRecurringScreen(existingPlan: plan),
+          builder: (_) => AddRecurringScreen(existingPlan: widget.plan),
         ));
         break;
       case 'toggle':
-        repo.toggleActive(plan);
+        repo.toggleActive(widget.plan);
         break;
       case 'delete':
         _confirmDelete(context, repo);
@@ -204,7 +210,7 @@ class _RecurringTile extends StatelessWidget {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('確認刪除'),
-        content: Text('刪除「${plan.name}」的定期定額計畫？\n已入帳的交易紀錄不受影響'),
+        content: Text('刪除「${widget.plan.name}」的定期定額計畫？\n已入帳的交易紀錄不受影響'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -218,11 +224,13 @@ class _RecurringTile extends StatelessWidget {
         ],
       ),
     );
-    if (ok == true && context.mounted) repo.delete(plan.id);
+    if (ok == true && context.mounted) repo.delete(widget.plan.id);
   }
 
   @override
   Widget build(BuildContext context) {
+    final plan = widget.plan;
+    final repo = context.read<RecurringRepository>();
     final fmt = NumberFormat('#,###');
     final isPaused = !plan.isActive;
     final nextDate = RecurringService.nextScheduledDate(plan);
@@ -233,140 +241,238 @@ class _RecurringTile extends StatelessWidget {
 
     return Opacity(
       opacity: isPaused ? 0.55 : 1.0,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE4E7ED)),
-          boxShadow: [BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 4, offset: const Offset(0, 1),
-          )],
-        ),
-        child: Row(
-          children: [
-            Container( //左：股票代碼徽章
-              width: 48, height: 48,
-              decoration: BoxDecoration(
-                color: isPaused
-                    ? const Color(0xFFF0F2F5)
-                    : const Color(0xFFEBF0F8),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Center(
-                child: Text(
-                  plan.symbol,
-                  style: TextStyle(
-                    fontSize: plan.symbol.length > 4 ? 9 : 11,
-                    fontWeight: FontWeight.w700,
-                    color: isPaused
-                        ? const Color(0xFF9AA3B2)
-                        : const Color(0xFF4A6FA5),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            //中：名稱、頻率、暫停標籤
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      child: GestureDetector(
+        onTap: () => setState(() => _expanded = !_expanded),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFFE4E7ED)),
+            boxShadow: [BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 4, offset: const Offset(0, 1),
+            )],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          plan.name,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: isPaused
-                                ? const Color(0xFF9AA3B2)
-                                : const Color(0xFF1A1F2E)
-                          ),
-                          overflow: TextOverflow.ellipsis,
+                  Container( //左：股票代碼徽章
+                    width: 48, height: 48,
+                    decoration: BoxDecoration(
+                      color: isPaused
+                          ? const Color(0xFFF0F2F5)
+                          : const Color(0xFFEBF0F8),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Center(
+                      child: Text(
+                        plan.symbol,
+                        style: TextStyle(
+                          fontSize: plan.symbol.length > 4 ? 9 : 11,
+                          fontWeight: FontWeight.w700,
+                          color: isPaused
+                              ? const Color(0xFF9AA3B2)
+                              : const Color(0xFF4A6FA5),
                         ),
                       ),
-                      if (isPaused) ...[
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFFF3E0),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: const Text(
-                            '暫停',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFFE07B20),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  //中：名稱、頻率、暫停標籤
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                plan.name,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: isPaused
+                                      ? const Color(0xFF9AA3B2)
+                                      : const Color(0xFF1A1F2E)
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                          ),
+                            if (isPaused) ...[
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFF3E0),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Text(
+                                  '暫停',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFFE07B20),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          '$dayStr  ·  ${fmt.format(plan.amountPerTime.toInt())} 元/次',
+                          style: const TextStyle(
+                            fontSize: 11, color: Color(0xFF9AA3B2)),
                         ),
                       ],
+                    ),
+                  ),
+                  Column( //右：月金額 + 下次日期 + 選單
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '${fmt.format(plan.monthlyAmount.toInt())}/月',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: isPaused
+                              ? const Color(0xFF9AA3B2)
+                              : const Color(0xFF4A6FA5),
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        isPaused ? '—' : '下次：$nextStr',
+                        style: const TextStyle(
+                          fontSize: 10, color: Color(0xFF9AA3B2),
+                        ),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 3),
-                  Text(
-                    '$dayStr  ·  ${fmt.format(plan.amountPerTime.toInt())} 元/次',
-                    style: const TextStyle(
-                      fontSize: 11, color: Color(0xFF9AA3B2)),
+                  const SizedBox(width: 4),
+                  GestureDetector(
+                    onTap: () => setState(() => _expanded = !_expanded),
+                    child: AnimatedRotation(
+                      turns: _expanded ? 0.5 : 0,
+                      duration: const Duration(milliseconds: 150),
+                      child: const Icon(
+                        Icons.expand_more,
+                        size: 20,
+                        color: Color(0xFF9AA3B2),
+                      ),
+                    ),
                   ),
                 ],
               ),
-            ),
-            Column( //右：月金額 + 下次日期 + 選單
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '${fmt.format(plan.monthlyAmount.toInt())}/月',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: isPaused
-                        ? const Color(0xFF9AA3B2)
-                        : const Color(0xFF4A6FA5),
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  isPaused ? '—' : '下次：$nextStr',
-                  style: const TextStyle(
-                    fontSize: 10, color: Color(0xFF9AA3B2),
-                  ),
+              if (_expanded) ...[
+                const SizedBox(height: 12),
+                const Divider(height: 1),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    // 暫停/恢復
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => repo.toggleActive(plan),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFF3E0),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(isPaused ? Icons.play_arrow_outlined : Icons.pause_outlined,
+                                size: 14,
+                                color: const Color(0xFFE07B20),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(isPaused ? '恢復' : '暫停',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFFE07B20),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    // 編輯
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => Navigator.push(context, MaterialPageRoute(
+                        builder: (_) => AddRecurringScreen(existingPlan: plan))),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEBF0F8),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.edit_outlined, size: 14, color: Color(0xFF4A6FA5)),
+                              SizedBox(width: 4),
+                              Text(
+                                '編輯',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF4A6FA5),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    // 刪除
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => _confirmDelete(context, repo),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFDF0EF),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.delete_outline,
+                                size: 14,
+                                color: Color(0xFFE8504A),
+                              ),
+                              SizedBox(width: 4),
+                              Text('刪除',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFFE8504A),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
-            ),
-            const SizedBox(width: 4),
-            PopupMenuButton<String>( //右側選單（編輯 / 暫停 / 刪除）
-              icon: const Icon(
-                Icons.more_vert,
-                size: 18,
-                color: Color(0xFF9AA3B2),
-              ),
-              onSelected: (v) => _onMenu(context, v),
-              itemBuilder: (_) => [
-                const PopupMenuItem(
-                  value: 'edit',
-                  child: Text('編輯'),
-                ),
-                PopupMenuItem(
-                  value: 'toggle',
-                  child: Text(isPaused ? '恢復' : '暫停'),
-                ),
-                const PopupMenuItem(
-                  value: 'delete',
-                  child: Text('刪除',
-                    style: TextStyle(color: Color(0xFFE8504A)),
-                  ),
-                ),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

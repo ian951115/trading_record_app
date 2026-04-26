@@ -30,6 +30,14 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool _isObscured = false;
+  final _pageCtrl = PageController();
+  int _currentPage = 0;
+  static const int _totalPages = 2;
+
+  @override
+  void dispose() {
+    _pageCtrl.dispose();
+  }
   
   @override
   Widget build(BuildContext context) {
@@ -57,10 +65,103 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final recentTrades = trades.take(5).toList();
 
+    Widget _buildPage1() => GridView.count(
+      crossAxisCount: 4,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisSpacing: 8,
+      mainAxisSpacing: 8,
+      childAspectRatio: 0.95,
+      children: [
+        _QuickItem(
+          icon: Icons.receipt_long_outlined,
+          label: '交易明細',
+          color: const Color(0xFFEBF0F8),
+          iconColor: const Color(0xFF4A6FA5),
+          onTap: () => Navigator.push(context,
+            MaterialPageRoute(builder: (_) => const TradeListScreen())),
+        ),
+        _QuickItem(
+          icon: Icons.inventory_2_outlined,
+          label: '庫存明細',
+          color: const Color(0xFFEEF7F2),
+          iconColor: const Color(0xFF3D9E6B),
+          onTap: () => Navigator.push(context,
+            MaterialPageRoute(builder: (_) => PositionListScreen())),
+        ),
+        _QuickItem(
+          icon: Icons.calendar_month_outlined,
+          label: '收益日曆',
+          color: const Color(0xFFFDF0EF),
+          iconColor: const Color(0xFFE8504A),
+          onTap: () => Navigator.push(context,
+            MaterialPageRoute(builder: (_) => CalendarScreen())),
+        ),
+        _QuickItem(
+          icon: Icons.flag_circle_outlined,
+          label: '年度目標',
+          color: const Color(0xFFEBF0F8),
+          iconColor: const Color(0xFF4A6FA5),
+          onTap: () => Navigator.push(context,
+            MaterialPageRoute(builder: (_) => AnnualGoalScreen())),
+        ),
+        _QuickItem(
+          icon: Icons.show_chart,
+          label: '各式圖表',
+          color: const Color(0xFFEBF0F8),
+          iconColor: const Color(0xFF4A6FA5),
+          onTap: () => Navigator.push(context,
+            MaterialPageRoute(builder: (_) => const ChartsScreen())),
+        ),
+        _QuickItem(
+          icon: Icons.savings_outlined,
+          label: '股利紀錄',
+          color: const Color(0xFFEEF7F2),
+          iconColor: const Color(0xFF3D9E6B),
+          onTap: () => Navigator.push(context,
+            MaterialPageRoute(builder: (_) => const DividendScreen())),
+        ),
+        _QuickItem(
+          icon: Icons.account_balance_wallet_outlined,
+          label: '資金管理',
+          color: const Color(0xFFFDF0EF),
+          iconColor: const Color(0xFFE8504A),
+          onTap: () => Navigator.push(context,
+            MaterialPageRoute(builder: (_) => const CashFlowScreen())),
+        ),
+        _QuickItem(
+          icon: Icons.bar_chart,
+          label: '個股績效',
+          color: const Color(0xFFEBF0F8),
+          iconColor: const Color(0xFF4A6FA5),
+          onTap: () => Navigator.push(context,
+            MaterialPageRoute(builder: (_) => const StockPerformanceScreen())),
+        ),
+      ],
+    );
+
+    Widget _buildPage2() => GridView.count(
+      crossAxisCount: 4,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisSpacing: 8,
+      mainAxisSpacing: 8,
+      childAspectRatio: 0.95,
+      children: [
+        _QuickItem(
+          icon: Icons.abc, //暫時
+          label: '定期定額',
+          color: const Color(0xFFEBF0F8),
+          iconColor: const Color(0xFF4A6FA5),
+          onTap: () => Navigator.push(context,
+            MaterialPageRoute(builder: (_) => const RecurringScreen())),
+        )
+      ],
+    );
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-
           // ── AppBar ──────────────────────────
           SliverAppBar(
             pinned: true,
@@ -261,79 +362,31 @@ class _HomeScreenState extends State<HomeScreen> {
                 // ── 快捷功能 2×4 ───────────────
                 const _SectionHeader(title: '快捷功能'),
                 const SizedBox(height: 10),
-                GridView.count(
-                  crossAxisCount: 4,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
-                  childAspectRatio: 0.95,
-                  children: [
-                    _QuickItem(
-                      icon: Icons.receipt_long_outlined,
-                      label: '交易明細',
-                      color: const Color(0xFFEBF0F8),
-                      iconColor: const Color(0xFF4A6FA5),
-                      onTap: () => Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => const TradeListScreen())),
+                SizedBox(
+                  height: 215,
+                  child: PageView(
+                    controller: _pageCtrl,
+                    onPageChanged: (i) => setState(() => _currentPage = i),
+                    children: [_buildPage1(), _buildPage2()],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row( //圓點指示器
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(_totalPages, (i) =>
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      width: _currentPage == i ? 16 : 8,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: _currentPage == i
+                            ? const Color(0xFF4A6FA5)
+                            : const Color(0xFFE4E7ED),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
                     ),
-                    _QuickItem(
-                      icon: Icons.inventory_2_outlined,
-                      label: '庫存明細',
-                      color: const Color(0xFFEEF7F2),
-                      iconColor: const Color(0xFF3D9E6B),
-                      onTap: () => Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => PositionListScreen())),
-                    ),
-                    _QuickItem(
-                      icon: Icons.calendar_month_outlined,
-                      label: '收益日曆',
-                      color: const Color(0xFFFDF0EF),
-                      iconColor: const Color(0xFFE8504A),
-                      onTap: () => Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => CalendarScreen())),
-                    ),
-                    _QuickItem(
-                      icon: Icons.flag_circle_outlined,
-                      label: '年度目標',
-                      color: const Color(0xFFEBF0F8),
-                      iconColor: const Color(0xFF4A6FA5),
-                      onTap: () => Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => AnnualGoalScreen())),
-                    ),
-                    _QuickItem(
-                      icon: Icons.show_chart,
-                      label: '各式圖表',
-                      color: const Color(0xFFEBF0F8),
-                      iconColor: const Color(0xFF4A6FA5),
-                      onTap: () => Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => const ChartsScreen())),
-                    ),
-                    _QuickItem(
-                      icon: Icons.savings_outlined,
-                      label: '股利紀錄',
-                      color: const Color(0xFFEEF7F2),
-                      iconColor: const Color(0xFF3D9E6B),
-                      onTap: () => Navigator.push(context,
-                      MaterialPageRoute(builder: (_) => const DividendScreen())),
-                    ),
-                    _QuickItem(
-                      icon: Icons.account_balance_wallet_outlined,
-                      label: '資金管理',
-                      color: const Color(0xFFFDF0EF),
-                      iconColor: const Color(0xFFE8504A),
-                      onTap: () => Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => const CashFlowScreen())),
-                    ),
-                    _QuickItem(
-                      icon: Icons.bar_chart,
-                      label: '個股績效',
-                      color: const Color(0xFFEBF0F8),
-                      iconColor: const Color(0xFF4A6FA5),
-                      onTap: () => Navigator.push(context,
-                      MaterialPageRoute(builder: (_) => const StockPerformanceScreen())),
-                    ),
-                  ],
+                  ),
                 ),
 
                 const SizedBox(height: 16),

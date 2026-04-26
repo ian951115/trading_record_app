@@ -1,7 +1,6 @@
 //交易明細頁面UI
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 import '../../models/add_trade_result.dart';
 import '../../models/trade.dart';
@@ -218,65 +217,43 @@ class _TradeListScreenState extends State<TradeListScreen> {
                   separatorBuilder: (_, __) => const SizedBox(height: 8), //_:不會用到此參數
                   itemBuilder: (context, index) {
                     final trade = filteredTrades[index];
-                    return Slidable(
-                      key: ValueKey(trade.id),
-                      endActionPane: ActionPane(
-                        motion: const DrawerMotion(),
-                        children: [
-                          SlidableAction( //編輯
-                            onPressed: (_) async {
-                              final result = await Navigator.push<AddTradeResult>(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => AddTradeScreen(editingTrade: trade),
-                                ),
-                              );
-                              if(result != null) {
-                                tradeRepo.updateTrade(trade, result.trade);
-                              }
-                            },
-                            backgroundColor: Color(0xFF4A6FA5),
-                            foregroundColor: Colors.white,
-                            icon: Icons.edit_outlined,
-                            label: '編輯',
+                    return TradeTile(
+                      trade: trade,
+                      realizedPnL: pnlMap[trade.id],
+                      onEdit: () async {
+                        final result = await Navigator.push<AddTradeResult>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => AddTradeScreen(editingTrade: trade),
                           ),
-                          SlidableAction( //刪除
-                            onPressed: (_) async {
-                              final confirm = await showDialog<bool>(
-                                context: context,
-                                builder: (_) => AlertDialog(
-                                  title: const Text('刪除交易'),
-                                  content: const Text('確定要刪除這筆交易嗎?'),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context, false),
-                                      child: const Text('取消'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context, true),
-                                      child: const Text(
-                                        '刪除',
-                                        style: TextStyle(color: Color(0xFFE8504A)),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                              if(confirm == true) {
-                                tradeRepo.removeTrade(trade);
-                              }
-                            },
-                            backgroundColor: Color(0xFFE8504A),
-                            foregroundColor: Colors.white,
-                            icon: Icons.delete_outline,
-                            label: '刪除',
-                            borderRadius: const BorderRadius.horizontal(
-                              right: Radius.circular(12)
-                            ),
+                        );
+                        if (result != null) {
+                          tradeRepo.updateTrade(trade, result.trade);
+                        }
+                      },
+                      onDelete: () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (_) => AlertDialog(
+                            title: const Text('確認刪除'),
+                            content: const Text('確定要刪除這筆交易紀錄？\n此操作無法復原。'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text('取消'),
+                              ),
+                              TextButton(
+                                style: TextButton.styleFrom(foregroundColor: const Color(0xFFE8504A)),
+                                onPressed: () => Navigator.pop(context, true),
+                                child: const Text('刪除'),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      child: TradeTile(trade: trade, realizedPnL: pnlMap[trade.id]),
+                        );
+                        if (confirm == true) {
+                          tradeRepo.removeTrade(trade);
+                        }
+                      },
                     );
                   },
                 ),

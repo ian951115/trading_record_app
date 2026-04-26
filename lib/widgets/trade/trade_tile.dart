@@ -7,10 +7,15 @@ import '../../models/trade.dart';
 class TradeTile extends StatefulWidget {
   final Trade trade;
   final double? realizedPnL;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
+
   const TradeTile({
     super.key,
     required this.trade,
     this.realizedPnL,
+    this.onEdit,
+    this.onDelete,
   });
 
   @override
@@ -51,9 +56,7 @@ class _TradeTileState extends State<TradeTile> {
         duration: const Duration(milliseconds: 150), //顏色轉變時間
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: isExpanded
-              ? const Color(0xFFEBF0F8)
-              : Colors.white,
+          color:  Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all( //邊框
             color: isExpanded
@@ -208,6 +211,76 @@ class _TradeTileState extends State<TradeTile> {
                             value: trade.tags.isNotEmpty
                                 ? trade.tags.join('、')
                                 : '-',
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    const Divider(height: 1),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: widget.onEdit,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEBF0F8),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.edit_outlined,
+                                    size: 14,
+                                    color: Color(0xFF4A6FA5),
+                                  ),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    '編輯',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF4A6FA5),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: widget.onDelete,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFDF0EF),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.delete_outline,
+                                    size: 14,
+                                    color: Color(0xFFE8504A),
+                                  ),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    '刪除',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFFE8504A),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                       ],

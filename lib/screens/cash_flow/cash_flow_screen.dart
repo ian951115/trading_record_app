@@ -395,7 +395,7 @@ class _CashFlowTileState extends State<_CashFlowTile> {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('確認刪除'),
-        content: Text('確定要刪除這筆 $typeName 紀錄？\n此操作無法復原。'),
+        content: Text('確定要刪除這筆$typeName紀錄？\n此操作無法復原。'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),

@@ -46,9 +46,11 @@ class _AddCashFlowScreenState extends State<AddCashFlowScreen> {
 
   void _save() async {
     if (_amount <= 0) { //底部小彈窗
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('請輸入正確金額')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('請輸入正確金額'),
+        backgroundColor: const Color(0xFFE8504A),
+        behavior: SnackBarBehavior.floating,
+      ));
       return;
     }
 

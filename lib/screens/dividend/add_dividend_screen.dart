@@ -61,7 +61,12 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
   }
 
   void _save() async {
-    if (_symbol.isEmpty) return;
+    if (_symbol.trim().isEmpty) {
+      _showError('請填入股票代碼'); return;
+    }
+    if (_pricePerShare <= 0) {
+      _showError('請填入有效每股股利'); return;
+    }
     if (_type == DividendType.cash && _grossAmount <= 0) return;
     if (_type == DividendType.stock && _shareAmount <= 0) return;
 
@@ -79,6 +84,14 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
 
     await context.read<DividendRepository>().addDividend(div);
     Navigator.pop(context);
+  }
+
+  void _showError(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(msg),
+      backgroundColor: const Color(0xFFE8504A),
+      behavior: SnackBarBehavior.floating,
+    ));
   }
 
   @override

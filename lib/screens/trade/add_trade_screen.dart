@@ -1,12 +1,17 @@
 //新增交易紀錄的頁面UI
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../../models/trade.dart';
 import '../../models/add_trade_result.dart';
 import '../../models/cash_flow.dart';
+import '../../repositories/trade_repository.dart';
+import '../../repositories/cash_flow_repository.dart';
 import '../../repositories/settings_repository.dart';
+import '../../services/portfolio_service.dart';
 import '../../widgets/common/form_card.dart';
 import '../../widgets/common/section_title.dart';
+import '../../widgets/common/info_item.dart';
 
 const Map<String, String> mockStockMap = {
   '2330': '台積電',
@@ -123,6 +128,17 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
   }
 
   void _saveTrade() { //儲存交易
+    // ── 驗證 ──────────────────────
+    if (stockCode.trim().isEmpty) {
+      _showError('請填入股票代碼'); return;
+    }
+    if (price <= 0) {
+      _showError('請填入有效價格'); return;
+    }
+    if (quantity <= 0) {
+      _showError('請填入有效數量'); return;
+    }
+
     double finalFee = feeAmount;
     if (mounted) {
       final settings = context.read<SettingsRepository>().settings;
@@ -161,8 +177,28 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
     ));
   }
 
+  void _showError(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(msg),
+      backgroundColor: const Color(0xFFE8504A),
+      behavior: SnackBarBehavior.floating,
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
+    final cashFlows = context.watch<CashFlowRepository>().getAllFlows();
+    final allTrades = context.watch<TradeRepository>().getAllTrades();
+    final hasCashData = cashFlows.isNotEmpty;
+    final currentCash = hasCashData
+        ? PortfolioService.calculateCash(
+            trades: allTrades, cashFlows: cashFlows)
+        : 0.0;
+    final afterCash = isBuy
+        ? currentCash - totalAmount
+        : currentCash + totalAmount;
+    final fmt = NumberFormat('#,###');
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -337,6 +373,26 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
                       ],
                     ),
                   ),
+                  if (hasCashData) ...[
+                    const Divider(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: InfoItem(
+                            label: '現金餘額',
+                            value: fmt.format(currentCash.toInt()),
+                          ),
+                        ),
+                        Expanded(
+                          child: InfoItem(
+                            label: isBuy ? '交易後剩餘' : '交易後現金',
+                            value: fmt.format(afterCash.toInt()),
+                            valueColor: afterCash < 0 ? const Color(0xFFE8504A) : null,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
