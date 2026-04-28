@@ -1,7 +1,8 @@
-//年度目標資歷存取邏輯
+//年度目標資庫存取邏輯
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/annual_goal.dart';
+import '../models/goal_type.dart';
 
 class AnnualGoalRepository extends ChangeNotifier {
   static const String boxName = 'annual_goals';
@@ -72,5 +73,31 @@ class AnnualGoalRepository extends ChangeNotifier {
   void _reload() {
     _goals = _box.values.toList()
       ..sort((a, b) => b.year.compareTo(a.year)); //最新年份在前
+  }
+
+  // 回傳 Map<year, List<AnnualGoal>>，依年份降序排列
+  // 同年內：totalPnL 固定第一，其餘保持插入順序
+  Map<int, List<AnnualGoal>> getGroupedByYear() {
+    final map = <int, List<AnnualGoal>>{};
+    for (final g in _goals) { // _goals 已依 year desc 排序
+      map.putIfAbsent(g.year, () => []).add(g);
+    }
+    map.forEach((_, list) {
+      list.sort((a, b) {
+        if (a.goalType == GoalType.totalPnL) return -1; //a在b前面
+        if (b.goalType == GoalType.totalPnL) return  1; //反之
+        return 0;
+      });
+    });
+    return map;
+  }
+ 
+  // 同年同標的只能有一個，新增前用此方法檢查
+  bool hasGoalForYearAndType(int year, GoalType type, {String? symbol}) {
+    return _goals.any((g) =>
+      g.year == year &&
+      g.goalType == type &&
+      (type == GoalType.totalPnL || g.stockSymbol == symbol),
+    );
   }
 }

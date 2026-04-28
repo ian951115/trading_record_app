@@ -1,6 +1,8 @@
 //年度目標model
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
+import '../utils/enum_ext.dart';
+import 'goal_type.dart';
 
 part 'annual_goal.g.dart';
 
@@ -18,23 +20,45 @@ class AnnualGoal {
   @HiveField(3)
   final String? note; //備註（選填）
 
+  @HiveField(4)
+  final String goalTypeStr; //存GoalType.name，預設"totalPnL"
+
+  @HiveField(5)
+  final String? stockSymbol;
+
+  @HiveField(6)
+  final String? stockName;
+
+  // computed getter / setter
+  GoalType get goalType =>
+    GoalType.values.byNameOrNull(goalTypeStr) ?? GoalType.totalPnL;
+
+
   AnnualGoal({
     String? id,
     required this.year,
     required this.targetPnL,
     this.note,
-  }) : id = id ?? const Uuid().v4();
+    String? goalTypeStr,
+    this.stockSymbol,
+    this.stockName,
+  }) : id = id ?? const Uuid().v4(),
+      goalTypeStr = goalTypeStr ?? GoalType.totalPnL.name;
 
   AnnualGoal copyWith({
     int? year,
     double? targetPnL,
     String? note,
-  }) {
-    return AnnualGoal(
-      id: id,
-      year: year ?? this.year,
-      targetPnL: targetPnL ?? this.targetPnL,
-      note: note ?? this.note,
-    );
-  }
+    String? goalTypeStr,
+    String? stockSymbol,
+    String? stockName,
+  }) => AnnualGoal(
+    id: id,
+    year: year ?? this.year,
+    targetPnL: targetPnL ?? this.targetPnL,
+    note: note ?? this.note,
+    goalTypeStr: goalTypeStr ?? this.goalTypeStr,
+    stockSymbol: stockSymbol ?? this.stockSymbol,
+    stockName: stockName ?? this.stockName,
+  );
 }

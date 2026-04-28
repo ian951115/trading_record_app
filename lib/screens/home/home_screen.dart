@@ -19,7 +19,7 @@ import '../dividend/dividend_screen.dart';
 import '../settings/settings_screen.dart';
 import '../cash_flow/cash_flow_screen.dart';
 import '../recurring/recurring_screen.dart';
-import '../goals/annual_goal_screen.dart';
+import '../goals/goal_tracking_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -99,11 +99,11 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         _QuickItem(
           icon: Icons.flag_circle_outlined,
-          label: '年度目標',
+          label: '目標追蹤',
           color: const Color(0xFFEBF0F8),
           iconColor: const Color(0xFF4A6FA5),
           onTap: () => Navigator.push(context,
-            MaterialPageRoute(builder: (_) => AnnualGoalScreen())),
+            MaterialPageRoute(builder: (_) => GoalTrackingScreen())),
         ),
         _QuickItem(
           icon: Icons.show_chart,
@@ -363,7 +363,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const _SectionHeader(title: '快捷功能'),
                 const SizedBox(height: 10),
                 SizedBox(
-                  height: 215,
+                  height: 200,
                   child: PageView(
                     controller: _pageCtrl,
                     onPageChanged: (i) => setState(() => _currentPage = i),
