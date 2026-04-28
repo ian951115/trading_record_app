@@ -89,7 +89,27 @@ class _AnnualTab extends StatelessWidget {
         if (current.isEmpty) // 當年
           const _AnnualEmptyHint()
         else
-          ...current.map((g) => _AnnualGoalCard(goal: g, trades: trades)),
+          ...[
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${DateTime.now().year} 年',
+                    style: const TextStyle(
+                      fontSize: 12, fontWeight: FontWeight.w700,
+                      color: Color(0xFF9AA3B2), letterSpacing: 0.06),
+                  ),
+                  Text(
+                    '${current.length} 個目標',
+                    style: const TextStyle(fontSize: 11, color: Color(0xFF9AA3B2)),
+                  ),
+                ],
+              ),
+            ),
+            ...current.map((g) => _AnnualGoalCard(goal: g, trades: trades)),
+          ],
         const SizedBox(height: 8),
         if (histYears.isNotEmpty) // 歷史折疊
           _HistorySection(years: histYears, grouped: grouped, trades: trades),
@@ -131,6 +151,14 @@ class _HistorySection extends StatefulWidget {
 
 class _HistorySectionState extends State<_HistorySection> {
   bool _open = false;
+  late final Map<int, bool> _yearOpen; //記錄每個年份是否展開
+
+  @override
+  void initState() {
+    super.initState();
+    // 預設全部收合，最近一年預設展開
+    _yearOpen = {for (final y in widget.years) y: y == widget.years.first};
+  }
 
   @override
   Widget build(BuildContext context) => Column(
@@ -146,7 +174,7 @@ class _HistorySectionState extends State<_HistorySection> {
           child: Row(
             children: [
               const Text(
-                '📂  歷史紀錄',
+                '📂  我的紀錄',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -154,11 +182,6 @@ class _HistorySectionState extends State<_HistorySection> {
                 ),
               ),
               const Spacer(),
-              Text(
-                widget.years.join('・'),
-                style: const TextStyle(fontSize: 11, color: Color(0xFF9AA3B2)),
-              ),
-              const SizedBox(width: 4),
               Icon(
                 _open ? Icons.expand_less : Icons.expand_more,
                 size: 18,
@@ -168,26 +191,88 @@ class _HistorySectionState extends State<_HistorySection> {
           ),
         ),
       ),
-      if (_open) //展開內容
-        ...widget.years.map((y) => Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(2, 14, 0, 6),
-              child: Text(
-                '$y 年',
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF9AA3B2),
-                  letterSpacing: 0.04,
+
+      // ── 展開後：每年一個獨立折疊 ──
+      if (_open)
+        ...widget.years.map((y) {
+          final isYearOpen = _yearOpen[y] ?? false;
+          final goals = widget.grouped[y]!;
+          final doneCount = goals.where((g) {
+            final pnl = GoalPnlHelper.calc(
+              trades: widget.trades,
+              startDate: DateTime(y, 1, 1),
+              endDate: DateTime(y, 12, 31),
+              stockSymbol: g.goalType == GoalType.stockPnL ? g.stockSymbol : null,
+            );
+            return pnl >= g.targetPnL;
+          }).length;
+
+          return Column(
+            children: [
+              const SizedBox(height: 8),
+              GestureDetector(
+                onTap: () => setState(() => _yearOpen[y] = !isYearOpen),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8F9FC),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFE4E7ED)),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        '$y 年',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF5A6375),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // 達成率小 badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: doneCount == goals.length
+                              ? const Color(0xFFF2FBF6)
+                              : const Color(0xFFF0F2F7),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          '$doneCount/${goals.length} 達成',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: doneCount == goals.length
+                                ? const Color(0xFF3D9E6B)
+                                : const Color(0xFF9AA3B2),
+                          ),
+                        ),
+                      ),
+                      const Spacer(),
+                      Icon(
+                        isYearOpen ? Icons.expand_less : Icons.expand_more,
+                        size: 16,
+                        color: const Color(0xFF9AA3B2),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            ...widget.grouped[y]!.map((g) =>
-              _AnnualGoalCard(goal: g, trades: widget.trades)),
-          ],
-        )),
+              // 展開後顯示該年的卡片
+              if (isYearOpen)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Column(
+                    children: goals.map((g) =>
+                      _AnnualGoalCard(goal: g, trades: widget.trades),
+                    ).toList(),
+                  ),
+                ),
+            ],
+          );
+        }),
     ],
   );
 }
@@ -255,15 +340,23 @@ class _AnnualGoalCardState extends State<_AnnualGoalCard> {
         ? 0.0
         : (pnl / goal.targetPnL).clamp(0.0, 1.0);
     final isThisYear = goal.year == now.year;
+    final isFuture = goal.year > now.year;
     final isDone = pnl >= goal.targetPnL;
-    final isFailed = !isThisYear && !isDone; //過去年份且未達成
+    final isFailed = !isThisYear && !isFuture && !isDone; //過去年份且未達成
 
     //顏色主題
     Color barColor, bgColor, borderColor;
     String badgeText;
     Color badgeBg, badgeFg;
 
-    if (isDone) {
+    if (isFuture) {
+      barColor    = const Color(0xFF9AA3B2);
+      bgColor     = Colors.white;
+      borderColor = const Color(0xFFE4E7ED);
+      badgeText   = '尚未開始';
+      badgeBg     = const Color(0xFFF0F2F7);
+      badgeFg     = const Color(0xFF9AA3B2);
+    } else if (isDone) {
       barColor    = const Color(0xFF3D9E6B);
       bgColor     = const Color(0xFFF2FBF6);
       borderColor = const Color(0xFFB8DFC9);
@@ -350,9 +443,25 @@ class _AnnualGoalCardState extends State<_AnnualGoalCard> {
             ),
 
             // 副標：年份範圍
-            Text(
-              '${goal.year}/01/01 – ${goal.year}/12/31',
-              style: const TextStyle(fontSize: 11, color: Color(0xFF9AA3B2)),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Text(
+                  goal.goalType == GoalType.totalPnL ? '累計損益' : '個股損益',
+                  style: const TextStyle(fontSize: 11, color: Color(0xFF9AA3B2)),
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 5),
+                  child: CircleAvatar(
+                    radius: 1.5,
+                    backgroundColor: Color(0xFFE4E7ED),
+                  ),
+                ),
+                Text(
+                  '${goal.year}/01/01 – ${goal.year}/12/31',
+                  style: const TextStyle(fontSize: 11, color: Color(0xFF9AA3B2)),
+                ),
+              ],
             ),
 
             const SizedBox(height: 10),
@@ -803,14 +912,21 @@ class _CustomGoalCardState extends State<_CustomGoalCard> {
 
             // 副標：標的 + 日期範圍
             const SizedBox(height: 4),
-            Text(
-              _subtitle,
-              style: const TextStyle(fontSize: 11, color: Color(0xFF9AA3B2)),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              '${_fmt(goal.startDate)} – ${_fmt(goal.endDate)}',
-              style: const TextStyle(fontSize: 11, color: Color(0xFF9AA3B2)),
+            Row(
+              children: [
+                Text(
+                  _subtitle,
+                  style: const TextStyle(fontSize: 11, color: Color(0xFF9AA3B2)),
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 5),
+                  child: CircleAvatar(radius: 1.5, backgroundColor: Color(0xFFE4E7ED)),
+                ),
+                Text(
+                  '${_fmt(goal.startDate)} – ${_fmt(goal.endDate)}',
+                  style: const TextStyle(fontSize: 11, color: Color(0xFF9AA3B2)),
+                ),
+              ],
             ),
 
             const SizedBox(height: 10),

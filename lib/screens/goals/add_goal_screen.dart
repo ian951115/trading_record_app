@@ -41,7 +41,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
 
   // ── 年度目標專用 ──────────────────────────────────────
   late int _year;
-  late final List<int> _yearOptions;
+  late final List<int> _yearOptions; //年份選擇
  
   // ── 自訂義目標專用 ────────────────────────────────────
   late String _title;
@@ -65,7 +65,10 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
   void initState() {
     super.initState();
     final now = DateTime.now();
-    _yearOptions = List.generate(6, (i) => now.year + i);
+    _yearOptions = List.generate(
+      DateTime.now().year - 1960 + 2, //1960年到未來兩年
+      (i) => 1960 + i,
+    );
  
     if (widget.mode == GoalMode.annual) {
       final g = widget.existingAnnual;
@@ -209,7 +212,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
   Widget _buildGoalTypeToggle() => Container(
     padding: const EdgeInsets.all(3),
     decoration: BoxDecoration(
-      color: _surface2,
+      color: const Color(0xFFF0F2F7),
       borderRadius: BorderRadius.circular(8),
     ),
     child: Row(
@@ -415,7 +418,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
                   initialValue: _year,
                   decoration: const InputDecoration(
                     border: InputBorder.none,
-                    contentPadding: EdgeInsets.zero,
+                    contentPadding: EdgeInsets.symmetric(vertical: 14),
                     isDense: true,
                   ),
                   items: _yearOptions.map((y) =>
@@ -429,7 +432,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
 
             // ── 追蹤標的 ──────────────────────
             const SectionTitle(title: '追蹤標的'),
-            _buildGoalTypeToggle(),
+            FormCard(child: _buildGoalTypeToggle()),
  
             // ── 個股代號（條件顯示）──────────
             if (_goalType == GoalType.stockPnL) _buildStockField(),
@@ -475,6 +478,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
             if (widget.mode == GoalMode.annual) ...[
               const SizedBox(height: 16),
               Container(
+                width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: _blueLight,
