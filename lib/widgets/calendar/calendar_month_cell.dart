@@ -7,8 +7,6 @@ import '../../services/calendar_service.dart';
 class CalendarMonthCell extends StatelessWidget {
   final int month;
   final YearMonthData? data;
-  final double Function(double) heatmapColorValue;
-  final Color Function(double) heatmapColor;
   final String Function(double) formatPnL;
   final VoidCallback onTap;
 
@@ -16,10 +14,8 @@ class CalendarMonthCell extends StatelessWidget {
     super.key,
     required this.month,
     required this.data,
-    required this.heatmapColor,
     required this.formatPnL,
     required this.onTap,
-    required this.heatmapColorValue,
   });
 
   @override
@@ -71,7 +67,7 @@ class CalendarMonthCell extends StatelessWidget {
           ],
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text( //月份標題
               '$month 月',
@@ -85,6 +81,7 @@ class CalendarMonthCell extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: SizedBox(
                   height: 20,
+                  width: double.infinity,
                   child: Opacity(
                     opacity: 0.6,
                     child: MiniSparkline(

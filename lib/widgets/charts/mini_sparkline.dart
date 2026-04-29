@@ -41,7 +41,7 @@ class _SparklinePainter extends CustomPainter {
     final range = (maxVal - minVal).abs() < 1e-6 ? 1 : maxVal -minVal;
 
     for (int i = 0; i < data.length; i++) {
-      final x = i / (data.length - 1) * size.height;
+      final x = i / (data.length - 1) * size.width;
       final y = size.height - ((data[i] - minVal) / range) * size.height;
 
       if (i == 0) {

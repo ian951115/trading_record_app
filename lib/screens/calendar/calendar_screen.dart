@@ -5,7 +5,6 @@ import '../../models/trade.dart';
 import '../../models/daily_pnl.dart';
 import '../../models/calendar_view_mode.dart';
 import '../../repositories/trade_repository.dart';
-import '../../services/heatmap_service.dart';
 import '../../services/position_service.dart';
 import '../../services/calendar_service.dart';
 import '../../utils/trade_filter.dart';
@@ -94,8 +93,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
     yearData = CalendarService.calculateYearlyData(dailyPnLMap, currentYear);
     final stats = CalendarService.calculateMonthStats(dailyPnLMap, focusedDay);
     final streak = CalendarService.calculateWinStreak(dailyPnLMap, focusedDay);
-    final yearMaxAbs = HeatmapService.getYearMaxAbs(yearData);
-    final monthMaxAbs = HeatmapService.getMonthMaxAbs(dailyPnLMap, focusedDay);
 
     return Scaffold(
       appBar: AppBar(
@@ -135,43 +132,25 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          if (_viewMode == CalendarViewMode.month)
-            SizedBox(
-              height: 160,
-              child: CalendarStatsCard(
-                focusedDay: focusedDay,
-                stats: stats,
-                streak: streak,
-                formatPnL: formatPnLDisplay,
-              ),
-            ),
-          Expanded(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              transitionBuilder: (child, animation) {
-                final offsetAnimation = Tween<Offset>(
-                  begin: const Offset(0.05, 0),
-                  end: Offset.zero,
-                ).animate(animation);
-
-                return FadeTransition(
-                  opacity: animation,
-                  child: SlideTransition(
-                    position: offsetAnimation,
-                    child: child,
+      body: _viewMode == CalendarViewMode.month
+          ? Column(
+              children: [
+                SizedBox(
+                  height: 160,
+                  child: CalendarStatsCard(
+                    focusedDay: focusedDay,
+                    stats: stats,
+                    streak: streak,
+                    formatPnL: formatPnLDisplay,
                   ),
-                );
-              },
-              child: _viewMode == CalendarViewMode.month
-                  ? MonthCalendarView(
+                ),
+                Expanded(
+                  child: MonthCalendarView(
                     key: const ValueKey('month'),
                     focusedDay: focusedDay,
                     selectedDay: selectedDay,
                     dailyPnLMap: dailyPnLMap,
                     formatPnL: formatPnLDisplay,
-                    heatmapColor: (pnl) => HeatmapService.dayPnLColor(pnl, monthMaxAbs),
                     onDaySelected: (selected, focused) {
                       setState(() {
                         selectedDay =selected;
@@ -184,34 +163,32 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         focusedDay = focused;
                       });
                     },
-                  )
-                  : YearCalendarView(
-                    key: const ValueKey('year'),
-                    currentYear: currentYear,
-                    yearData: yearData,
-                    heatmapColor: (pnl) => HeatmapService.monthPnLColor(pnl, yearMaxAbs),
-                    formatPnL: formatPnLDisplay,
-                    onPrevYear: () {
-                      setState(() {
-                        currentYear--;
-                      });
-                    },
-                    onNextYear: () {
-                      setState(() {
-                        currentYear++;
-                      });
-                    },
-                    onMonthTap: (month) {
-                      setState(() {
-                        focusedDay = DateTime(currentYear, month, 1);
-                        _viewMode = CalendarViewMode.month;
-                      });
-                    },
                   ),
+                ),
+              ],
+            )
+          : YearCalendarView(
+              key: const ValueKey('year'),
+              currentYear: currentYear,
+              yearData: yearData,
+              formatPnL: formatPnLDisplay,
+              onPrevYear: () {
+                setState(() {
+                  currentYear--;
+                });
+              },
+              onNextYear: () {
+                setState(() {
+                  currentYear++;
+                });
+              },
+              onMonthTap: (month) {
+                setState(() {
+                  focusedDay = DateTime(currentYear, month, 1);
+                  _viewMode = CalendarViewMode.month;
+                });
+              },
             ),
-          )
-        ],
-      ),
     );
   }
 }

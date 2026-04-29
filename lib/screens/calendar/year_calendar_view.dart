@@ -10,7 +10,6 @@ class YearCalendarView extends StatelessWidget {
   final VoidCallback onPrevYear;
   final VoidCallback onNextYear;
   final void Function(int month) onMonthTap;
-  final Color Function(double) heatmapColor;
   final String Function(double) formatPnL;
 
   const YearCalendarView({
@@ -20,7 +19,6 @@ class YearCalendarView extends StatelessWidget {
     required this.onPrevYear,
     required this.onNextYear,
     required this.onMonthTap,
-    required this.heatmapColor,
     required this.formatPnL,
   });
 
@@ -50,133 +48,141 @@ class YearCalendarView extends StatelessWidget {
         ? 0.0
         : yearWinDays / yearTotalDays;
 
-    return Column(
-      children: [
-        // ── 年度統計卡片 ──────────────────
-        Container(
-          margin: const EdgeInsets.fromLTRB(14, 12, 14, 0),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF3D5A8A), Color(0xFF4A6FA5)],
+    return GestureDetector(
+      onHorizontalDragEnd: (details) {
+        if (details.primaryVelocity == null) return;
+        if (details.primaryVelocity! < -200) {
+          onNextYear(); //左滑換年
+        } else if (details.primaryVelocity! > 200) {
+          onPrevYear(); //右滑
+        }
+      },
+      child: Column(
+        children: [
+          // ── 年度統計卡片 ──────────────────
+          Container(
+            margin: const EdgeInsets.fromLTRB(14, 12, 14, 0),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF3D5A8A), Color(0xFF4A6FA5)],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF4A6FA5).withValues(alpha: 0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF4A6FA5).withValues(alpha: 0.3),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '$currentYear 年度總結',
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                  letterSpacing: 0.5,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text( //年度總損益大字
-                yearPnL == 0
-                    ? '—'
-                    : (yearPnL > 0 ? '+' : '-') + formatter.format(yearPnL.toInt()),
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  color: yearPnL > 0
-                      ? const Color(0xFFFFD6D4)
-                      : yearPnL < 0
-                          ? const Color(0xFFB8F0D0)
-                          : Colors.white70,
-                  letterSpacing: -0.5
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Divider(color: Colors.white24, height: 1),
-              const SizedBox(height: 12),
-              Row( //三格統計
-                children: [
-                  _YearStat(
-                    label: '年度勝率',
-                    value: yearTrades == 0
-                        ? '—'
-                        : '${(yearWinRate * 100).toStringAsFixed(0)}%',
-                  ),
-                  const _YearDivider(),
-                  _YearStat(
-                    label: '交易次數',
-                    value: yearTrades.toString(),
-                  ),
-                  const _YearDivider(),
-                  _YearStat(
-                    label: '最佳月份',
-                    value: bestMonth == 0 ? '—' : '$bestMonth 月',
-                    valueColor: bestMonth == 0
-                        ? Colors.white70
-                        : const Color(0xFFFFD6D4),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-
-        // ── 年份導航 ──────────────────────
-        Padding(
-          padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
-          child: Row(
-            children: [
-              _NavBtn(onTap: onPrevYear, icon: Icons.chevron_left),
-              Expanded(
-                child: Text(
-                  '$currentYear 年',
-                  textAlign: TextAlign.center,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$currentYear 年度總結',
                   style: const TextStyle(
-                    fontSize: 15,
+                    fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF1A1F2E),
+                    color: Colors.white,
+                    letterSpacing: 0.5,
                   ),
                 ),
-              ),
-              _NavBtn(onTap: onNextYear, icon: Icons.chevron_right),
-            ],
-          ),
-        ),
-
-        // ── 月份格子 ──────────────────────
-        Expanded(
-          child: GridView.builder(
-            padding: const EdgeInsets.fromLTRB(14, 4, 14, 20),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              mainAxisSpacing: 10,
-              crossAxisSpacing: 10,
-              childAspectRatio: 1.1,
+                const SizedBox(height: 6),
+                Text( //年度總損益大字
+                  yearPnL == 0
+                      ? '—'
+                      : (yearPnL > 0 ? '+' : '-') + formatter.format(yearPnL.toInt()),
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    color: yearPnL > 0
+                        ? const Color(0xFFFFD6D4)
+                        : yearPnL < 0
+                            ? const Color(0xFFB8F0D0)
+                            : Colors.white70,
+                    letterSpacing: -0.5
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Divider(color: Colors.white24, height: 1),
+                const SizedBox(height: 12),
+                Row( //三格統計
+                  children: [
+                    _YearStat(
+                      label: '年度勝率',
+                      value: yearTrades == 0
+                          ? '—'
+                          : '${(yearWinRate * 100).toStringAsFixed(0)}%',
+                    ),
+                    const _YearDivider(),
+                    _YearStat(
+                      label: '交易次數',
+                      value: yearTrades.toString(),
+                    ),
+                    const _YearDivider(),
+                    _YearStat(
+                      label: '最佳月份',
+                      value: bestMonth == 0 ? '—' : '$bestMonth 月',
+                      valueColor: bestMonth == 0
+                          ? Colors.white70
+                          : const Color(0xFFFFD6D4),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            itemCount: 12,
-            itemBuilder: (context, index) {
-              final month = index + 1;
-              final data = yearData[month];
-              return CalendarMonthCell(
-                month: month,
-                data: data,
-                heatmapColor: heatmapColor,
-                formatPnL: formatPnL,
-                heatmapColorValue: (_) => 0,
-                onTap: () => onMonthTap(month),
-              );
-            },
           ),
-        ),
-      ],
+
+          // ── 年份導航 ──────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
+            child: Row(
+              children: [
+                _NavBtn(onTap: onPrevYear, icon: Icons.chevron_left),
+                Expanded(
+                  child: Text(
+                    '$currentYear 年',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1A1F2E),
+                    ),
+                  ),
+                ),
+                _NavBtn(onTap: onNextYear, icon: Icons.chevron_right),
+              ],
+            ),
+          ),
+
+          // ── 月份格子 ──────────────────────
+          Expanded(
+            child: GridView.builder(
+              padding: const EdgeInsets.fromLTRB(14, 4, 14, 20),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
+                childAspectRatio: 1.1,
+              ),
+              itemCount: 12,
+              itemBuilder: (context, index) {
+                final month = index + 1;
+                final data = yearData[month];
+                return CalendarMonthCell(
+                  month: month,
+                  data: data,
+                  formatPnL: formatPnL,
+                  onTap: () => onMonthTap(month),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

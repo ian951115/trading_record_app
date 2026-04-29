@@ -7,15 +7,15 @@ class CalendarDayCell extends StatelessWidget {
   final DailyPnl? daily; //?表daily可能是null，下面daily!表保證變數不是null
   final bool isSelected;
   final bool isToday;
+  final int tradeCount;
   final String Function(double) formatPnL;
-  final Color Function(double) heatmapColor;
 
   const CalendarDayCell({
     super.key,
     required this.day,
     required this.daily,
     required this.formatPnL,
-    required this.heatmapColor,
+    required this.tradeCount,
     this.isSelected = false,
     this.isToday = false,
   });
@@ -25,9 +25,11 @@ class CalendarDayCell extends StatelessWidget {
     final hasPnL = daily != null && daily!.pnl != 0;
     final pnl = daily?.pnl ?? 0;
 
-    final bgColor = hasPnL //熱力圖底色（有資料才套用）
-        ? heatmapColor(pnl)
-        : Colors.transparent;
+    final bgColor = !hasPnL //底色
+        ? Colors.transparent
+        : pnl > 0
+            ? const Color(0xFFFDF0EF)
+            : const Color(0xFFEEF7F2);
 
     final overlayColor = isSelected //選中狀態：疊加半透明深色，保留熱力圖底色
         ? const Color(0xFF4A6FA5).withValues(alpha: 0.15)
@@ -88,23 +90,32 @@ class CalendarDayCell extends StatelessWidget {
 
               const Spacer(),
               if (hasPnL) //下方資訊
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 3),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      formatPnL(pnl),
-                      style: TextStyle(
-                        fontSize: 8,
-                        fontWeight: FontWeight.w700,
-                        color: pnlColor,
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 1),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          formatPnL(pnl),
+                          style: TextStyle(
+                            fontSize: 8,
+                            fontWeight: FontWeight.w700,
+                            color: pnlColor,
+                          ),
+                          maxLines: 1,
+                        ),
                       ),
-                      maxLines: 1,
                     ),
-                  ),
+                    Text(
+                      '$tradeCount 筆',
+                      style: const TextStyle(fontSize: 7, color: Color(0xFF9AA3B2)),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 3),
+                  ],
                 ),
-
-              const Spacer(),
             ],
           ),
         ]
