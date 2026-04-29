@@ -150,7 +150,6 @@ class _HistorySection extends StatefulWidget {
 }
 
 class _HistorySectionState extends State<_HistorySection> {
-  bool _open = false;
   late final Map<int, bool> _yearOpen; //記錄每個年份是否展開
 
   @override
@@ -163,116 +162,111 @@ class _HistorySectionState extends State<_HistorySection> {
   @override
   Widget build(BuildContext context) => Column(
     children: [
-      GestureDetector( //折疊 header
-        onTap: () => setState(() => _open = !_open),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF0F2F7),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Row(
-            children: [
-              const Text(
-                '📂  我的紀錄',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF5A6375),
-                ),
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF0F2F7),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          children: [
+            const Text(
+              '📂  我的紀錄',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF5A6375),
               ),
-              const Spacer(),
-              Icon(
-                _open ? Icons.expand_less : Icons.expand_more,
-                size: 18,
-                color: const Color(0xFF9AA3B2),
-              ),
-            ],
-          ),
+            ),
+            const Spacer(),
+            //顯示共有幾年
+            Text(
+              '${widget.years.length} 年紀錄',
+              style: const TextStyle(fontSize: 11, color: Color(0xFF9AA3B2)),
+            ),
+          ],
         ),
       ),
+      
+      ...widget.years.map((y) {
+        final isYearOpen = _yearOpen[y] ?? false;
+        final goals = widget.grouped[y]!;
+        final doneCount = goals.where((g) {
+          final pnl = GoalPnlHelper.calc(
+            trades: widget.trades,
+            startDate: DateTime(y, 1, 1),
+            endDate: DateTime(y, 12, 31),
+            stockSymbol: g.goalType == GoalType.stockPnL ? g.stockSymbol : null,
+          );
+          return pnl >= g.targetPnL;
+        }).length;
 
-      // ── 展開後：每年一個獨立折疊 ──
-      if (_open)
-        ...widget.years.map((y) {
-          final isYearOpen = _yearOpen[y] ?? false;
-          final goals = widget.grouped[y]!;
-          final doneCount = goals.where((g) {
-            final pnl = GoalPnlHelper.calc(
-              trades: widget.trades,
-              startDate: DateTime(y, 1, 1),
-              endDate: DateTime(y, 12, 31),
-              stockSymbol: g.goalType == GoalType.stockPnL ? g.stockSymbol : null,
-            );
-            return pnl >= g.targetPnL;
-          }).length;
-
-          return Column(
-            children: [
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: () => setState(() => _yearOpen[y] = !isYearOpen),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8F9FC),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFFE4E7ED)),
-                  ),
-                  child: Row(
-                    children: [
-                      Text(
-                        '$y 年',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF5A6375),
-                        ),
+        return Column(
+          children: [
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: () => setState(() => _yearOpen[y] = !isYearOpen),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8F9FC),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFE4E7ED)),
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      '$y 年',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF5A6375),
                       ),
-                      const SizedBox(width: 8),
-                      // 達成率小 badge
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
+                    ),
+                    const SizedBox(width: 8),
+                    // 達成率小 badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: doneCount == goals.length
+                            ? const Color(0xFFF2FBF6)
+                            : const Color(0xFFF0F2F7),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        '$doneCount/${goals.length} 達成',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
                           color: doneCount == goals.length
-                              ? const Color(0xFFF2FBF6)
-                              : const Color(0xFFF0F2F7),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          '$doneCount/${goals.length} 達成',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: doneCount == goals.length
-                                ? const Color(0xFF3D9E6B)
-                                : const Color(0xFF9AA3B2),
-                          ),
+                              ? const Color(0xFF3D9E6B)
+                              : const Color(0xFF9AA3B2),
                         ),
                       ),
-                      const Spacer(),
-                      Icon(
-                        isYearOpen ? Icons.expand_less : Icons.expand_more,
-                        size: 16,
-                        color: const Color(0xFF9AA3B2),
-                      ),
-                    ],
-                  ),
+                    ),
+                    const Spacer(),
+                    Icon(
+                      isYearOpen ? Icons.expand_less : Icons.expand_more,
+                      size: 16,
+                      color: const Color(0xFF9AA3B2),
+                    ),
+                  ],
                 ),
               ),
-              // 展開後顯示該年的卡片
-              if (isYearOpen)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Column(
-                    children: goals.map((g) =>
-                      _AnnualGoalCard(goal: g, trades: widget.trades),
-                    ).toList(),
-                  ),
+            ),
+            // 展開後顯示該年的卡片
+            if (isYearOpen)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Column(
+                  children: goals.map((g) =>
+                    _AnnualGoalCard(goal: g, trades: widget.trades),
+                  ).toList(),
                 ),
-            ],
-          );
-        }),
+              ),
+          ],
+        );
+      }),
     ],
   );
 }
