@@ -1,4 +1,5 @@
 //各式圖表
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -29,7 +30,7 @@ class _ChartsScreenState extends State<ChartsScreen>
     with SingleTickerProviderStateMixin {
 
   late TabController _tabController;
-  String _assetRange = 'all'; // 1m / 3m / 1y / all
+  String _assetRange = '1m'; // 1m / 3m / 1y / all
   int _monthlyYear = DateTime.now().year;
 
   @override
@@ -85,14 +86,12 @@ class _ChartsScreenState extends State<ChartsScreen>
                   trades: trades,
                   cashFlows: cashFlows,
                   range: _assetRange,
-                  onRangeChanged: (r) =>
-                      setState(() => _assetRange = r),
+                  onRangeChanged: (r) => setState(() => _assetRange = r),
                 ),
                 _MonthlyTab(
                   trades: trades,
                   year: _monthlyYear,
-                  onYearChanged: (y) =>
-                      setState(() => _monthlyYear = y),
+                  onYearChanged: (y) => setState(() => _monthlyYear = y),
                 ),
                 _PieTab(openPositions: openPositions),
                 _StrategyTab(
@@ -108,7 +107,9 @@ class _ChartsScreenState extends State<ChartsScreen>
   }
 }
 
-//總資產折線圖
+// ════════════════════════════════════════════════════════════
+// A  總資產折線圖
+// ════════════════════════════════════════════════════════════
 class _AssetTab extends StatefulWidget {
   final List<Trade> trades;
   final List<CashFlow> cashFlows;
@@ -123,7 +124,13 @@ class _AssetTab extends StatefulWidget {
 }
 
 class _AssetTabState extends State<_AssetTab> {
-  int? _touchedSpotIndex; //觸碰點索引（用於tooltip）
+  // ──三條線 toggle state ──
+  bool _showTotal = true;
+  bool _showStock = true;
+  bool _showCash  = true;
+ 
+  // ──點選資料點 ──
+  AssetDataPoint? _touchedPoint;
 
   List<AssetDataPoint> _filterByRange(List<AssetDataPoint> data) { //時間篩選
     if (widget.range == 'all') return data;
@@ -135,6 +142,34 @@ class _AssetTabState extends State<_AssetTab> {
       _ => DateTime(1961),
     };
     return data.where((d) => !d.date.isBefore(cutoff)).toList();
+  }
+
+  // ──X 軸日期顯示邏輯 ──
+  bool _shouldShowXLabel(DateTime date, String range, bool isFirst) {
+    // 第一個點永遠顯示
+    if (isFirst) return true;
+    return switch (range) {
+      '1m'  => date.weekday == DateTime.monday,
+      '3m'  => date.weekday == DateTime.monday &&
+                (date.day <= 7 || (date.day >= 15 && date.day <= 21)),
+      '1y'  => date.day == 1,
+      'all' => date.day == 1,
+      _     => date.day == 1,
+    };
+  }
+
+  // 是否需要顯示年份（範圍跨年時）
+  bool _isMultiYear(List<AssetDataPoint> data) {
+    if (data.length < 2) return false;
+    return data.first.date.year != data.last.date.year;
+  }
+ 
+  String _xLabel(DateTime d, bool multiYear) {
+    if (multiYear && d.day == 1) {
+      // 每月一日且跨年：顯示 YY/M
+      return '${d.year % 100}/${d.month}';
+    }
+    return '${d.month}/${d.day}';
   }
 
   @override
@@ -153,8 +188,16 @@ class _AssetTabState extends State<_AssetTab> {
       );
     }
 
-    final maxAsset = data.map((d) => d.totalAsset).reduce((a, b) => a > b ? a : b); //找max
-    final minAsset = data.map((d) => d.totalAsset).reduce((a, b) => a < b ? a : b); //找min
+    // ──單點保護 ──
+    double minAsset, maxAsset;
+    if (data.length == 1) {
+      minAsset = data[0].totalAsset * 0.9;
+      maxAsset = data[0].totalAsset * 1.1;
+    } else {
+      maxAsset = data.map((d) => d.totalAsset).reduce(max); //找max
+      minAsset = data.map((d) => d.totalAsset).reduce(min); //找min
+    }
+
     final current = data.last.totalAsset;
     final first = data.first.totalAsset;
     final change = current - first;
@@ -163,17 +206,110 @@ class _AssetTabState extends State<_AssetTab> {
         ? const Color(0xFFE8504A)
         : const Color(0xFF3D9E6B);
 
-    //建立總資產曲線資料點
-    final spots = data.asMap().entries.map((e) =>
-      FlSpot(e.key.toDouble(), e.value.totalAsset),
-    ).toList();
+    // ──Y 軸單位自動判斷 ──
+    final useWan = (maxAsset / 10000) >= 1;
+ 
+    final multiYear = _isMultiYear(data);
+ 
+    // ──依 toggle bool 組合 lineBarsData ──
+    final bars = <LineChartBarData>[];
 
-    //X軸日期標籤只顯示頭、中、尾
-    final labelIndices = {0, data.length ~/ 2, data.length - 1};
-    String xLabel(int i) { //指定的日期顯示
-      final d = data[i].date;
-      return '${d.month}/${d.day}';
+    LineChartBarData _makeLine({
+      required List<FlSpot> spots,
+      required Color color,
+    }) {
+      return LineChartBarData(
+        spots: spots,
+        isCurved: false,
+        color: color,
+        barWidth: 2,
+        dotData: FlDotData(
+          show: true,
+          checkToShowDot: (spot, _) =>
+              _touchedPoint != null &&
+              spot.x.toInt() < data.length &&
+              data[spot.x.toInt()].date == _touchedPoint!.date,
+          getDotPainter: (_, __, ___, ____) => FlDotCirclePainter(
+            radius: 4,
+            color: color,
+            strokeWidth: 2,
+            strokeColor: Colors.white,
+          ),
+        ),
+        belowBarData: BarAreaData(
+          show: true,
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              color.withValues(alpha: 0.15),
+              color.withValues(alpha: 0.01),
+            ],
+          ),
+        ),
+      );
     }
+
+    //建立曲線資料點
+    if (_showTotal) { //總資產曲線
+      bars.add(
+        _makeLine(
+          spots: data.asMap().entries
+              .map((e) => FlSpot(e.key.toDouble(), e.value.totalAsset))
+              .toList(),
+          color: const Color(0xFF4A6FA5),
+        ),
+      );
+    }
+    if (_showStock) {
+      bars.add(
+        _makeLine(
+          spots: data.asMap().entries
+              .map((e) => FlSpot(e.key.toDouble(), e.value.marketValue))
+              .toList(),
+          color: const Color(0xFFE8504A),
+        ),
+      );
+    }
+    if (_showCash) { //現金曲線
+      bars.add(
+        _makeLine(
+          spots: data.asMap().entries
+              .map((e) => FlSpot(e.key.toDouble(), e.value.cash))
+              .toList(),
+          color: const Color(0xFF3D9E6B),
+        ),
+      );
+    }
+    if (bars.isEmpty) { //至少保留一條線（全關時強制顯示總資產）
+      bars.add(
+        _makeLine(
+          spots: data.asMap().entries
+              .map((e) => FlSpot(e.key.toDouble(), e.value.totalAsset))
+              .toList(),
+          color: const Color(0xFF4A6FA5),
+        ),
+      );
+    }
+
+    // Y 軸範圍（取所有顯示線的 min/max）
+    double chartMinY = minAsset * 0.95;
+    double chartMaxY = maxAsset * 1.05;
+    if (_showStock || _showCash) {
+      final allVals = [
+        if (_showTotal) ...data.map((d) => d.totalAsset),
+        if (_showStock) ...data.map((d) => d.marketValue),
+        if (_showCash)  ...data.map((d) => d.cash),
+      ];
+      if (allVals.isNotEmpty) {
+        chartMinY = allVals.reduce(min) * 0.95;
+        chartMaxY = allVals.reduce(max) * 1.05;
+      }
+    }
+
+    // 確認有沒有標籤應該顯示（若整段沒有 1 日則 fallback 到第一個點）
+    final hasAnyLabel = data.any((d) =>
+        _shouldShowXLabel(d.date, widget.range, d == data.first));
 
     return ListView(
       padding: const EdgeInsets.all(14),
@@ -228,13 +364,23 @@ class _AssetTabState extends State<_AssetTab> {
                   color: Color(0xFF1A1F2E),
                 ),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 10),
+              // ── A5：Toggle 列 ──
+              _LineToggle(
+                showTotal: _showTotal,
+                showStock: _showStock,
+                showCash: _showCash,
+                onToggleTotal: () => setState(() => _showTotal = !_showTotal),
+                onToggleStock: () => setState(() => _showStock = !_showStock),
+                onToggleCash: () => setState(() => _showCash  = !_showCash),
+              ),
+              const SizedBox(height: 10),
               SizedBox(
                 height: 200,
                 child: LineChart(
                   LineChartData(
-                    minY: minAsset * 0.95,
-                    maxY: maxAsset * 1.05, //y軸對應的最大值
+                    minY: chartMinY,
+                    maxY: chartMaxY, //y軸對應的最大值
                     clipData: const FlClipData.all(), //限制在格子內
                     gridData: FlGridData( //格線設定
                       drawVerticalLine: false,
@@ -250,8 +396,11 @@ class _AssetTabState extends State<_AssetTab> {
                         sideTitles: SideTitles(
                           showTitles: true,
                           reservedSize: 52,
+                          // ──Y 軸單位自動 ──
                           getTitlesWidget: (v, _) => Text(
-                            '${(v/10000).toStringAsFixed(0)}萬',
+                            useWan
+                                ? '${(v / 10000).toStringAsFixed(0)}萬'
+                                : v.toStringAsFixed(0),
                             style: const TextStyle(
                               fontSize: 9,
                               color: Color(0xFF9AA3B2),
@@ -263,17 +412,24 @@ class _AssetTabState extends State<_AssetTab> {
                         sideTitles: SideTitles(showTitles: false)),
                       topTitles: AxisTitles( //上方不顯示
                         sideTitles: SideTitles(showTitles: false)),
-                      bottomTitles: AxisTitles( //下方顯示日期
+                      // ──X 軸日期邏輯 ──
+                      bottomTitles: AxisTitles(
                         sideTitles: SideTitles(
                           showTitles: true,
                           reservedSize: 22,
                           getTitlesWidget: (v, _) {
                             final i = v.toInt();
-                            if (!labelIndices.contains(i) || i >= data.length) {
+                            if (i < 0 || i >= data.length) {
                               return const SizedBox.shrink();
                             }
+                            final d = data[i].date;
+                            final isFirst = i == 0;
+                            final show = hasAnyLabel
+                                ? _shouldShowXLabel(d, widget.range, isFirst)
+                                : isFirst;
+                            if (!show) return const SizedBox.shrink();
                             return Text(
-                              xLabel(i),
+                              _xLabel(d, multiYear),
                               style: const TextStyle(
                                 fontSize: 9,
                                 color: Color(0xFF9AA3B2),
@@ -283,21 +439,22 @@ class _AssetTabState extends State<_AssetTab> {
                         ),
                       ),
                     ),
-                    // ── 自訂 Tooltip ──
+                    // ──點選更新 _touchedPoint ──
                     lineTouchData: LineTouchData( //日期對應資料方框
                       touchCallback: (event, response) { //對選取的反應
                         setState(() {
-                          _touchedSpotIndex = response
-                              ?.lineBarSpots?.first.x.toInt();
+                          final x = response?.lineBarSpots?.first.x.toInt();
+                          _touchedPoint = (x != null && x < data.length)
+                              ? data[x]
+                              : null;
                         });
                       },
                       touchTooltipData: LineTouchTooltipData( //內容
                         tooltipBgColor: const Color(0xFF1A1F2E).withValues(alpha: 0.85),
                         getTooltipItems: (spots) {
                           return spots.map((s) {
-                            final i = s.spotIndex;
-                            final d = i < data.length
-                                ? data[i].date : null;
+                            final i = s.x.toInt();
+                            final d = i < data.length ? data[i].date : null;
                             final dateStr = d != null
                                 ? '${d.month}/${d.day}' : '';
                             return LineTooltipItem(
@@ -312,53 +469,362 @@ class _AssetTabState extends State<_AssetTab> {
                         },
                       ),
                     ),
-                    lineBarsData: [ //曲線及座標點
-                      LineChartBarData(
-                        spots: spots,
-                        isCurved: true,
-                        color: const Color(0xFF4A6FA5),
-                        barWidth: 2,
-                        dotData: FlDotData( //座標點
-                          show: true,
-                          checkToShowDot: (spot, barData) =>
-                              spot.x.toInt() == _touchedSpotIndex,
-                          getDotPainter: (_, __, ___, ____) =>
-                              FlDotCirclePainter(
-                                radius: 4,
-                                color: const Color(0xFF4A6FA5),
-                                strokeWidth: 2,
-                                strokeColor: Colors.white,
-                              ),
-                        ),
-                        belowBarData: BarAreaData( //線下
-                          show: true,
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              const Color(0xFF4A6FA5)
-                                .withValues(alpha: 0.18),
-                              const Color(0xFF4A6FA5)
-                                .withValues(alpha: 0.01),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
+                    lineBarsData: bars,
                   ),
                 ),
               ),
+              // ──點選展開詳細卡片 ──
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: _touchedPoint == null
+                    ? const SizedBox.shrink()
+                    : _TouchDetailCard(
+                      key: ValueKey(_touchedPoint!.date),
+                      point: _touchedPoint!,
+                      formatter: formatter,
+                      showStock: _showStock,
+                      showCash: _showCash,
+                    ),
+              )
             ],
           ),
         ),
         const SizedBox(height: 10),
-        _HighlightCard(data: data, formatter: formatter), //亮點卡片
+        // ──6 格亮點卡片 ──
+        _HighlightCard(data: data, formatter: formatter),
       ],
     );
   }
 }
 
-//每月損益長條圖
+// ──三條線 Toggle Widget ──
+class _LineToggle extends StatelessWidget {
+  final bool showTotal, showStock, showCash;
+  final VoidCallback onToggleTotal, onToggleStock, onToggleCash;
+  const _LineToggle({
+    required this.showTotal, required this.showStock,
+    required this.showCash, required this.onToggleTotal,
+    required this.onToggleStock, required this.onToggleCash,
+  });
+
+  Widget _pill(String label, Color color, bool active, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: active ? color : const Color(0xFFE4E7ED)),
+          color: active
+              ? color.withValues(alpha: 0.08)
+              : Colors.white,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 8, height: 8,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: active ? color : const Color(0xFFD0D5DD),
+              ),
+            ),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: active ? color : const Color(0xFF9AA3B2),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        _pill('總資產', const Color(0xFF4A6FA5), showTotal, onToggleTotal),
+        const SizedBox(width: 8),
+        _pill('持股市值', const Color(0xFFE8504A), showStock, onToggleStock),
+        const SizedBox(width: 8),
+        _pill('現金', const Color(0xFF3D9E6B), showCash, onToggleCash),
+      ],
+    );
+  }
+}
+
+// ──點選詳細卡片 ──
+class _TouchDetailCard extends StatelessWidget {
+  final AssetDataPoint point;
+  final NumberFormat formatter;
+  final bool showStock, showCash;
+  const _TouchDetailCard({
+    super.key,
+    required this.point,
+    required this.formatter,
+    required this.showStock,
+    required this.showCash,
+  });
+
+  Widget _cell(String label, String value, Color valueColor) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            color: Color(0xFF9AA3B2),
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: valueColor,
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final d = point.date;
+    final dateStr = '${d.year}/${d.month}/${d.day}';
+    return Container(
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF7F9FC),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFE4E7ED)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _cell('選取日期', dateStr, const Color(0xFF1A1F2E)),
+          ),
+          Expanded(
+            child: _cell(
+              '總資產',
+              formatter.format(point.totalAsset.toInt()),
+              const Color(0xFF4A6FA5),
+            ),
+          ),
+          if (showStock)
+            Expanded(
+              child: _cell(
+                '持股市值',
+                formatter.format(point.marketValue.toInt()),
+                const Color(0xFFE8504A),
+              ),
+            ),
+          if (showCash)
+            Expanded(
+              child: _cell(
+                '現金',
+                formatter.format(point.cash.toInt()),
+                const Color(0xFF3D9E6B),
+              ),
+            ),
+        ],
+      ),
+    );
+  }  
+}
+
+// ── A8：6 格亮點卡片 ──
+class _HighlightCard extends StatelessWidget {
+  final List<AssetDataPoint> data;
+  final NumberFormat formatter;
+  const _HighlightCard({required this.data, required this.formatter});
+
+  @override
+  Widget build(BuildContext context) {
+    final maxPoint = data.reduce(
+        (a, b) => a.totalAsset > b.totalAsset ? a : b);
+    final minPoint = data.reduce(
+        (a, b) => a.totalAsset < b.totalAsset ? a : b);
+
+    double maxDailyGain = 0;
+    double maxDailyDrop = 0;
+    DateTime maxGainDate = data.first.date;
+    DateTime maxDropDate = data.first.date;
+    int profitDays = 0;
+ 
+    // ──最大回撤計算 ──
+    double peak = data.first.totalAsset;
+    double maxDrawdown = 0;
+
+    for (int i = 1; i < data.length; i++) {
+      final change = data[i].totalAsset - data[i - 1].totalAsset;
+      if (change > maxDailyGain) {
+        maxDailyGain = change;
+        maxGainDate = data[i].date;
+      }
+      if (change < maxDailyDrop) {
+        maxDailyDrop = change;
+        maxDropDate = data[i].date;
+      }
+      if (change > 0) profitDays++;
+ 
+      peak = max(peak, data[i].totalAsset);
+      if (peak > 0) {
+        final dd = (peak - data[i].totalAsset) / peak * 100;
+        maxDrawdown = max(maxDrawdown, dd);
+      }
+    }
+
+    final totalDays = data.length - 1;
+    String fmt(DateTime d) => '${d.month}/${d.day}';
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE4E7ED)),
+        boxShadow: [BoxShadow(
+          color: Colors.black.withValues(alpha: 0.04),
+          blurRadius: 4,
+          offset: const Offset(0, 1),
+        )],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            '📌 期間亮點',
+            style: TextStyle(fontSize: 12, color: Color(0xFF9AA3B2)),
+          ),
+          const SizedBox(height: 10),
+          Row( //第一行
+            children: [
+              _HighlightItem(
+                label: '最高資產',
+                value: _shortFmt(maxPoint.totalAsset, formatter),
+                sub: fmt(maxPoint.date),
+                color: const Color(0xFFE8504A),
+                bgColor: const Color(0xFFFDF0EF),
+              ),
+              const SizedBox(width: 8),
+              _HighlightItem(
+                label: '最低資產',
+                value: _shortFmt(minPoint.totalAsset, formatter),
+                sub: fmt(minPoint.date),
+                color: const Color(0xFF3D9E6B),
+                bgColor: const Color(0xFFEEF7F2),
+              ),
+              const SizedBox(width: 8),
+              _HighlightItem(
+                label: '最大單日漲幅',
+                value: '+${formatter.format(maxDailyGain.toInt())}',
+                sub: fmt(maxGainDate),
+                color: const Color(0xFF4A6FA5),
+                bgColor: const Color(0xFFEBF0F8),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row( //第二行
+            children: [
+              _HighlightItem(
+                label: '最大回測',
+                value: '-${maxDrawdown.toStringAsFixed(1)}%',
+                sub: '期間峰值',
+                color: const Color(0xFFE07B20),
+                bgColor: const Color(0xFFFDF8EE),
+              ),
+              const SizedBox(width: 8),
+              _HighlightItem(
+                label: '最大單日跌幅',
+                value: formatter.format(maxDailyDrop.toInt()),
+                sub: fmt(maxDropDate),
+                color: const Color(0xFF3D9E6B),
+                bgColor: const Color(0xFFEEF7F2),
+              ),
+              const SizedBox(width: 8),
+              _HighlightItem(
+                label: '獲利天數',
+                value: totalDays == 0
+                    ? '-'
+                    : '$profitDays / $totalDays',
+                sub: totalDays == 0
+                    ? ''
+                    : '${(profitDays / totalDays * 100).toStringAsFixed(0)}%',
+                color: const Color(0xFF1A1F2E),
+                bgColor: const Color(0xFFF2F2F2),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 大數字縮短顯示（>= 10000 用「萬」）
+  String _shortFmt(double v, NumberFormat f) {
+    if (v >= 10000) return '${(v / 10000).toStringAsFixed(1)}萬';
+    return f.format(v.toInt());
+  }
+}
+
+class _HighlightItem extends StatelessWidget { //亮點卡片格子
+  final String label, value, sub;
+  final Color color, bgColor;
+  const _HighlightItem({
+    required this.label, required this.value,
+    required this.sub, required this.color,
+    required this.bgColor,
+  });
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          children: [
+            Text(
+              label,
+              style: const TextStyle(fontSize: 9, color: Color(0xFF9AA3B2)),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 3),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: color,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            Text(
+              sub,
+              style: const TextStyle(fontSize: 9, color: Color(0xFF9AA3B2)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// B  每月損益長條圖
+// ════════════════════════════════════════════════════════════
 class _MonthlyTab extends StatelessWidget {
   final List<Trade> trades;
   final int year;
@@ -367,6 +833,19 @@ class _MonthlyTab extends StatelessWidget {
     required this.trades, required this.year,
     required this.onYearChanged,
   });
+
+  // ──nice round number ──
+  double _niceMax(double value) { //自動尺度
+    if (value == 0) return 1;
+    final mag = pow(10, (log(value.abs()) / ln10).floor()).toDouble();
+    final normalized = value / mag;
+    double rounded;
+    if (normalized <= 1) rounded = 1;
+    else if (normalized <= 2) rounded = 2;
+    else if (normalized <= 5) rounded = 5;
+    else rounded = 10;
+    return rounded * mag;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -377,20 +856,29 @@ class _MonthlyTab extends StatelessWidget {
     final total = monthlyPnL.values.fold(0.0, (s, v) => s + v);
 
     //最佳月份只考慮有賣出的月份（pnl != 0）
-    final nonZeroEntries = monthlyPnL.entries.where((e) => e.value != 0).toList();
+    final nonZeroEntries = monthlyPnL.entries
+        .where((e) => e.value != 0).toList();
     final bestMonth = nonZeroEntries.isEmpty
         ? null
         : nonZeroEntries.reduce((a, b) => a.value > b.value ? a : b).key;
 
     //Y軸分開取最大正值和最小負值，不強制對稱
     final allValues = List.generate(12, (i) => monthlyPnL[i + 1] ?? 0.0);
-    final maxVal = allValues.reduce((a, b) => a > b ? a : b);
-    final minVal = allValues.reduce((a, b) => a < b ? a : b);
-
-    //沒有任何資料時用預設尺度
+    final maxVal = allValues.reduce(max);
+    final minVal = allValues.reduce(min);
     final hasData = nonZeroEntries.isNotEmpty;
-    final double chartMaxY = hasData ? maxVal * 1.3 : 100000;
-    final double chartMinY = hasData ? (minVal < 0 ? minVal * 1.3 : -10000) : -100000;
+
+    // ── Y 軸自動尺度 ──
+    final nicePos = hasData ? _niceMax(maxVal > 0 ? maxVal : 1) : 100000; //+
+    final niceNeg = (hasData && minVal < 0) ? _niceMax(minVal.abs()) : 0; //-
+    final double chartMaxY = nicePos * 1.05;
+    final double chartMinY = niceNeg == 0
+        ? -nicePos * 0.15
+        : -niceNeg * 1.05;
+ 
+    // ──統一單位 ──
+    final useWan = nicePos >= 10000;
+    final unitLabel = useWan ? '單位：萬元' : '單位：元';
 
     //建立BarChart資料
     final groups = List.generate(12, (i) {
@@ -475,13 +963,22 @@ class _MonthlyTab extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                '每月損益 · $year 年',
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF1A1F2E),
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '每月損益 · $year 年',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1A1F2E),
+                    ),
+                  ),
+                  Text(
+                    unitLabel,
+                    style: const TextStyle(fontSize: 9, color: Color(0xFF9AA3B2)),
+                  ),
+                ],
               ),
               const SizedBox(height: 14),
               SizedBox(
@@ -542,8 +1039,7 @@ class _MonthlyTab extends StatelessWidget {
                             if (v == meta.min || v == meta.max) {
                               return const SizedBox.shrink();
                             }
-                            final abs = v.abs();
-                            final label = abs >= 10000
+                            final label = useWan
                                 ? '${(v / 10000).toStringAsFixed(0)}萬'
                                 : v.toStringAsFixed(0);
                             return Text(
@@ -572,40 +1068,87 @@ class _MonthlyTab extends StatelessWidget {
   }
 }
 
-//持股佔比圓餅圖
-class _PieTab extends StatelessWidget {
+// ════════════════════════════════════════════════════════════
+// C  持股佔比圓餅圖
+// ════════════════════════════════════════════════════════════
+enum _PieMode {marketValue, cost, unrealized}
+
+class _PieTab extends StatefulWidget {
   final List<Position> openPositions;
   const _PieTab({required this.openPositions});
+  @override
+  State<_PieTab> createState() => _PieTabState();
+}
+
+class _PieTabState extends State<_PieTab> {
+  int _selectedIndex = 0; //選中索引
+ 
+  _PieMode _pieMode = _PieMode.marketValue; //子圖 mode
+ 
+  // ──依 mode 取值 ──
+  double _getPieValue(HoldingShare s) {
+    return switch (_pieMode) {
+      _PieMode.marketValue => s.marketValue,
+      _PieMode.cost => s.cost,
+      _PieMode.unrealized => s.unrealized,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
     final formatter = NumberFormat('#,###');
-    final shares = ChartService.buildHoldingShares(openPositions);
+    final shares = ChartService.buildHoldingShares(widget.openPositions);
 
-    if (shares.isEmpty) { //比例永遠顯示，不需要touch state
+    if (shares.isEmpty) {
       return const Center(child: Text('目前沒有持倉',
         style: TextStyle(color: Color(0xFF9AA3B2))));
     }
 
-     //決定 比例/顏色/數值
+    // ──unrealized 全負保護 ──
+    if (_pieMode == _PieMode.unrealized) {
+      final total = shares.fold(0.0, (s, h) => s + h.unrealized);
+      if (total <= 0) {
+        return ListView(
+          padding: const EdgeInsets.all(14),
+          children: [
+            _pieModeChips(),
+            const SizedBox(height: 60),
+            const Center(
+              child: Text('無未實現收益資料',
+                style: TextStyle(
+                  fontSize: 14, color: Color(0xFF9AA3B2)),
+              ),
+            ),
+          ],
+        );
+      }
+    }
+
+    //決定 比例/顏色/數值
     final sections = shares.asMap().entries.map((e) {
       final i = e.key;
       final s = e.value;
+      final val = _getPieValue(s);
+      final isSelected = i == _selectedIndex;
+      final color = (_pieMode == _PieMode.unrealized && val < 0)
+          ? const Color(0xFFB0B8C4)
+          : _chartColors[i % _chartColors.length];
       return PieChartSectionData(
-        value: s.marketValue,
-        color: _chartColors[i % _chartColors.length],
-        radius: 70,
-        showTitle: true,
-        title: '${s.percentage.toStringAsFixed(1)}%',
-        titleStyle: const TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
-          color: Colors.white,
-          shadows: [Shadow(blurRadius: 2, color: Colors.black26)],
-        ),
-        titlePositionPercentageOffset: 0.65, //數值離圓心距離
+        value: val.abs(),
+        color: color,
+        radius: isSelected ? 82 : 65,
+        showTitle: false,
       );
     }).toList();
+
+    final selected = shares[_selectedIndex.clamp(0, shares.length - 1)];
+    final selectedVal = _getPieValue(selected);
+    final selectedColor = (_pieMode == _PieMode.unrealized && selectedVal < 0)
+        ? const Color(0xFFB0B8C4)
+        : _chartColors[_selectedIndex % _chartColors.length];
+    final totalVal = shares.fold(0.0, (s, h) => s + _getPieValue(h).abs());
+    final selectedPct = totalVal == 0
+        ? 0.0 : selectedVal.abs() / totalVal * 100;
 
     return ListView(
       padding: const EdgeInsets.all(14),
@@ -624,69 +1167,215 @@ class _PieTab extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('當前持股市值佔比',
+              const Text('當前持股佔比',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF1A1F2E),
                 ),
               ),
+              const SizedBox(height: 10),
+              // ──子圖 toggle ──
+              _pieModeChips(),
               const SizedBox(height: 16),
+              // ──圓餅圖 + Stack 圓心 ──
               SizedBox(
                 height: 200,
-                child: PieChart(
-                  PieChartData(
-                    sections: sections, //區塊數據
-                    sectionsSpace: 2, //區塊間格
-                    centerSpaceRadius: 36, //中心圓半徑
-                  ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    PieChart(
+                      PieChartData(
+                        sections: sections, //區塊數據
+                        sectionsSpace: 2, //區塊間格
+                        centerSpaceRadius: 42, //中心圓半徑
+                        // ──點選切換 ──
+                        pieTouchData: PieTouchData(
+                          touchCallback: (event, response) {
+                            if (response?.touchedSection != null) {
+                              setState(() {
+                                _selectedIndex = response!
+                                    .touchedSection!.touchedSectionIndex;
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                    // ──圓心資訊 ──
+                    SizedBox(
+                      width: 72,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          FittedBox(
+                            child: Text(
+                              selected.symbol,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: selectedColor,
+                              ),
+                            ),
+                          ),
+                          FittedBox(
+                            child: Text(
+                              '${selectedPct.toStringAsFixed(1)}%',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: selectedColor,
+                              ),
+                            ),
+                          ),
+                          FittedBox(
+                            child: Text(
+                              '${formatter.format(selectedVal.abs().toInt())} 元',
+                              style: const TextStyle(
+                                fontSize: 9,
+                                color: Color(0xFF9AA3B2),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 16),
-              ...shares.asMap().entries.map((e) { //圖例
+              // ──圖例（選中高亮） ──
+              ...shares.asMap().entries.map((e) {
                 final i = e.key;
                 final s = e.value;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 10, height: 10,
-                        decoration: BoxDecoration(
-                          color: _chartColors[i % _chartColors.length],
-                          borderRadius: BorderRadius.circular(3),
+                final isSelected = i == _selectedIndex;
+                final color = _chartColors[i % _chartColors.length];
+                final val = _getPieValue(s);
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedIndex = i),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? const Color(0xFFF0F4FA)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 10, height: 10,
+                          decoration: BoxDecoration(
+                            color: color,
+                            borderRadius: BorderRadius.circular(3),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          '${s.name} (${s.symbol})',
-                          style: const TextStyle(
-                            fontSize: 12, color: Color(0xFF5A6375)))),
-                        Text(
-                          '${s.percentage.toStringAsFixed(1)}%',
-                          style: const TextStyle(
-                          fontSize: 13, fontWeight: FontWeight.w700,
-                          color: Color(0xFF1A1F2E))),
-                        const SizedBox(width: 10),
-                        Text(
-                          '${formatter.format(s.marketValue.toInt())} 元',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: Color(0xFF9AA3B2))),
-                    ],
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '${s.name} (${s.symbol})',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: isSelected
+                                  ? FontWeight.w600 : FontWeight.normal,
+                              color: isSelected
+                                  ? const Color(0xFF1A1F2E)
+                                  : const Color(0xFF5A6375),
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 52,
+                          child: Text(
+                            '${(val.abs() / totalVal * 100).toStringAsFixed(1)}%',
+                            textAlign: TextAlign.right,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: isSelected
+                                  ? color
+                                  : const Color(0xFF1A1F2E),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          width: 90,
+                          child: Text(
+                            '${formatter.format(val.abs().toInt())} 元',
+                            textAlign: TextAlign.right,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Color(0xFF9AA3B2),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 );
-              },
-            ),
-          ]),
+              }),
+            ],
+          ),
         ),
       ],
     );
   }
+
+  // ──子圖 chip 列 ──
+  Widget _pieModeChips() {
+    final modes = [
+      (_PieMode.marketValue, '市值佔比'),
+      (_PieMode.cost, '投入成本'),
+      (_PieMode.unrealized, '未實現收益'),
+    ];
+    return Row(
+      children: modes.map((item) {
+        final (mode, label) = item;
+        final isActive = _pieMode == mode;
+        return Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: GestureDetector(
+            onTap: () => setState(() {
+              _pieMode = mode;
+              _selectedIndex = 0;
+            }),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12, vertical: 5),
+              decoration: BoxDecoration(
+                color: isActive
+                    ? const Color(0xFF4A6FA5)
+                    : Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isActive
+                      ? const Color(0xFF4A6FA5)
+                      : const Color(0xFFE4E7ED),
+                ),
+              ),
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: isActive
+                      ? Colors.white
+                      : const Color(0xFF5A6375),
+                ),
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
 }
 
-//策略績效
+// ════════════════════════════════════════════════════════════
+// D  策略績效
+// ════════════════════════════════════════════════════════════
 class _StrategyTab extends StatelessWidget {
   final List<Trade> trades;
   final Map<String, double> tradePnLMap;
@@ -697,8 +1386,7 @@ class _StrategyTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final formatter = NumberFormat('#,###');
-    final perfs = ChartService.buildStrategyPerf(
-      trades, tradePnLMap);
+    final perfs = ChartService.buildStrategyPerf(trades, tradePnLMap);
 
     if (perfs.isEmpty) {
       return const Center(
@@ -708,11 +1396,39 @@ class _StrategyTab extends StatelessWidget {
 
     final maxAbs = perfs
         .map((p) => p.totalPnL.abs())
-        .reduce((a,b) => a > b ? a : b);
+        .reduce(max);
+
+    // ──整體勝率計算 ──
+    final totalSell = perfs.fold(0, (s, p) => s + p.sellCount);
+    final totalWin  = perfs.fold(0, (s, p) => s + p.winCount);
+    final overallWR = totalSell == 0
+        ? 0.0 : totalWin / totalSell;
 
     return ListView(
       padding: const EdgeInsets.all(14),
       children: [
+        // ──StatsStrip ──
+        StatsStrip(
+          cells: [
+            StatCell(
+              label: '策略數量',
+              value: '${perfs.length} 個',
+            ),
+            StatCell(
+              label: '最佳策略',
+              value: perfs.first.name,
+              valueColor: const Color(0xFFE8504A),
+            ),
+            StatCell(
+              label: '整體勝率',
+              value: '${(overallWR * 100).toStringAsFixed(0)}%',
+              valueColor: overallWR >= 0.5
+                  ? const Color(0xFFE8504A)
+                  : const Color(0xFF3D9E6B),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
@@ -739,7 +1455,6 @@ class _StrategyTab extends StatelessWidget {
                 final pnlColor = p.totalPnL >= 0
                     ? const Color(0xFFE8504A)
                     : const Color(0xFF3D9E6B);
-                final barWidth = maxAbs == 0 ? 0.0 : p.totalPnL.abs() / maxAbs; //百分比條長度
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 16),
                   child: Column(
@@ -775,14 +1490,64 @@ class _StrategyTab extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 6),
-                      ClipRRect( //中間百分比條
-                        borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(
-                          value: barWidth,
-                          minHeight: 8,
-                          backgroundColor: const Color(0xFFF0F2F5),
-                          valueColor: AlwaysStoppedAnimation(pnlColor),
-                        ),
+                      // ──雙向進度條 ──
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final totalWidth = constraints.maxWidth;
+                          final halfWidth = totalWidth / 2;
+                          final barW = maxAbs == 0
+                              ? 0.0
+                              : (p.totalPnL.abs() / maxAbs * halfWidth)
+                                  .clamp(0.0, halfWidth);
+                          final isPos = p.totalPnL >= 0;
+                          return SizedBox(
+                            height: 8,
+                            child: Stack(
+                              children: [
+                                Container( //底色軌道
+                                  width: totalWidth,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF0F2F5),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                                Positioned( //中線
+                                  left: halfWidth - 0.5,
+                                  child: Container(
+                                    width: 1, height: 8,
+                                    color: const Color(0xFF9AA3B2),
+                                  ),
+                                ),
+                                Positioned( //進度條
+                                  left: isPos
+                                      ? halfWidth
+                                      : halfWidth - barW,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.only(
+                                      topLeft: isPos
+                                          ? Radius.zero
+                                          : const Radius.circular(4),
+                                      bottomLeft: isPos
+                                          ? Radius.zero
+                                          : const Radius.circular(4),
+                                      topRight: isPos
+                                          ? const Radius.circular(4)
+                                          : Radius.zero,
+                                      bottomRight: isPos
+                                          ? const Radius.circular(4)
+                                          : Radius.zero,
+                                    ),
+                                    child: Container(
+                                      width: barW, height: 8,
+                                      color: pnlColor,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
                       const SizedBox(height: 4),
                       Text( //下方交易筆數
@@ -802,6 +1567,9 @@ class _StrategyTab extends StatelessWidget {
   }
 }
 
+// ════════════════════════════════════════════════════════════
+// 共用 Widgets
+// ════════════════════════════════════════════════════════════
 class _RangeChips extends StatelessWidget { //時間範圍選擇器
   final List<String> options;
   final List<String> labels;
@@ -871,123 +1639,6 @@ class _NavBtn extends StatelessWidget { //導航按鈕
           icon,
           size: 18,
           color: const Color(0xFF4A6FA5),
-        ),
-      ),
-    );
-  }
-}
-
-class _HighlightCard extends StatelessWidget { //亮點卡片
-  final List<AssetDataPoint> data;
-  final NumberFormat formatter;
-  const _HighlightCard({
-    required this.data, required this.formatter,
-  });
-  @override
-  Widget build(BuildContext context) {
-    final maxPoint = data.reduce((a,b) => a.totalAsset > b.totalAsset ? a : b);
-    final minPoint = data.reduce((a,b) => a.totalAsset < b.totalAsset ? a : b);
-    double maxDailyChange = 0; //最大單日變化
-    DateTime maxDailyDate = data.first.date;
-    for (int i = 1; i < data.length; i++) {
-      final change = data[i].totalAsset - data[i-1].totalAsset;
-      if (change > maxDailyChange) {
-        maxDailyChange = change;
-        maxDailyDate = data[i].date;
-      }
-    }
-    String fmt(DateTime d) => '${d.month}/${d.day}';
-
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE4E7ED)),
-        boxShadow: [BoxShadow(
-          color: Colors.black.withValues(alpha: 0.04),
-          blurRadius: 4, offset: const Offset(0, 1),
-        )],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('📌 期間亮點',
-            style: TextStyle(
-              fontSize: 12, color: Color(0xFF9AA3B2))),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              _HighlightItem(
-                label: '最高資產',
-                value: formatter.format(maxPoint.totalAsset.toInt()),
-                sub: fmt(maxPoint.date),
-                color: const Color(0xFFE8504A),
-                bgColor: const Color(0xFFFDF0EF),
-              ),
-              const SizedBox(width: 8),
-              _HighlightItem(
-                label: '最低資產',
-                value: formatter.format(minPoint.totalAsset.toInt()),
-                sub: fmt(minPoint.date),
-                color: const Color(0xFF3D9E6B),
-                bgColor: const Color(0xFFEEF7F2),
-              ),
-              const SizedBox(width: 8),
-              _HighlightItem(
-                label: '最大單日漲幅',
-                value: '+${formatter.format(maxDailyChange.toInt())}',
-                sub: fmt(maxDailyDate),
-                color: const Color(0xFF4A6FA5),
-                bgColor: const Color(0xFFEBF0F8),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _HighlightItem extends StatelessWidget { //亮點卡片格子
-  final String label, value, sub;
-  final Color color, bgColor;
-  const _HighlightItem({
-    required this.label, required this.value,
-    required this.sub, required this.color,
-    required this.bgColor,
-  });
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Column(
-          children: [
-            Text(
-              label,
-              style: const TextStyle(fontSize: 9, color: Color(0xFF9AA3B2)),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 3),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: color,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            Text(
-              sub,
-              style: const TextStyle(fontSize: 9, color: Color(0xFF9AA3B2)),
-            ),
-          ],
         ),
       ),
     );

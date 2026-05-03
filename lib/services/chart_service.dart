@@ -1,4 +1,5 @@
 //圖表相關計算服務
+import 'dart:math';
 import '../models/trade.dart';
 import '../models/cash_flow.dart';
 import '../models/position.dart';
@@ -9,29 +10,37 @@ import '../services/calendar_service.dart';
 class ChartService {
 
   //總資產變化曲線資料
-  // 回傳每個有交易或入金的日期對應的總資產
+  // 從最早日期到今天，每天都產生一個點（不只有交易日）
   static List<AssetDataPoint> buildAssetHistory({
     required List<Trade> trades,
     required List<CashFlow> cashFlows,
   }) {
-    // 收集所有有意義的日期
-    final allDates = <DateTime>{};
+    if (trades.isEmpty && cashFlows.isEmpty) return [];
+
+    // 找出最早日期
+    final allDates = <DateTime>[];
     for (final t in trades) {
       allDates.add(DateTime(t.date.year, t.date.month, t.date.day));
     }
     for (final f in cashFlows) {
       allDates.add(DateTime(f.date.year, f.date.month, f.date.day));
     }
+    allDates.sort();
+    final earliest = allDates.first;
+    final today = DateTime(
+      DateTime.now().year, DateTime.now().month, DateTime.now().day);
 
-    final sortedDates = allDates.toList()..sort();
     final result = <AssetDataPoint>[];
+    var current = earliest;
 
-    for (final date in sortedDates) {
+    while (!current.isAfter(today)) {
       // 只算截至該日期的交易和入金
-      final tradesUpTo = trades.where((t) =>
-        !t.date.isAfter(date)).toList();
-      final flowsUpTo = cashFlows.where((f) =>
-        !f.date.isAfter(date)).toList();
+      final tradesUpTo = trades.where(
+        (t) => !DateTime(t.date.year, t.date.month, t.date.day)
+            .isAfter(current)).toList();
+      final flowsUpTo = cashFlows.where(
+        (f) =>!DateTime(f.date.year, f.date.month, f.date.day)
+            .isAfter(current)).toList();
 
       final posResult = buildPositions(tradesUpTo);
       final cash = PortfolioService.calculateCash(
@@ -40,12 +49,15 @@ class ChartService {
         posResult.positions);
 
       result.add(AssetDataPoint(
-        date: date,
+        date: current,
         totalAsset: cash + marketValue,
         cash: cash,
         marketValue: marketValue,
       ));
+
+      current = DateTime(current.year, current.month, current.day + 1);
     }
+
     return result;
   }
 
@@ -80,9 +92,10 @@ class ChartService {
       name: p.name,
       marketValue: p.marketValue,
       percentage: p.marketValue / total * 100,
+      cost: p.avgCost * p.quantity * 1000,
+      unrealized: p.marketValue - (p.avgCost * p.quantity * 1000),
     )).toList()
-    ..sort((a,b) =>
-      b.marketValue.compareTo(a.marketValue)); //依市值排序
+    ..sort((a,b) => b.marketValue.compareTo(a.marketValue)); //依市值排序
   }
 
   //策略績效長條圖資料
@@ -108,11 +121,11 @@ class ChartService {
       name: a.name,
       totalPnL: a.totalPnL,
       tradeCount: a.tradeCount,
-      winRate: a.sellCount == 0
-          ? 0 : a.winCount / a.sellCount,
+      winCount: a.winCount,
+      sellCount: a.sellCount,
+      winRate: a.sellCount == 0 ? 0 : a.winCount / a.sellCount,
     )).toList()
-    ..sort((a,b) =>
-      b.totalPnL.compareTo(a.totalPnL));
+    ..sort((a,b) => b.totalPnL.compareTo(a.totalPnL));
   }
 }
 
@@ -135,11 +148,15 @@ class HoldingShare { //持股市值與占比模型
   final String name;
   final double marketValue;
   final double percentage;
+  final double cost;
+  final double unrealized;
   const HoldingShare({
     required this.symbol,
     required this.name,
     required this.marketValue,
     required this.percentage,
+    required this.cost,
+    required this.unrealized,
   });
 }
 
@@ -147,11 +164,15 @@ class StrategyPerf { //個股績效模型
   final String name;
   final double totalPnL;
   final int tradeCount;
+  final int winCount;
+  final int sellCount;
   final double winRate;
   const StrategyPerf({
     required this.name,
     required this.totalPnL,
     required this.tradeCount,
+    required this.winCount,
+    required this.sellCount,
     required this.winRate,
   });
 }
