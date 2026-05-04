@@ -452,13 +452,15 @@ class _AssetTabState extends State<_AssetTab> {
                       touchTooltipData: LineTouchTooltipData( //內容
                         tooltipBgColor: const Color(0xFF1A1F2E).withValues(alpha: 0.85),
                         getTooltipItems: (spots) {
-                          return spots.map((s) {
+                          return spots.asMap().entries.map((e) {
+                            final idx = e.key;
+                            final s = e.value;
                             final i = s.x.toInt();
                             final d = i < data.length ? data[i].date : null;
-                            final dateStr = d != null
-                                ? '${d.month}/${d.day}' : '';
+                            final dateStr = (idx == 0 && d != null)
+                                ? '${d.year}/${d.month}/${d.day}\n' : '';
                             return LineTooltipItem(
-                              '$dateStr\n${formatter.format(s.y.toInt())}',
+                              '$dateStr${formatter.format(s.y.toInt())}元',
                               const TextStyle(
                                 color: Colors.white,
                                 fontSize: 11,
@@ -835,13 +837,16 @@ class _MonthlyTab extends StatelessWidget {
   });
 
   // ──nice round number ──
-  double _niceMax(double value) { //自動尺度
+  double _niceMax(double value) { //自動尺度/級距計算
     if (value == 0) return 1;
     final mag = pow(10, (log(value.abs()) / ln10).floor()).toDouble();
     final normalized = value / mag;
     double rounded;
     if (normalized <= 1) rounded = 1;
+    else if (normalized <= 1.5) rounded = 1.5;
     else if (normalized <= 2) rounded = 2;
+    else if (normalized <= 2.5) rounded = 2.5;
+    else if (normalized <= 3) rounded = 3;
     else if (normalized <= 5) rounded = 5;
     else rounded = 10;
     return rounded * mag;
@@ -869,12 +874,12 @@ class _MonthlyTab extends StatelessWidget {
     final hasData = nonZeroEntries.isNotEmpty;
 
     // ── Y 軸自動尺度 ──
-    final nicePos = hasData ? _niceMax(maxVal > 0 ? maxVal : 1) : 100000; //+
+    final nicePos = (hasData && maxVal > 0) ? _niceMax(maxVal) : 100000; //+
     final niceNeg = (hasData && minVal < 0) ? _niceMax(minVal.abs()) : 0; //-
     final double chartMaxY = nicePos * 1.05;
-    final double chartMinY = niceNeg == 0
-        ? -nicePos * 0.15
-        : -niceNeg * 1.05;
+    final double chartMinY = minVal < 0
+        ? -max(minVal.abs() * 1.3, chartMaxY * 0.08)
+        : -nicePos * 0.15;
  
     // ──統一單位 ──
     final useWan = nicePos >= 10000;
@@ -1081,7 +1086,7 @@ class _PieTab extends StatefulWidget {
 }
 
 class _PieTabState extends State<_PieTab> {
-  int _selectedIndex = 0; //選中索引
+  int _selectedIndex = -1; //選中索引
  
   _PieMode _pieMode = _PieMode.marketValue; //子圖 mode
  
@@ -1203,43 +1208,45 @@ class _PieTabState extends State<_PieTab> {
                       ),
                     ),
                     // ──圓心資訊 ──
-                    SizedBox(
-                      width: 72,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          FittedBox(
-                            child: Text(
-                              selected.symbol,
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: selectedColor,
+                    if (_selectedIndex >= 0) ...[
+                      SizedBox(
+                        width: 72,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            FittedBox(
+                              child: Text(
+                                selected.symbol,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: selectedColor,
+                                ),
                               ),
                             ),
-                          ),
-                          FittedBox(
-                            child: Text(
-                              '${selectedPct.toStringAsFixed(1)}%',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                color: selectedColor,
+                            FittedBox(
+                              child: Text(
+                                '${selectedPct.toStringAsFixed(1)}%',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: selectedColor,
+                                ),
                               ),
                             ),
-                          ),
-                          FittedBox(
-                            child: Text(
-                              '${formatter.format(selectedVal.abs().toInt())} 元',
-                              style: const TextStyle(
-                                fontSize: 9,
-                                color: Color(0xFF9AA3B2),
+                            FittedBox(
+                              child: Text(
+                                '${formatter.format(selectedVal.abs().toInt())} 元',
+                                style: const TextStyle(
+                                  fontSize: 9,
+                                  color: Color(0xFF9AA3B2),
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
