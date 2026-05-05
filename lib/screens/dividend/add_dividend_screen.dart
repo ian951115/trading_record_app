@@ -5,6 +5,8 @@ import '../../models/dividend.dart';
 import '../../repositories/dividend_repository.dart';
 import '../../repositories/trade_repository.dart';
 import '../../services/position_service.dart';
+import '../../services/stock_price_service.dart';
+import '../../utils/stock_data.dart';
 import '../../widgets/common/form_card.dart';
 import '../../widgets/common/section_title.dart';
 
@@ -29,6 +31,7 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
   int _shareAmount = 0; //配股股數（股票股利）
   double _fee = 0;
   String _note = '';
+  bool _isFetchingName = false;
 
   double get _grossAmount => _pricePerShare * _heldShares; //計算毛額
   double get _healthInsurance => _calcHealthInsurance(_grossAmount); //自動計算二代健保
@@ -93,6 +96,29 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
       behavior: SnackBarBehavior.floating,
     ));
   }
+
+  Future<void> _onSymbolChanged(String value) async {
+  // 先試 fallback map（即時）
+  final fallback = stockFallbackMap[value];
+  if (fallback != null) {
+    setState(() => _name = fallback);
+    return;
+  }
+  // 代碼長度 >= 4 才打 API（避免每按一鍵就發請求）
+  if (value.length < 4) {
+    setState(() => _name = '');
+    return;
+  }
+  setState(() => _isFetchingName = true);
+  final name = await StockPriceService.fetchName(value);
+  if (mounted) {
+    setState(() {
+      _name = name ?? '';
+      _isFetchingName = false;
+    });
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -207,10 +233,10 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
                   _AppField(
                     label: '股票代碼',
                     controller: _symbolCtrl,
-                    onChanged: (v) => setState(() {
+                    onChanged: (v) {
                       _symbol = v;
-                      _name = mockStockMap[v] ?? '';
-                    }),
+                      _onSymbolChanged(v);
+                    },
                   ),
                   const SizedBox(height: 12),
                   _ReadOnly(label:'股票名稱', value: _name),
@@ -521,10 +547,3 @@ class _DateField extends StatelessWidget { //日期選擇格子
     );
   }
 }
-
-const Map<String,String> mockStockMap = {
-  '2330': '台積電',
-  '2317': '鴻海',
-  '2454': '聯發科',
-  '0050': '元大台灣50',
-};

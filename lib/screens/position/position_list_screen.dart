@@ -129,15 +129,15 @@ class _PositionListScreenState extends State<PositionListScreen> {
             padding: const EdgeInsets.only(right: 8),
             child: GestureDetector(
               onTap: _fetchPrices,
-              child: AnimatedRotation(
-                turns: _rotationTurns,
-                duration: const Duration(milliseconds: 500),
-                child: Container(
-                  width: 34, height: 34,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFEBF0F8),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+              child: Container(
+                width: 34, height: 34,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEBF0F8),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: AnimatedRotation(
+                  turns: _rotationTurns,
+                  duration: const Duration(milliseconds: 500),
                   child: const Icon(
                     Icons.refresh,
                     size: 18,

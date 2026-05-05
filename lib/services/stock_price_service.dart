@@ -50,6 +50,31 @@ class StockPriceService {
     return result;
   }
 
+  //查詢名稱
+  static Future<String?> fetchName(String symbol) async {
+    final ticker = '${symbol}.TW';
+    final url = Uri.parse(
+      'https://query1.finance.yahoo.com/v8/finance/chart/$ticker'
+      '?interval=1d&range=1d&lang=zh-Hant-TW&region=TW',
+    );
+    try {
+      final response = await http.get(url, headers: {
+        'User-Agent': 'Mozilla/5.0',
+        'Accept-Language': 'zh-TW,zh;q=0.9',
+      });
+      if (response.statusCode != 200) return null;
+      final data = jsonDecode(response.body);
+      final result = data['chart']['result'];
+      if (result == null || result.isEmpty) return null;
+      final meta = result[0]['meta'];
+      // 建議優先用 shortName，若 null 才退回 longName
+      final name = meta['shortName'] ?? meta['longName'] ?? meta['symbol'];
+      return name as String?;
+    } catch (_) {
+      return null;
+    }
+  }
+
   //查詢歷史收盤價格
   static Future<double?> fetchHistoricalClose(String symbol, DateTime date) async {
     final ticker = '${symbol}.TW';

@@ -133,11 +133,13 @@ class _StockPerformanceScreenState extends State<StockPerformanceScreen> {
                 StatCell(
                   label: '平均持有天數',
                   value: () {
-                    final openList = allPerfs.where((p) => p.isOpen && (p.holdingDays ?? 0) > 0).toList();
-                    if (openList.isEmpty) return '—';
-                    final avg = openList.fold(0, (s, p) => s + (p.holdingDays ?? 0)) / openList.length;
-                    return '$avg 天';
-                  }(),
+                    final withDays = allPerfs
+                        .where((p) => p.holdingDays != null)
+                        .toList();
+                    if (withDays.isEmpty) return '—';
+                    final avg = withDays.fold(0, (s, p) => s + p.holdingDays!) / withDays.length;
+                    return '${avg.round()} 天';
+                  } (),
                 ),
               ],
             ),
@@ -425,8 +427,8 @@ class _PerfTileState extends State<_PerfTile> {
                         ),
                         Expanded(
                           child: _DItem(
-                            label: '勝率',
-                            value: '${(p.winRate * 100).toStringAsFixed(0)}%',
+                            label: '總費用',
+                            value: f.format(p.totalFee.toInt()),
                           ),
                         ),
                       ],
@@ -439,7 +441,7 @@ class _PerfTileState extends State<_PerfTile> {
                         Expanded(
                           child: _DItem(
                             label: '持有天數',
-                            value: p.isOpen
+                            value: p.holdingDays != null
                                 ? '${p.holdingDays} 天'
                                 : '—',
                           ),

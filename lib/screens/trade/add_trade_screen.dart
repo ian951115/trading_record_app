@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:trading_record_app/services/stock_price_service.dart';
 import '../../models/trade.dart';
 import '../../models/add_trade_result.dart';
 import '../../models/cash_flow.dart';
@@ -9,16 +10,10 @@ import '../../repositories/trade_repository.dart';
 import '../../repositories/cash_flow_repository.dart';
 import '../../repositories/settings_repository.dart';
 import '../../services/portfolio_service.dart';
+import '../../utils/stock_data.dart';
 import '../../widgets/common/form_card.dart';
 import '../../widgets/common/section_title.dart';
 import '../../widgets/common/info_item.dart';
-
-const Map<String, String> mockStockMap = {
-  '2330': '台積電',
-  '2317': '鴻海',
-  '2454': '聯發科',
-  '0050': '元大台灣50',
-};
 
 class AddTradeScreen extends StatefulWidget {
   final Trade? editingTrade;
@@ -29,6 +24,7 @@ class AddTradeScreen extends StatefulWidget {
 }
 
 class _AddTradeScreenState extends State<AddTradeScreen> {
+  bool _isFetchingName = false;
   bool isBuy = true;
   DateTime selectedDate = DateTime.now();
   double price = 0;
@@ -185,6 +181,28 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
     ));
   }
 
+  Future<void> _onSymbolChanged(String value) async {
+    // 先試 fallback map（即時）
+    final fallback = stockFallbackMap[value];
+    if (fallback != null) {
+      setState(() => stockName = fallback);
+      return;
+    }
+    // 代碼長度 >= 4 才打 API（避免每按一鍵就發請求）
+    if (value.length < 4) {
+      setState(() => stockName = '');
+      return;
+    }
+    setState(() => _isFetchingName = true);
+    final name = await StockPriceService.fetchName(value);
+    if (mounted) {
+      setState(() {
+        stockName = name ?? '';
+        _isFetchingName = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final cashFlows = context.watch<CashFlowRepository>().getAllFlows();
@@ -247,10 +265,8 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
                     label: '商品代碼',
                     controller: symbolController,
                     onChanged: (v) {
-                      setState(() {
-                        stockCode = v;
-                        stockName = mockStockMap[v] ?? '';
-                      });
+                      stockCode = v;
+                      _onSymbolChanged(v);
                     },
                   ),
                   const SizedBox(height: 12),

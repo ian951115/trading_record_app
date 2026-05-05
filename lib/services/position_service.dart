@@ -127,6 +127,8 @@ List<StockPerformance> buildPerformances(List<Trade> trades) {
       acc.buyCount++; //買進次數+1
       acc.totalBuyAmount += trade.amount + trade.fee; //個股總買進金額
       acc.heldQty += trade.quantity; //持有股數
+      acc.totalFee += trade.fee;
+      acc.firstBuyDate ??= trade.date;
       buyLots.add(BuyLot( //記錄一筆交易
         quantity: trade.quantity,
         costPerShare: (trade.amount + trade.fee) / trade.quantity,
@@ -148,6 +150,8 @@ List<StockPerformance> buildPerformances(List<Trade> trades) {
         lot.quantity -= used;
         sellQty -= used;
         acc.heldQty -= used;
+        acc.totalFee += trade.fee + trade.tax;
+        acc.lastSellDate = trade.date;
         if (lot.quantity == 0) buyLots.removeAt(0);
       }
 
@@ -166,6 +170,14 @@ List<StockPerformance> buildPerformances(List<Trade> trades) {
     totalBuyAmount: acc.totalBuyAmount,
     totalSellAmount: acc.totalSellAmount,
     isOpen: acc.heldQty > 0,
+    totalFee: acc.totalFee,
+    holdingDays: () {
+      if (acc.firstBuyDate == null) return null;
+      final end = acc.heldQty > 0
+          ? DateTime.now() // 持有中：到今天
+          : acc.lastSellDate!; // 已平倉：到最後賣出日
+      return end.difference(acc.firstBuyDate!).inDays;
+    } (), //()表示立即執行函式而非傳整個函式過去
   )).toList()
   ..sort((a, b) =>
     b.totalRealizedPnL.compareTo(a.totalRealizedPnL));
@@ -182,5 +194,8 @@ class _PerfAccum {
   double totalBuyAmount = 0;
   double totalSellAmount = 0;
   int heldQty = 0;
+  double totalFee = 0;
+  DateTime? firstBuyDate;
+  DateTime? lastSellDate;
   _PerfAccum({required this.symbol, required this.name});
 }
