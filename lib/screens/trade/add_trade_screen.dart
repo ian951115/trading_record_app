@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import 'package:trading_record_app/services/stock_price_service.dart';
 import '../../models/trade.dart';
 import '../../models/add_trade_result.dart';
 import '../../models/cash_flow.dart';
@@ -10,6 +9,8 @@ import '../../repositories/trade_repository.dart';
 import '../../repositories/cash_flow_repository.dart';
 import '../../repositories/settings_repository.dart';
 import '../../services/portfolio_service.dart';
+import '../../services/stock_price_service.dart';
+import '../../services/stock_name_service.dart';
 import '../../utils/stock_data.dart';
 import '../../widgets/common/form_card.dart';
 import '../../widgets/common/section_title.dart';
@@ -18,7 +19,6 @@ import '../../widgets/common/info_item.dart';
 class AddTradeScreen extends StatefulWidget {
   final Trade? editingTrade;
   const AddTradeScreen({super.key, this.editingTrade});
-
   @override
   State<AddTradeScreen> createState() => _AddTradeScreenState();
 }
@@ -53,6 +53,7 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
   late double autoDepositAmount;
 
   late final TextEditingController symbolController;
+  late final TextEditingController nameController;
   late final TextEditingController priceController;
   late final TextEditingController quantityController;
   late final TextEditingController feeRateController;
@@ -93,6 +94,7 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
       } 
     }
     symbolController = TextEditingController(text: stockCode);
+    nameController = TextEditingController(text: stockName);
     priceController = TextEditingController(
       text: price == 0 ? '' : price.toString());
     quantityController = TextEditingController(
@@ -100,7 +102,7 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
     feeRateController = TextEditingController(
       text: (feeRate * 100).toStringAsFixed(4));
     taxRateController = TextEditingController(
-      text: (taxRate * 100).toStringAsFixed(3),);
+      text: (taxRate * 100).toStringAsFixed(3));
     noteController = TextEditingController(text: note);
     autoDepositController = TextEditingController(
       text: totalAmount.toStringAsFixed(0));
@@ -109,6 +111,7 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
   @override
   void dispose() { //清除初始化
     symbolController.dispose();
+    nameController.dispose();
     priceController.dispose();
     quantityController.dispose();
     feeRateController.dispose();
@@ -182,25 +185,15 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
   }
 
   Future<void> _onSymbolChanged(String value) async {
-    // 先試 fallback map（即時）
-    final fallback = stockFallbackMap[value];
-    if (fallback != null) {
-      setState(() => stockName = fallback);
+    final name = StockNameService.getName(value.trim());
+    if (name != null) {
+      setState(() => stockName = name); //同步查快取
+      nameController.text = stockName;
       return;
     }
-    // 代碼長度 >= 4 才打 API（避免每按一鍵就發請求）
-    if (value.length < 4) {
-      setState(() => stockName = '');
-      return;
-    }
-    setState(() => _isFetchingName = true);
-    final name = await StockPriceService.fetchName(value);
-    if (mounted) {
-      setState(() {
-        stockName = name ?? '';
-        _isFetchingName = false;
-      });
-    }
+    // 查不到就清空，讓使用者手動填
+    setState(() => stockName = '');
+    nameController.text = '';
   }
 
   @override
@@ -270,9 +263,35 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
                     },
                   ),
                   const SizedBox(height: 12),
-                  _ReadOnlyField(
-                    label: '商品名稱',
-                    value: stockName,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        '商品名稱',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF5A6375),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: nameController,
+                        onChanged: (v) => setState(() => stockName = v),
+                        decoration: InputDecoration(
+                          hintText: '自動填入或手動輸入',
+                          suffixIcon: _isFetchingName
+                              ? const Padding(
+                                padding: EdgeInsets.all(12),
+                                child: SizedBox(
+                                  width: 16, height: 16,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                ),
+                              )
+                              : null,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

@@ -6,7 +6,10 @@ import '../../models/custom_goal.dart';
 import '../../models/goal_type.dart';
 import '../../repositories/annual_goal_repository.dart';
 import '../../repositories/custom_goal_repository.dart';
+import '../../services/stock_price_service.dart';
+import '../../services/stock_name_service.dart';
 import '../../utils/enum_ext.dart';
+import '../../utils/stock_data.dart';
 import '../../widgets/common/form_card.dart';
 import '../../widgets/common/section_title.dart';
 
@@ -29,6 +32,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
   // ── controllers ──────────────────────────────────────
   late final TextEditingController _titleCtrl;
   late final TextEditingController _stockCtrl;
+  late final TextEditingController _stockNameCtrl;
   late final TextEditingController _targetCtrl;
   late final TextEditingController _noteCtrl;
 
@@ -48,6 +52,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
   late DateTime _startDate;
   late DateTime _endDate;
   String _quickKey = '本月';  // 快捷日期當前選項
+  bool _isFetchingName = false;
 
   static const _quickKeys = ['本週', '本月', '本季', '本年', '自訂'];
 
@@ -87,7 +92,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
       _targetAmount = g?.targetAmount ?? 0;
       _note = g?.note ?? '';
       // 日期：預設本月
-      final range  = g != null
+      final range = g != null
           ? DateTimeRange(start: g.startDate, end: g.endDate)
           : _quickRange('本月');
       _startDate = range.start;
@@ -95,20 +100,34 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
     }
 
     // 初始化 controllers
-    _titleCtrl  = TextEditingController(text: widget.mode == GoalMode.custom ? _title : '');
-    _stockCtrl  = TextEditingController(text: _stockSymbol ?? '');
+    _titleCtrl = TextEditingController(text: widget.mode == GoalMode.custom ? _title : '');
+    _stockCtrl = TextEditingController(text: _stockSymbol ?? '');
+    _stockNameCtrl = TextEditingController(text: _stockName ?? '');
     _targetCtrl = TextEditingController(
       text: _targetAmount > 0 ? _targetAmount.toInt().toString() : '');
-    _noteCtrl   = TextEditingController(text: _note);
+    _noteCtrl = TextEditingController(text: _note);
   }
 
   @override
   void dispose() {
     _titleCtrl.dispose();
     _stockCtrl.dispose();
+    _stockNameCtrl.dispose();
     _targetCtrl.dispose();
     _noteCtrl.dispose();
     super.dispose();
+  }
+
+  // ── 自動查股票名稱 ──────────────────────────────────────
+  Future<void> _onSymbolChanged(String value) async {
+    final name = StockNameService.getName(value.trim());
+    if (name != null) {
+      setState(() => _stockName = name);
+      _stockNameCtrl.text = name;
+      return;
+    }
+    setState(() => _stockName = '');
+    _stockNameCtrl.text = '';
   }
 
   // ── 快捷日期範圍 ──────────────────────────────────────
@@ -263,19 +282,33 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       const SizedBox(height: 20),
-      const SectionTitle(title: '股票代號'),
+      const SectionTitle(title: '股票資訊'),
       FormCard(
-        child: TextField(
-          controller: _stockCtrl,
-          textCapitalization: TextCapitalization.characters,
-          onChanged: (v) => setState(() {
-            _stockSymbol = v.trim().isEmpty ? null : v.trim().toUpperCase();
-            _stockName = null; // 清掉舊名稱
-          }),
-          decoration: const InputDecoration(
-            hintText: 'e.g. 2330',
-            border: InputBorder.none,
-          ),
+        child: Column(
+          children: [
+            const _FieldLabel(label: '股票代號'),
+            const SizedBox(height: 6),
+            TextField(
+              controller: _stockCtrl,
+              keyboardType: TextInputType.number,
+              onChanged: _onSymbolChanged,
+              decoration: const InputDecoration(
+                hintText: 'e.g. 2330',
+                border: InputBorder.none,
+              ),
+            ),
+            const SizedBox(height: 14),
+            const _FieldLabel(label: '股票名稱'),
+            const SizedBox(height: 6),
+            TextField(
+              controller: _stockNameCtrl,
+              onChanged: (v) => setState(() => _stockName = v.isEmpty ? null : v),
+              decoration: InputDecoration(
+                hintText: '自動填入或手動輸入',
+                border: InputBorder.none,
+              ),
+            ),
+          ],
         ),
       ),
     ],
@@ -536,4 +569,23 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
       ),
     );
   }
+}
+
+// ── 欄位標籤 ─────────────────────────────────
+class _FieldLabel extends StatelessWidget {
+  final String label;
+  const _FieldLabel({required this.label});
+
+  @override
+  Widget build(BuildContext context) => Align(
+    alignment: Alignment.centerLeft,
+    child: Text(
+      label,
+      style: const TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: Color(0xFF5A6375),
+      ),
+    ),
+  );
 }

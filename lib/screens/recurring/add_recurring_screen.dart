@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../models/recurring_plan.dart';
 import '../../repositories/recurring_repository.dart';
 import '../../services/stock_price_service.dart';
+import '../../services/stock_name_service.dart';
 import '../../widgets/common/form_card.dart';
 import '../../widgets/common/section_title.dart';
 
@@ -26,14 +27,13 @@ class _AddRecurringScreenState extends State<AddRecurringScreen> {
   String _note = '';
   bool _isLookingUp = false; //API 查股票名稱中
 
-  final Set<int> _selectedDays = {}; //每月扣款日（多選，1~28）
+  final Set<int> _selectedDays = {}; //每月扣款日（多選，1~31）
   final fmt = NumberFormat('#,###');
 
   late final TextEditingController _symbolCtrl;
   late final TextEditingController _nameCtrl;
   late final TextEditingController _amountCtrl;
   late final TextEditingController _noteCtrl;
-  Timer? _debounce; //自動查名稱的延遲計時器
 
   @override
   void initState() {
@@ -56,28 +56,22 @@ class _AddRecurringScreenState extends State<AddRecurringScreen> {
 
   @override
   void dispose() {
-    _debounce?.cancel();
     _symbolCtrl.dispose();
     _nameCtrl.dispose();
     _amountCtrl.dispose();
-    _nameCtrl.dispose();
+    _noteCtrl.dispose();
     super.dispose();
   }
 
-  // ── 自動查股票名稱（延遲 500ms）────────────────
-  void _onSymbolChanged(String value) {
-    setState(() => _symbol = value.trim()); //去頭尾的空白
-    _debounce?.cancel();
-    if (value.trim().length < 4) return;
-    _debounce = Timer(const Duration(milliseconds: 500), () async {
-      setState(() => _isLookingUp = true);
-      // StockPriceService.fetchPrice 只回傳價格，
-      // 這裡透過查詢 API 取名稱（若 API 無法取名則留空讓使用者填）
-      // 目前 fetchPrice 不回傳名稱，直接跳過自動填入，
-      // 使用者手動輸入名稱即可。
-      // 若未來 API 有回傳名稱，在此補上即可
-      setState(() => _isLookingUp = false);
-    });
+  Future <void> _onSymbolChanged(String value) async {
+    final name = StockNameService.getName(value.trim());
+    if (name != null) {
+      setState(() => _name = name);
+      _nameCtrl.text = _name;  
+      return;
+    };
+    setState(() => _name = '');
+    _nameCtrl.text = '';
   }
 
   void _save() async {
@@ -135,7 +129,7 @@ class _AddRecurringScreenState extends State<AddRecurringScreen> {
     final picked = await showDatePicker(
       context: context,
       initialDate: _startDate,
-      firstDate: DateTime(2000),
+      firstDate: DateTime(1960),
       lastDate: DateTime(2100),
     );
     if (picked != null) setState(() => _startDate = picked);

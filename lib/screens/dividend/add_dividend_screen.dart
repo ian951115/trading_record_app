@@ -6,6 +6,7 @@ import '../../repositories/dividend_repository.dart';
 import '../../repositories/trade_repository.dart';
 import '../../services/position_service.dart';
 import '../../services/stock_price_service.dart';
+import '../../services/stock_name_service.dart';
 import '../../utils/stock_data.dart';
 import '../../widgets/common/form_card.dart';
 import '../../widgets/common/section_title.dart';
@@ -41,6 +42,7 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
   late final TextEditingController _priceCtrl;
   late final TextEditingController _sharesCtrl;
   late final TextEditingController _shareAmtCtrl;
+  late final TextEditingController _nameCtrl;
   late final TextEditingController _feeCtrl;
   late final TextEditingController _noteCtrl;
 
@@ -51,6 +53,7 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
     _priceCtrl = TextEditingController();
     _sharesCtrl = TextEditingController();
     _shareAmtCtrl = TextEditingController();
+    _nameCtrl = TextEditingController();
     _feeCtrl = TextEditingController(text: '0');
     _noteCtrl = TextEditingController();
   }
@@ -59,7 +62,7 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
   void dispose() {
     _symbolCtrl.dispose(); _priceCtrl.dispose();
     _sharesCtrl.dispose(); _shareAmtCtrl.dispose();
-    _feeCtrl.dispose(); _noteCtrl.dispose();
+    _nameCtrl.dispose();_feeCtrl.dispose(); _noteCtrl.dispose();
     super.dispose();
   }
 
@@ -98,26 +101,15 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
   }
 
   Future<void> _onSymbolChanged(String value) async {
-  // 先試 fallback map（即時）
-  final fallback = stockFallbackMap[value];
-  if (fallback != null) {
-    setState(() => _name = fallback);
-    return;
-  }
-  // 代碼長度 >= 4 才打 API（避免每按一鍵就發請求）
-  if (value.length < 4) {
+    final name = StockNameService.getName(value.trim());
+    if (name != null) {
+      setState(() => _name = name);
+      _nameCtrl.text = _name;
+      return;
+    }
     setState(() => _name = '');
-    return;
+    _nameCtrl.text = '';
   }
-  setState(() => _isFetchingName = true);
-  final name = await StockPriceService.fetchName(value);
-  if (mounted) {
-    setState(() {
-      _name = name ?? '';
-      _isFetchingName = false;
-    });
-  }
-}
 
 
   @override
@@ -239,7 +231,36 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
                     },
                   ),
                   const SizedBox(height: 12),
-                  _ReadOnly(label:'股票名稱', value: _name),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        '股票名稱',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF5A6375),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: _nameCtrl,
+                        onChanged: (v) => setState(() => _name = v),
+                        decoration: InputDecoration(
+                          hintText: '自動填入或手動輸入',
+                          suffixIcon: _isFetchingName
+                              ? const Padding(
+                                padding: EdgeInsets.all(12),
+                                child: SizedBox(
+                                  width: 16, height: 16,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                ),
+                              )
+                              : null
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -312,7 +333,7 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Row(
-                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
                                       _healthInsurance.toStringAsFixed(0),
@@ -351,7 +372,7 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
                     _AppField(
                       label: '配股股數',
                       controller: _shareAmtCtrl,
-                       keyboardType: TextInputType.number,
+                      keyboardType: TextInputType.number,
                       onChanged: (v) => setState(() =>
                         _shareAmount = int.tryParse(v) ?? 0),
                     ),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import '/models/custom_goal.dart';
+import 'models/custom_goal.dart';
 import 'models/cash_flow.dart';
 import 'models/trade.dart';
 import 'models/dividend.dart';
@@ -16,6 +16,7 @@ import 'repositories/dividend_repository.dart';
 import 'repositories/recurring_repository.dart';
 import 'repositories/annual_goal_repository.dart';
 import 'repositories/custom_goal_repository.dart';
+import 'services/stock_name_service.dart';
 import 'screens/home/home_screen.dart';
 
 void main() async {
@@ -36,6 +37,8 @@ void main() async {
   Hive.registerAdapter(RecurringPlanAdapter());
   Hive.registerAdapter(AnnualGoalAdapter());
   Hive.registerAdapter(CustomGoalAdapter());
+
+  StockNameService.init();
 
   runApp(
     MultiProvider(
