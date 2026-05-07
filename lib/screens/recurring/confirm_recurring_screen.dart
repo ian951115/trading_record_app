@@ -6,8 +6,8 @@ import 'package:trading_record_app/repositories/settings_repository.dart';
 import '../../models/trade.dart';
 import '../../repositories/recurring_repository.dart';
 import '../../repositories/trade_repository.dart';
-import '../../services/recurring_service.dart';
-import '../../services/stock_price_service.dart';
+import '../../services/calc/recurring_service.dart';
+import '../../services/data/stock_price_service.dart';
 
 class ConfirmRecurringScreen extends StatefulWidget {
   const ConfirmRecurringScreen({super.key});

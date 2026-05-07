@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../repositories/trade_repository.dart';
 import '../../repositories/cash_flow_repository.dart';
-import '../../services/statistics_service.dart';
+import '../../services/calc/statistics_service.dart';
 
 class StatisticsScreen extends StatelessWidget {
   const StatisticsScreen({super.key});

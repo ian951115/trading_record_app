@@ -1,7 +1,7 @@
 //股票名稱查詢服務(台灣證交所)
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../core/stock_fallback.dart';
+import '../../core/stock_fallback.dart';
 
 class StockNameService {
   // 記憶體快取，key = 股票代碼，value = 中文名稱

@@ -1,6 +1,6 @@
 //定期定額邏輯服務
-import '../models/recurring_plan.dart';
-import '../models/trade.dart';
+import '../../models/recurring_plan.dart';
+import '../../models/trade.dart';
 
 // ── 單筆待確認項目 ──────────────────────────────
 class PendingEntry {

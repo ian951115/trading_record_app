@@ -5,8 +5,8 @@ import 'package:intl/intl.dart';
 import '../../models/position.dart';
 import '../../repositories/trade_repository.dart';
 import '../../repositories/dividend_repository.dart';
-import '../../services/position_service.dart';
-import '../../services/stock_price_service.dart';
+import '../../services/calc/position_service.dart';
+import '../../services/data/stock_price_service.dart';
 import '../../widgets/position/position_tile.dart';
 
 class PositionListScreen extends StatefulWidget {

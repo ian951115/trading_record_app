@@ -6,7 +6,7 @@ import '../../models/add_trade_result.dart';
 import '../../models/trade.dart';
 import '../../repositories/trade_repository.dart';
 import '../../repositories/cash_flow_repository.dart';
-import '../../services/position_service.dart';
+import '../../services/calc/position_service.dart';
 import '../../widgets/common/stats_strip.dart';
 import '../../widgets/trade/trade_tile.dart';
 import 'add_trade_screen.dart';

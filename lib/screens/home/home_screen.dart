@@ -5,8 +5,8 @@ import 'package:intl/intl.dart';
 import '../../models/add_trade_result.dart';
 import '../../repositories/cash_flow_repository.dart';
 import '../../repositories/trade_repository.dart';
-import '../../services/position_service.dart';
-import '../../services/portfolio_service.dart';
+import '../../services/calc/position_service.dart';
+import '../../services/calc/portfolio_service.dart';
 import '../../widgets/common/stats_strip.dart';
 import '../../widgets/trade/trade_tile.dart';
 import '../trade/trade_list_screen.dart';
@@ -149,7 +149,7 @@ class _HomeScreenState extends State<HomeScreen> {
       childAspectRatio: 0.95,
       children: [
         _QuickItem(
-          icon: Icons.abc, //暫時
+          icon: Icons.repeat_outlined,
           label: '定期定額',
           color: const Color(0xFFEBF0F8),
           iconColor: const Color(0xFF4A6FA5),

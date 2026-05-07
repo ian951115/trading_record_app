@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../models/stock_performance.dart';
 import '../../repositories/trade_repository.dart';
-import '../../services/position_service.dart';
+import '../../services/calc/position_service.dart';
 import '../../widgets/common/stats_strip.dart';
 
 class StockPerformanceScreen extends StatefulWidget {

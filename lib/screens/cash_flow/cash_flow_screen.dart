@@ -6,7 +6,7 @@ import '../../models/cash_flow.dart';
 import '../../repositories/cash_flow_repository.dart';
 import '../../repositories/trade_repository.dart';
 import '../../repositories/settings_repository.dart';
-import '../../services/portfolio_service.dart';
+import '../../services/calc/portfolio_service.dart';
 import '../../widgets/common/stats_strip.dart';
 import 'add_cash_flow_screen.dart';
 

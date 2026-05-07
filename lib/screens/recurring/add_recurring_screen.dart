@@ -5,8 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../models/recurring_plan.dart';
 import '../../repositories/recurring_repository.dart';
-import '../../services/stock_price_service.dart';
-import '../../services/stock_name_service.dart';
+import '../../services/data/stock_price_service.dart';
+import '../../services/data/stock_name_service.dart';
 import '../../widgets/common/form_card.dart';
 import '../../widgets/common/section_title.dart';
 

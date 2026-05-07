@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import '../../models/recurring_plan.dart';
 import '../../repositories/recurring_repository.dart';
 import '../../repositories/trade_repository.dart';
-import '../../services/recurring_service.dart';
+import '../../services/calc/recurring_service.dart';
 import 'add_recurring_screen.dart';
 import 'confirm_recurring_screen.dart';
 
