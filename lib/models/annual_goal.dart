@@ -1,7 +1,7 @@
 //年度目標model
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
-import '../utils/enum_ext.dart';
+import '../core/enum_ext.dart';
 import 'goal_type.dart';
 
 part 'annual_goal.g.dart';

@@ -1,6 +1,6 @@
 //整個 App 的 filter state
 import 'package:flutter/material.dart';
-import '../../models/trade.dart';
+import '../models/trade.dart';
 
 class TradeFilter {
   final Set<AssetType>? assetTypes;

@@ -7,7 +7,7 @@ import '../../repositories/trade_repository.dart';
 import '../../services/position_service.dart';
 import '../../services/stock_price_service.dart';
 import '../../services/stock_name_service.dart';
-import '../../utils/stock_data.dart';
+import '../../core/stock_fallback.dart';
 import '../../widgets/common/form_card.dart';
 import '../../widgets/common/section_title.dart';
 

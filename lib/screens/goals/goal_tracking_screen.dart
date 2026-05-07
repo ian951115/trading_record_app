@@ -9,7 +9,7 @@ import '../../models/custom_goal.dart';
 import '../../repositories/trade_repository.dart';
 import '../../repositories/annual_goal_repository.dart';
 import '../../repositories/custom_goal_repository.dart';
-import '../../utils/goal_pnl_helper.dart';
+import '../../core/goal_pnl_helper.dart';
 import '../goals/add_goal_screen.dart';
 
 class GoalTrackingScreen extends StatefulWidget {

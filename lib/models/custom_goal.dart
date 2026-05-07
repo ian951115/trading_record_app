@@ -1,7 +1,7 @@
 //自定義目標model
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
-import '../utils/enum_ext.dart';
+import '../core/enum_ext.dart';
 import 'goal_type.dart';
 
 part 'custom_goal.g.dart';

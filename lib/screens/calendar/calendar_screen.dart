@@ -7,7 +7,7 @@ import '../../models/calendar_view_mode.dart';
 import '../../repositories/trade_repository.dart';
 import '../../services/position_service.dart';
 import '../../services/calendar_service.dart';
-import '../../utils/trade_filter.dart';
+import '../../core/trade_filter.dart';
 import '../../widgets/calendar/calendar_stats_card.dart';
 import '../../widgets/calendar/day_trades_sheet.dart';
 import 'month_calendar_view.dart';

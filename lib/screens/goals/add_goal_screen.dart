@@ -8,8 +8,8 @@ import '../../repositories/annual_goal_repository.dart';
 import '../../repositories/custom_goal_repository.dart';
 import '../../services/stock_price_service.dart';
 import '../../services/stock_name_service.dart';
-import '../../utils/enum_ext.dart';
-import '../../utils/stock_data.dart';
+import '../../core/enum_ext.dart';
+import '../../core/stock_fallback.dart';
 import '../../widgets/common/form_card.dart';
 import '../../widgets/common/section_title.dart';
 
