@@ -37,6 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _pageCtrl.dispose();
+    super.dispose();
   }
   
   @override
@@ -65,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final recentTrades = trades.take(5).toList();
 
-    Widget _buildPage1() => GridView.count(
+    Widget buildPage1() => GridView.count(
       crossAxisCount: 4,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -140,7 +141,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ],
     );
 
-    Widget _buildPage2() => GridView.count(
+    Widget buildPage2() => GridView.count(
       crossAxisCount: 4,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -367,7 +368,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: PageView(
                     controller: _pageCtrl,
                     onPageChanged: (i) => setState(() => _currentPage = i),
-                    children: [_buildPage1(), _buildPage2()],
+                    children: [buildPage1(), buildPage2()],
                   ),
                 ),
                 const SizedBox(height: 8),

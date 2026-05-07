@@ -10,6 +10,7 @@ class StockNameService {
 
   // App 啟動時呼叫一次，失敗也沒關係（會用 fallback）
   static Future<void> init() async {
+    if (_loaded) return;
     try {
       await Future.wait([_loadTWSE(), _loadTPEx()]);
       _loaded = true;

@@ -6,10 +6,8 @@ import '../../models/custom_goal.dart';
 import '../../models/goal_type.dart';
 import '../../repositories/annual_goal_repository.dart';
 import '../../repositories/custom_goal_repository.dart';
-import '../../services/data/stock_price_service.dart';
 import '../../services/data/stock_name_service.dart';
 import '../../core/enum_ext.dart';
-import '../../core/stock_fallback.dart';
 import '../../widgets/common/form_card.dart';
 import '../../widgets/common/section_title.dart';
 
@@ -52,7 +50,6 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
   late DateTime _startDate;
   late DateTime _endDate;
   String _quickKey = '本月';  // 快捷日期當前選項
-  bool _isFetchingName = false;
 
   static const _quickKeys = ['本週', '本月', '本季', '本年', '自訂'];
 
@@ -63,7 +60,6 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
   static const _textSecondary = Color(0xFF5A6375);
   static const _textMuted = Color(0xFF9AA3B2);
   static const _border = Color(0xFFE4E7ED);
-  static const _surface2 = Color(0xFFF0F2F7);
 
 
   @override

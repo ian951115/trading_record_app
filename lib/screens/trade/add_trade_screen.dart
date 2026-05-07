@@ -9,9 +9,7 @@ import '../../repositories/trade_repository.dart';
 import '../../repositories/cash_flow_repository.dart';
 import '../../repositories/settings_repository.dart';
 import '../../services/calc/portfolio_service.dart';
-import '../../services/data/stock_price_service.dart';
 import '../../services/data/stock_name_service.dart';
-import '../../core/stock_fallback.dart';
 import '../../widgets/common/form_card.dart';
 import '../../widgets/common/section_title.dart';
 import '../../widgets/common/info_item.dart';
@@ -724,49 +722,6 @@ class _DatePickerField extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _ReadOnlyField extends StatelessWidget { //唯讀元件(名稱)
-  final String label;
-  final String value;
-
-  const _ReadOnlyField({
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF5A6375),
-          ),
-        ),
-        const SizedBox(height: 6),
-        Container(
-          width: double.infinity,
-          padding: EdgeInsets.symmetric(horizontal: 12,vertical: 13),
-          decoration: BoxDecoration(
-            color: const Color(0xFFE4E7ED),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            value.isEmpty ? '_' : value,
-            style: TextStyle(
-              fontSize: 13,
-              color: Color(0xFF9AA3B2),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

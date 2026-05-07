@@ -28,8 +28,7 @@ class _PositionTileState extends State<PositionTile> {
         : Color(0xFF3D9E6B);
     final pnlText = (p.unrealizedPnL >= 0 ? '+' : '') +
         formatter.format(p.unrealizedPnL.toInt());
-    final retText = (p.unrealizedReturn >= 0 ? '+' : '') +
-        '${p.unrealizedReturn.toStringAsFixed(2)}%';
+    final retText = '${p.unrealizedReturn >= 0 ? '+' : ''}${p.unrealizedReturn.toStringAsFixed(2)}%';
 
     return GestureDetector(
       onTap: () => setState(() => isExpanded = !isExpanded),

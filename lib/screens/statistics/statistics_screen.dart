@@ -27,7 +27,6 @@ class StatisticsScreen extends StatelessWidget {
       trades: trades, cashFlows: cashFlows,
     );
     final fmt = NumberFormat('#,###');
-    final pnlColor = _pnlColor(stats.totalRealizedPnL);
 
     return Scaffold(
       appBar: AppBar(title: const Text('我的歷史之最')),
@@ -69,7 +68,7 @@ class StatisticsScreen extends StatelessWidget {
               iconBg: const Color(0xFFEEF7F2),
               iconColor: const Color(0xFF3D9E6B),
               title: '最大單筆虧損',
-              value: '${fmt.format(stats.worstTrade!.pnl.toInt())}',
+              value: fmt.format(stats.worstTrade!.pnl.toInt()),
               valueColor: const Color(0xFF3D9E6B),
               subtitle:
                   '${stats.worstTrade!.name} (${stats.worstTrade!.symbol})  '

@@ -86,8 +86,6 @@ class TradingRecordApp extends StatelessWidget {
   ThemeData _buildTheme() {
     // ── 色彩定義 ──────────────────────────────
     const primary      = Color(0xFF4A6FA5);
-    const primaryDark  = Color(0xFF3D5A8A);
-    const primaryLight = Color(0xFFEBF0F8);
     const scaffoldBg   = Color(0xFFF0F2F5);
     const surfaceColor = Color(0xFFFFFFFF);
     const borderColor  = Color(0xFFE4E7ED);

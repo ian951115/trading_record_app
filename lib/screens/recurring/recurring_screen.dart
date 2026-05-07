@@ -188,23 +188,6 @@ class _RecurringTile extends StatefulWidget {
 class _RecurringTileState extends State<_RecurringTile> {
   bool _expanded = false;
 
-  void _onMenu(BuildContext context, String action) {
-    final repo = context.read<RecurringRepository>();
-    switch (action) {
-      case 'edit':
-        Navigator.push(context, MaterialPageRoute(
-          builder: (_) => AddRecurringScreen(existingPlan: widget.plan),
-        ));
-        break;
-      case 'toggle':
-        repo.toggleActive(widget.plan);
-        break;
-      case 'delete':
-        _confirmDelete(context, repo);
-        break;
-    }
-  }
-
   Future<void> _confirmDelete(BuildContext context, RecurringRepository repo) async {
     final ok = await showDialog<bool>(
       context: context,

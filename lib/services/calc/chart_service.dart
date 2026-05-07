@@ -1,5 +1,4 @@
 //圖表相關計算服務
-import 'dart:math';
 import '../../models/trade.dart';
 import '../../models/cash_flow.dart';
 import '../../models/position.dart';

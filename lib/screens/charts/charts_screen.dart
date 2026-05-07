@@ -229,7 +229,7 @@ class _AssetTabState extends State<_AssetTab> {
               _touchedPoint != null &&
               spot.x.toInt() < data.length &&
               data[spot.x.toInt()].date == _touchedPoint!.date,
-          getDotPainter: (_, __, ___, ____) => FlDotCirclePainter(
+          getDotPainter: (_, _, _, _) => FlDotCirclePainter(
             radius: 4,
             color: color,
             strokeWidth: 2,
@@ -875,7 +875,6 @@ class _MonthlyTab extends StatelessWidget {
 
     // ── Y 軸自動尺度 ──
     final nicePos = (hasData && maxVal > 0) ? _niceMax(maxVal) : 100000; //+
-    final niceNeg = (hasData && minVal < 0) ? _niceMax(minVal.abs()) : 0; //-
     final double chartMaxY = nicePos * 1.05;
     final double chartMinY = minVal < 0
         ? -max(minVal.abs() * 1.3, chartMaxY * 0.08)
@@ -1008,7 +1007,7 @@ class _MonthlyTab extends StatelessWidget {
                     barTouchData: BarTouchData( //日期對應資料方框
                       touchTooltipData: BarTouchTooltipData(
                         tooltipBgColor: const Color(0xFF1A1F2E).withValues(alpha: 0.85),
-                        getTooltipItem: (group, _, rod, __) { //內容
+                        getTooltipItem: (group, _, rod, _) { //內容
                           final pnl = rod.toY;
                           return BarTooltipItem(
                             '${group.x}月\n'

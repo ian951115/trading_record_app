@@ -3,11 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/dividend.dart';
 import '../../repositories/dividend_repository.dart';
-import '../../repositories/trade_repository.dart';
-import '../../services/calc/position_service.dart';
-import '../../services/data/stock_price_service.dart';
 import '../../services/data/stock_name_service.dart';
-import '../../core/stock_fallback.dart';
 import '../../widgets/common/form_card.dart';
 import '../../widgets/common/section_title.dart';
 
@@ -493,40 +489,6 @@ class _AppField extends StatelessWidget { //輸入格子
           onChanged: onChanged,
           keyboardType: keyboardType,
           decoration: const InputDecoration(),
-        ),
-      ],
-    );
-  }
-}
-
-class _ReadOnly extends StatelessWidget { //唯獨格子
-  final String label, value;
-  const _ReadOnly({required this.label, required this.value});
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize:12,
-            fontWeight:FontWeight.w600,
-            color:Color(0xFF5A6375),
-          ),
-        ),
-        const SizedBox(height: 6),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
-          decoration: BoxDecoration(
-            color: const Color(0xFFE4E7ED),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            value.isEmpty ? '－' : value,
-            style: const TextStyle(fontSize:13, color:Color(0xFF9AA3B2)),
-          ),
         ),
       ],
     );

@@ -289,7 +289,7 @@ class _HoldingTab extends StatelessWidget { //持有頁面
               : ListView.separated(
                 padding: const EdgeInsets.fromLTRB(14, 8, 14, 24),
                 itemCount: openPositions.length,
-                separatorBuilder: (_,__) => const SizedBox(height: 8),
+                separatorBuilder: (_,_) => const SizedBox(height: 8),
                 itemBuilder: (context, index) {
                   return PositionTile(
                     position: openPositions[index],

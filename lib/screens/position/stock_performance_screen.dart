@@ -189,7 +189,7 @@ class _StockPerformanceScreenState extends State<StockPerformanceScreen> {
               : ListView.separated(
                   padding: const EdgeInsets.fromLTRB(14, 4, 14, 24),
                   itemCount: filtered.length,
-                  separatorBuilder: (_, __)=> const SizedBox(height: 8),
+                  separatorBuilder: (_, _)=> const SizedBox(height: 8),
                   itemBuilder: (context, i) =>
                     _PerfTile(
                       perf: filtered[i],

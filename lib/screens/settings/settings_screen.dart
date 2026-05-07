@@ -1,7 +1,6 @@
 //設定頁面
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../models/app_settings.dart';
 import '../../repositories/settings_repository.dart';
 
 class SettingsScreen extends StatelessWidget {

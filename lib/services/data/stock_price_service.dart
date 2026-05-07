@@ -7,7 +7,7 @@ class StockPriceService {
   //查詢單一股票現價
   static Future<double?> fetchPrice(String symbol) async {
     //台股代碼加上 .TW，例如 2330 → 2330.TW
-    final ticker = '${symbol}.TW';
+    final ticker = '$symbol.TW';
     final url = Uri.parse(
       'https://query1.finance.yahoo.com/v8/finance/chart/$ticker'
       '?interval=1d&range=1d',
@@ -52,7 +52,7 @@ class StockPriceService {
 
   //查詢歷史收盤價格
   static Future<double?> fetchHistoricalClose(String symbol, DateTime date) async {
-    final ticker = '${symbol}.TW';
+    final ticker = '$symbol.TW';
     final p1 = date.millisecondsSinceEpoch ~/ 1000;
     final url = Uri.parse(
       'https://query1.finance.yahoo.com/v8/finance/chart/$ticker'

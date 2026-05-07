@@ -214,7 +214,7 @@ class _TradeListScreenState extends State<TradeListScreen> {
                 : ListView.separated(
                   padding: const EdgeInsets.fromLTRB(14, 12, 14, 24),
                   itemCount: filteredTrades.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8), //_:不會用到此參數
+                  separatorBuilder: (_, _) => const SizedBox(height: 8), //_:不會用到此參數
                   itemBuilder: (context, index) {
                     final trade = filteredTrades[index];
                     return TradeTile(
