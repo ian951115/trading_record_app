@@ -1,6 +1,8 @@
 //收益日曆上方統計卡片元件
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:trading_record_app/core/app_colors.dart';
+import '../../core/formatters.dart';
+
 
 class CalendarStatsCard extends StatelessWidget {
   final DateTime focusedDay;
@@ -18,16 +20,11 @@ class CalendarStatsCard extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) { //統計卡 Widget
-    final formatter = NumberFormat('#,###');
     final pnl = (stats['pnl'] as double?) ?? 0.0;
     final winRate = (stats['winRate'] as double?) ?? 0.0;
     final trades = (stats['trades'] as int?) ?? 0;
 
-    final pnlColor = pnl > 0
-        ? const Color(0xFFFFD4D6)
-        : pnl < 0
-            ? const Color(0xFFB8F0D0)
-            : Colors.white70;
+    final pnlColor = AppColors.pnl(pnl);
     final winColor = winRate > 0.6
         ? const Color(0xFFFFD6D4)
         : winRate < 0.4
@@ -73,7 +70,7 @@ class CalendarStatsCard extends StatelessWidget {
                 label: '月損益',
                 value: pnl == 0
                     ? '—'
-                    : (pnl > 0 ? '+' : '') + formatter.format(pnl.toInt()),
+                    : AppFmt.pnl(pnl),
                 valueColor: pnlColor,
               ),
               const _Divider(),

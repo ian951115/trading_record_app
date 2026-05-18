@@ -16,6 +16,10 @@ class AppFmt {
   static String pnlDecimal(double value, {int digits = 2}) =>
       (value >= 0 ? '+' : '') + value.toStringAsFixed(digits);
 
+  /// 股價格式（最多兩位小數），例：123.50
+  static String price(double value) =>
+      NumberFormat('#,###.##').format(value);
+
   // ── 日期格式化 ────────────────────────────
   /// yyyy/MM/dd，例：2025/01/07
   static String date(DateTime d) =>

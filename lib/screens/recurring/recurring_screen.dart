@@ -1,7 +1,8 @@
 //定期定額畫面
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
+import '../../core/formatters.dart';
+import '../../core/app_colors.dart';
 import '../../models/recurring_plan.dart';
 import '../../repositories/recurring_repository.dart';
 import '../../repositories/trade_repository.dart';
@@ -18,7 +19,6 @@ class RecurringScreen extends StatelessWidget {
     final tradeRepo = context.watch<TradeRepository>();
     final plans = recurringRepo.getAll();
     final trades = tradeRepo.getAllTrades();
-    final fmt = NumberFormat('#,###');
 
     //計算待確認總筆數（只算啟用的計畫）
     final pendingCount = RecurringService.getAllPendingEntries(
@@ -52,7 +52,7 @@ class RecurringScreen extends StatelessWidget {
                   child: Container(
                     width: 8, height: 8,
                     decoration: const BoxDecoration(
-                      color: Color(0xFFE8504A),
+                      color: AppColors.profit,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -85,7 +85,7 @@ class RecurringScreen extends StatelessWidget {
                           fontSize: 13, color: Color(0xFF5A6375),
                         ),
                       ),
-                      Text('${fmt.format(monthlyTotal.toInt())}元',
+                      Text('${AppFmt.num(monthlyTotal)}元',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -118,7 +118,7 @@ class RecurringScreen extends StatelessWidget {
                       children: [
                         const Icon(
                           Icons.notifications_active_outlined,
-                          color: Color(0xFFE8504A), size: 18,
+                          color: AppColors.profit, size: 18,
                         ),
                         const SizedBox(width: 10),
                         Expanded(
@@ -127,7 +127,7 @@ class RecurringScreen extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFFE8504A),
+                              color: AppColors.profit,
                             ),
                           ),
                         ),
@@ -135,7 +135,7 @@ class RecurringScreen extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFE8504A),
+                            color: AppColors.profit,
                             borderRadius: BorderRadius.circular(7),
                           ),
                           child: const Text(
@@ -200,7 +200,7 @@ class _RecurringTileState extends State<_RecurringTile> {
             child: const Text('取消'),
           ),
           TextButton(
-            style: TextButton.styleFrom(foregroundColor: const Color(0xFFE8504A)),
+            style: TextButton.styleFrom(foregroundColor: AppColors.profit),
             onPressed: () => Navigator.pop(context, true),
             child: const Text('刪除'),
           ),
@@ -214,7 +214,6 @@ class _RecurringTileState extends State<_RecurringTile> {
   Widget build(BuildContext context) {
     final plan = widget.plan;
     final repo = context.read<RecurringRepository>();
-    final fmt = NumberFormat('#,###');
     final isPaused = !plan.isActive;
     final nextDate = RecurringService.nextScheduledDate(plan);
     final nextStr = nextDate == null ? '—' : '${nextDate.month}/${nextDate.day}';
@@ -258,7 +257,7 @@ class _RecurringTileState extends State<_RecurringTile> {
                           fontSize: plan.symbol.length > 4 ? 9 : 11,
                           fontWeight: FontWeight.w700,
                           color: isPaused
-                              ? const Color(0xFF9AA3B2)
+                              ? AppColors.textMuted
                               : const Color(0xFF4A6FA5),
                         ),
                       ),
@@ -279,7 +278,7 @@ class _RecurringTileState extends State<_RecurringTile> {
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
                                   color: isPaused
-                                      ? const Color(0xFF9AA3B2)
+                                      ? AppColors.textMuted
                                       : const Color(0xFF1A1F2E)
                                 ),
                                 overflow: TextOverflow.ellipsis,
@@ -310,9 +309,9 @@ class _RecurringTileState extends State<_RecurringTile> {
                         ),
                         const SizedBox(height: 3),
                         Text(
-                          '$dayStr  ·  ${fmt.format(plan.amountPerTime.toInt())} 元/次',
+                          '$dayStr  ·  ${AppFmt.num(plan.amountPerTime)} 元/次',
                           style: const TextStyle(
-                            fontSize: 11, color: Color(0xFF9AA3B2)),
+                            fontSize: 11, color: AppColors.textMuted),
                         ),
                       ],
                     ),
@@ -321,12 +320,12 @@ class _RecurringTileState extends State<_RecurringTile> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        '${fmt.format(plan.monthlyAmount.toInt())}/月',
+                        '${AppFmt.num(plan.monthlyAmount)}/月',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
                           color: isPaused
-                              ? const Color(0xFF9AA3B2)
+                              ? AppColors.textMuted
                               : const Color(0xFF4A6FA5),
                         ),
                       ),
@@ -334,7 +333,7 @@ class _RecurringTileState extends State<_RecurringTile> {
                       Text(
                         isPaused ? '—' : '下次：$nextStr',
                         style: const TextStyle(
-                          fontSize: 10, color: Color(0xFF9AA3B2),
+                          fontSize: 10, color: AppColors.textMuted,
                         ),
                       ),
                     ],
@@ -348,7 +347,7 @@ class _RecurringTileState extends State<_RecurringTile> {
                       child: const Icon(
                         Icons.expand_more,
                         size: 20,
-                        color: Color(0xFF9AA3B2),
+                        color: AppColors.textMuted,
                       ),
                     ),
                   ),
@@ -436,14 +435,14 @@ class _RecurringTileState extends State<_RecurringTile> {
                             children: [
                               Icon(Icons.delete_outline,
                                 size: 14,
-                                color: Color(0xFFE8504A),
+                                color: AppColors.profit,
                               ),
                               SizedBox(width: 4),
                               Text('刪除',
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
-                                  color: Color(0xFFE8504A),
+                                  color: AppColors.profit,
                                 ),
                               ),
                             ],
@@ -476,12 +475,12 @@ class _EmptyState extends StatelessWidget {
           const SizedBox(height: 14),
           const Text(
             '尚無定期定額計畫',
-            style: TextStyle(fontSize: 15, color: Color(0xFF9AA3B2)),
+            style: TextStyle(fontSize: 15, color: AppColors.textMuted),
           ),
           const SizedBox(height: 8),
           const Text(
             '點擊右下角 + 新增第一個計畫',
-            style: TextStyle(fontSize: 12, color: Color(0xFF9AA3B2)),
+            style: TextStyle(fontSize: 12, color: AppColors.textMuted),
           ),
         ],
       ),

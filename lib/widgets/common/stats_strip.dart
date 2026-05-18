@@ -1,5 +1,6 @@
 //多格摘要數據列，用於頁面頂部統計資訊
 import 'package:flutter/material.dart';
+import '../../core/app_colors.dart';
 
 class StatCell {
   final String label;
@@ -57,7 +58,7 @@ class StatsStrip extends StatelessWidget {
                         cells[i].label,
                         style: const TextStyle(
                           fontSize: 10,
-                          color: Color(0xFF9AA3B2),
+                          color: AppColors.textMuted,
                         ),
                         textAlign: TextAlign.center,
                       ),

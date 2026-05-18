@@ -1,6 +1,7 @@
 //新增股利頁面
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/app_colors.dart';
 import '../../models/dividend.dart';
 import '../../repositories/dividend_repository.dart';
 import '../../services/data/stock_name_service.dart';
@@ -91,7 +92,7 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
   void _showError(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(msg),
-      backgroundColor: const Color(0xFFE8504A),
+      backgroundColor: AppColors.profit,
       behavior: SnackBarBehavior.floating,
     ));
   }
@@ -154,8 +155,8 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
                             fontSize:14,
                             fontWeight:FontWeight.w700,
                             color: _type == DividendType.cash
-                                ? const Color(0xFF3D9E6B)
-                                : const Color(0xFF9AA3B2),
+                                ? AppColors.loss
+                                : AppColors.textMuted,
                           ),
                         ),
                       ),
@@ -188,7 +189,7 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
                             fontWeight:FontWeight.w700,
                             color: _type == DividendType.stock
                                 ? const Color(0xFF4A6FA5)
-                                : const Color(0xFF9AA3B2),
+                                : AppColors.textMuted,
                           ),
                         ),
                       ),
@@ -342,7 +343,7 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
                                       '自動',
                                       style: TextStyle(
                                         fontSize:10,
-                                        color:Color(0xFF9AA3B2),
+                                        color:AppColors.textMuted,
                                       ),
                                     ),
                                   ],
@@ -353,7 +354,7 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
                                 '未達 2 萬，免課',
                                 style: TextStyle(
                                   fontSize:10,
-                                  color:Color(0xFF9AA3B2),
+                                  color:AppColors.textMuted,
                                 ),
                               ),
                             ],
@@ -377,7 +378,7 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
                       '💡 配股後均價將被稀釋，庫存明細會自動重算',
                       style: TextStyle(
                         fontSize:11,
-                        color: Color(0xFF3D9E6B),
+                        color: AppColors.loss,
                         fontStyle: FontStyle.italic,
                       ),
                     ),
@@ -407,7 +408,7 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
                           style: TextStyle(
                             fontSize:12,
                             fontWeight:FontWeight.w600,
-                            color:Color(0xFF3D9E6B),
+                            color:AppColors.loss,
                           ),
                         ),
                         Text(
@@ -416,7 +417,7 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
                           '${_healthInsurance.toStringAsFixed(0)}',
                           style: const TextStyle(
                             fontSize:10,
-                            color:Color(0xFF3D9E6B),
+                            color:AppColors.loss,
                           ),
                         ),
                       ],
@@ -426,7 +427,7 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
                       style: const TextStyle(
                         fontSize:20,
                         fontWeight:FontWeight.w700,
-                        color:Color(0xFF3D9E6B),
+                        color:AppColors.loss,
                       ),
                     ),
                   ],

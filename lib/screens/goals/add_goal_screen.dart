@@ -1,6 +1,7 @@
 //新增目標頁面
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/app_colors.dart';
 import '../../models/annual_goal.dart';
 import '../../models/custom_goal.dart';
 import '../../models/goal_type.dart';
@@ -58,8 +59,9 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
   static const _blueLight = Color(0xFFEBF0F8);
   static const _textPrimary = Color(0xFF1A1F2E);
   static const _textSecondary = Color(0xFF5A6375);
-  static const _textMuted = Color(0xFF9AA3B2);
   static const _border = Color(0xFFE4E7ED);
+
+  bool _isFetchingName = false;
 
 
   @override
@@ -265,7 +267,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: selected ? _blue : _textMuted,
+              color: selected ? _blue : AppColors.textMuted,
             ),
           ),
         ),
@@ -302,6 +304,15 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
               decoration: InputDecoration(
                 hintText: '自動填入或手動輸入',
                 border: InputBorder.none,
+                suffixIcon: _isFetchingName
+                    ? const Padding(
+                      padding: EdgeInsets.all(12),
+                      child: SizedBox(
+                        width: 16, height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
+                    : null
               ),
             ),
           ],

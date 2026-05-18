@@ -1,6 +1,7 @@
 //年視圖格子
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import '../../core/formatters.dart';
+import '../../core/app_colors.dart';
 import '../../services/calc/pnl_service.dart';
 import '../../widgets/calendar/calendar_month_cell.dart';
 
@@ -24,7 +25,6 @@ class YearCalendarView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formatter = NumberFormat('#,###');
     //年度統計
     double yearPnL = 0;
     int yearTrades = 0;
@@ -92,17 +92,11 @@ class YearCalendarView extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text( //年度總損益大字
-                  yearPnL == 0
-                      ? '—'
-                      : (yearPnL > 0 ? '+' : '-') + formatter.format(yearPnL.toInt()),
+                  yearPnL == 0 ? '—' : AppFmt.pnl(yearPnL),
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
-                    color: yearPnL > 0
-                        ? const Color(0xFFFFD6D4)
-                        : yearPnL < 0
-                            ? const Color(0xFFB8F0D0)
-                            : Colors.white70,
+                    color: AppColors.pnl(yearPnL),
                     letterSpacing: -0.5
                   ),
                 ),

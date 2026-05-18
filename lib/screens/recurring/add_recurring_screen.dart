@@ -2,7 +2,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
+import '../../core/formatters.dart';
+import '../../core/app_colors.dart';
 import '../../models/recurring_plan.dart';
 import '../../repositories/recurring_repository.dart';
 import '../../services/data/stock_name_service.dart';
@@ -24,10 +25,9 @@ class _AddRecurringScreenState extends State<AddRecurringScreen> {
   double _amount = 0;
   DateTime _startDate = DateTime.now();
   String _note = '';
-  bool _isLookingUp = false; //API 查股票名稱中
+  bool _isFetchingName = false;
 
   final Set<int> _selectedDays = {}; //每月扣款日（多選，1~31）
-  final fmt = NumberFormat('#,###');
 
   late final TextEditingController _symbolCtrl;
   late final TextEditingController _nameCtrl;
@@ -164,15 +164,6 @@ class _AddRecurringScreenState extends State<AddRecurringScreen> {
                     onChanged: _onSymbolChanged,
                     decoration: InputDecoration(
                       hintText: 'e.g. 0050',
-                      suffixIcon: _isLookingUp
-                          ? const SizedBox(
-                              width: 16, height: 16,
-                              child: Padding(
-                                padding: EdgeInsets.all(12),
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              ),
-                            )
-                          : null,
                     ),
                   ),
                   const SizedBox(height: 14),
@@ -181,8 +172,18 @@ class _AddRecurringScreenState extends State<AddRecurringScreen> {
                   TextField(
                     controller: _nameCtrl,
                     onChanged: (v) => setState(() => _name = v.trim()),
-                    decoration: const InputDecoration(
-                      hintText: 'e.g. 元大台灣50'),
+                    decoration: InputDecoration(
+                      hintText: 'e.g. 元大台灣50',
+                      suffixIcon: _isFetchingName
+                          ? const Padding(
+                            padding: EdgeInsets.all(12),
+                            child: SizedBox(
+                              width: 16, height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          )
+                          : null
+                    ),
                   ),
                 ],
               ),
@@ -279,7 +280,7 @@ class _AddRecurringScreenState extends State<AddRecurringScreen> {
                             ),
                           ),
                           Text(
-                            '${fmt.format((_amount * _selectedDays.length).toInt())} 元',
+                            '${AppFmt.num((_amount * _selectedDays.length))} 元',
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
@@ -317,7 +318,7 @@ class _AddRecurringScreenState extends State<AddRecurringScreen> {
                     ),
                     const Spacer(),
                     const Icon(Icons.chevron_right,
-                      size: 18, color: Color(0xFF9AA3B2)),
+                      size: 18, color: AppColors.textMuted),
                   ],
                 ),
               ),

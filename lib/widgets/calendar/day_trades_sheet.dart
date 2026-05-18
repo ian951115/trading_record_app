@@ -1,7 +1,8 @@
 //點擊日期彈出的交易明細Bottom Sheet元件
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../../models/trade.dart';
+import '../../core/formatters.dart';
+import '../../core/app_colors.dart';
 
 class DayTradesSheet extends StatelessWidget {
   final DateTime date;
@@ -19,20 +20,14 @@ class DayTradesSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formatter = NumberFormat('#,###');
     final weekdays = ['一', '二', '三', '四', '五', '六', '日'];
     final weekday = weekdays[date.weekday - 1];
     final dateStr = '${date.year} 年 ${date.month} 月 ${date.day} 日（$weekday）';
 
-    final pnlColor = pnl > 0
-        ? const Color(0xFFE8504A)
-        : pnl < 0
-            ? const Color(0xFF3D9E6B)
-            : const Color(0xFF9AA3B2);
+    final pnlColor = AppColors.pnl(pnl);
 
-    final pnlText = pnl == 0
-        ? '—'
-        : (pnl > 0 ? '+' : '') + formatter.format(pnl.toInt());
+    final pnlText = pnl == 0 ? '—' : AppFmt.pnl(pnl);
+
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
@@ -71,7 +66,7 @@ class DayTradesSheet extends StatelessWidget {
                     '${trades.length} 筆交易',
                     style: const TextStyle(
                       fontSize: 11,
-                      color: Color(0xFF9AA3B2),
+                      color: AppColors.textMuted,
                     ),
                   ),
                 ],
@@ -83,7 +78,7 @@ class DayTradesSheet extends StatelessWidget {
                     '當日損益',
                     style: TextStyle(
                       fontSize: 10,
-                      color: Color(0xFF9AA3B2),
+                      color: AppColors.textMuted,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -111,14 +106,14 @@ class DayTradesSheet extends StatelessWidget {
                 child: Text(
                   '這天沒有交易紀錄',
                   style: TextStyle(
-                    color: Color(0xFF9AA3B2),
+                    color: AppColors.textMuted,
                     fontSize: 14,
                   ),
                 ),
               ),
             )
           else
-            ...trades.map((t) => _TradeTile(trade: t, formatter: formatter)),
+            ...trades.map((t) => _TradeTile(trade: t)),
         ],
       ),
     );
@@ -127,12 +122,8 @@ class DayTradesSheet extends StatelessWidget {
 
 class _TradeTile extends StatelessWidget {
   final Trade trade;
-  final NumberFormat formatter;
 
-  const _TradeTile({
-    required this.trade,
-    required this.formatter,
-  });
+  const _TradeTile({required this.trade,});
 
   @override
   Widget build(BuildContext context) {
@@ -145,11 +136,11 @@ class _TradeTile extends StatelessWidget {
         : const Color(0xFFE07B20);
 
     final netText = isBuy
-        ? '-${formatter.format(trade.buyCost.toInt())}'
-        : '+${formatter.format(trade.sellIncome.toInt())}';
+        ? AppFmt.pnl(trade.buyCost)
+        : AppFmt.pnl(trade.sellIncome);
     final neyColor = isBuy
-        ? const Color(0xFF3D9E6B)
-        : const Color(0xFFE8504A);
+        ? AppColors.loss
+        : AppColors.profit;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -195,7 +186,7 @@ class _TradeTile extends StatelessWidget {
                   '${trade.quantity} 股 @ ${trade.price}',
                   style: const TextStyle(
                     fontSize: 11,
-                    color: Color(0xFF9AA3B2),
+                    color: AppColors.textMuted,
                   ),
                 ),
               ],

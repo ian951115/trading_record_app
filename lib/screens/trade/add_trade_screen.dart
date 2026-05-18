@@ -1,7 +1,8 @@
 //新增交易紀錄的頁面UI
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
+import '../../core/formatters.dart';
+import '../../core/app_colors.dart';
 import '../../models/trade.dart';
 import '../../models/add_trade_result.dart';
 import '../../models/cash_flow.dart';
@@ -177,7 +178,7 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
   void _showError(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(msg),
-      backgroundColor: const Color(0xFFE8504A),
+      backgroundColor: AppColors.profit,
       behavior: SnackBarBehavior.floating,
     ));
   }
@@ -206,7 +207,6 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
     final afterCash = isBuy
         ? currentCash - totalAmount
         : currentCash + totalAmount;
-    final fmt = NumberFormat('#,###');
 
     return Scaffold(
       appBar: AppBar(
@@ -413,14 +413,14 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
                         Expanded(
                           child: InfoItem(
                             label: '現金餘額',
-                            value: fmt.format(currentCash.toInt()),
+                            value: AppFmt.num(currentCash),
                           ),
                         ),
                         Expanded(
                           child: InfoItem(
                             label: isBuy ? '交易後剩餘' : '交易後現金',
-                            value: fmt.format(afterCash.toInt()),
-                            valueColor: afterCash < 0 ? const Color(0xFFE8504A) : null,
+                            value: AppFmt.num(afterCash),
+                            valueColor: afterCash < 0 ? AppColors.profit : null,
                           ),
                         ),
                       ],
@@ -493,7 +493,7 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
                                   '自動新增對應入金紀錄',
                                   style: TextStyle(
                                     fontSize: 11,
-                                    color: Color(0xFF9AA3B2),
+                                    color: AppColors.textMuted,
                                   ),
                                 ),
                               ],
@@ -639,8 +639,8 @@ class _ToggleBuySell extends StatelessWidget { //買賣切換元件
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
                   color: isBuy
-                      ? const Color(0xFFE8504A)
-                      : const Color(0xFF9AA3B2),
+                      ? AppColors.profit
+                      : AppColors.textMuted,
                 ),
               ),
             ),
@@ -672,8 +672,8 @@ class _ToggleBuySell extends StatelessWidget { //買賣切換元件
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
                   color: !isBuy
-                      ? const Color(0xFF3D9E6B)
-                      : const Color(0xFF9AA3B2),
+                      ? AppColors.loss
+                      : AppColors.textMuted,
                 ),
               ),
             ),
@@ -753,7 +753,7 @@ class _TagsFieldState extends State<_TagsField> {
         '策略標籤',
         style: TextStyle(
           fontSize: 12,
-          color: Color(0xFF9AA3B2),
+          color: AppColors.textMuted,
         ),
       ),
       const SizedBox(height: 8),

@@ -1,17 +1,17 @@
 //定期定額確認畫面
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
-import 'package:trading_record_app/repositories/settings_repository.dart';
+import '../../core/formatters.dart';
+import '../../core/app_colors.dart';
 import '../../models/trade.dart';
 import '../../repositories/recurring_repository.dart';
 import '../../repositories/trade_repository.dart';
+import '../../repositories/settings_repository.dart';
 import '../../services/calc/recurring_service.dart';
 import '../../services/data/stock_price_service.dart';
 
 class ConfirmRecurringScreen extends StatefulWidget {
   const ConfirmRecurringScreen({super.key});
-
   @override
   State<ConfirmRecurringScreen> createState() => _ConfirmRecurringScreenState();
 }
@@ -171,8 +171,6 @@ class _ConfirmRecurringScreenState extends State<ConfirmRecurringScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final fmt = NumberFormat('#,###');
-
     return Scaffold(
       appBar: AppBar(title: const Text('入帳確認')),
       body: _pending.isEmpty
@@ -181,7 +179,7 @@ class _ConfirmRecurringScreenState extends State<ConfirmRecurringScreen> {
               '目前沒有待確認的紀錄',
               style: TextStyle(
                 fontSize: 14,
-                color: Color(0xFF9AA3B2),
+                color: AppColors.textMuted,
               ),
             ),
           )
@@ -195,7 +193,7 @@ class _ConfirmRecurringScreenState extends State<ConfirmRecurringScreen> {
                       padding: const EdgeInsets.only(bottom: 10),
                       child: Text(
                         '請確認每筆的股數、成交價及手續費後再送出，價格為系統自動抓取，僅供參考。',
-                        style: TextStyle(fontSize: 12, color: Color(0xFF9AA3B2)),
+                        style: TextStyle(fontSize: 12, color: AppColors.textMuted),
                       ),
                     ),
                     ..._pending.map((e) => _EntryTile(
@@ -234,7 +232,7 @@ class _ConfirmRecurringScreenState extends State<ConfirmRecurringScreen> {
                           ),
                         ),
                         Text(
-                          '${fmt.format(_checkedTotal.toInt())} 元',
+                          '${AppFmt.num(_checkedTotal)} 元',
                           style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
@@ -290,7 +288,6 @@ class _EntryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final e = entry;
-    final fmt = NumberFormat('#,###');
     final d = e.scheduledDate;
     final dateStr = '${d.year}/${d.month.toString().padLeft(2,"0")}'
         '/${d.day.toString().padLeft(2,"0")}';
@@ -360,7 +357,7 @@ class _EntryTile extends StatelessWidget {
                     Text(
                       '$dateStr（$weekday）',
                       style: const TextStyle(
-                        fontSize: 11, color: Color(0xFF9AA3B2),
+                        fontSize: 11, color: AppColors.textMuted,
                       ),
                     ),
                   ],
@@ -377,7 +374,7 @@ class _EntryTile extends StatelessWidget {
                             '股數',
                             style: TextStyle(
                               fontSize: 10,
-                              color: Color(0xFF9AA3B2),
+                              color: AppColors.textMuted,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -407,7 +404,7 @@ class _EntryTile extends StatelessWidget {
                             '成交價',
                             style: TextStyle(
                               fontSize: 10,
-                              color: Color(0xFF9AA3B2),
+                              color: AppColors.textMuted,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -432,7 +429,7 @@ class _EntryTile extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('手續費', style: TextStyle(fontSize: 10, color: Color(0xFF9AA3B2))),
+                          const Text('手續費', style: TextStyle(fontSize: 10, color: AppColors.textMuted)),
                           const SizedBox(height: 4),
                           SizedBox(
                             height: 36,
@@ -457,13 +454,13 @@ class _EntryTile extends StatelessWidget {
                           '扣款金額',
                           style: TextStyle(
                             fontSize: 10,
-                            color: Color(0xFF9AA3B2),
+                            color: AppColors.textMuted,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           calcAmount > 0
-                              ? '${fmt.format(calcAmount.toInt())} 元'
+                              ? '${AppFmt.num(calcAmount)} 元'
                               : '--元',
                           style: const TextStyle(
                             fontSize: 15,

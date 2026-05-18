@@ -1,7 +1,8 @@
 //庫存明細ui
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
+import '../../core/formatters.dart';
+import '../../core/app_colors.dart';
 import '../../models/position.dart';
 import '../../repositories/trade_repository.dart';
 import '../../repositories/dividend_repository.dart';
@@ -11,7 +12,6 @@ import '../../widgets/position/position_tile.dart';
 
 class PositionListScreen extends StatefulWidget {
   const PositionListScreen({super.key});
-
   @override
   State<PositionListScreen> createState() => _PositionListScreenState();
 }
@@ -66,8 +66,6 @@ class _PositionListScreenState extends State<PositionListScreen> {
       dividends: dividends,
     );
 
-    final formatter = NumberFormat('#,###');
-
     final allPositions = result.positions;
     for (final p in allPositions) {
       if (_livePrices.containsKey(p.symbol)) {
@@ -119,7 +117,7 @@ class _PositionListScreenState extends State<PositionListScreen> {
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF3D9E6B),
+                    color: AppColors.loss,
                   ),
                 ),
               ),
@@ -155,7 +153,6 @@ class _PositionListScreenState extends State<PositionListScreen> {
         totalCost: totalCost,
         totalUnrealized: totalUnrealized,
         totalReturn: totalReturn,
-        formatter: formatter,
       ),
     );
   }
@@ -167,7 +164,6 @@ class _HoldingTab extends StatelessWidget { //持有頁面
   final double totalCost;
   final double totalUnrealized;
   final double totalReturn;
-  final NumberFormat formatter;
 
   const _HoldingTab({
     required this.openPositions,
@@ -175,7 +171,6 @@ class _HoldingTab extends StatelessWidget { //持有頁面
     required this.totalCost,
     required this.totalUnrealized,
     required this.totalReturn,
-    required this.formatter,
   });
 
   @override
@@ -217,7 +212,7 @@ class _HoldingTab extends StatelessWidget { //持有頁面
               ),
               const SizedBox(height: 4),
               Text(
-                formatter.format(totalMV.toInt()),
+                AppFmt.num(totalMV),
                 style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w700,
@@ -231,7 +226,7 @@ class _HoldingTab extends StatelessWidget { //持有頁面
                 children: [
                   _HeroStat(
                     label: '總成本',
-                    value: formatter.format(totalCost.toInt()),
+                    value: AppFmt.num(totalCost),
                   ),
                   Container(
                     width: 1, height: 28,
@@ -240,8 +235,7 @@ class _HoldingTab extends StatelessWidget { //持有頁面
                   ),
                   _HeroStat(
                     label: '未實現損益',
-                    value: (totalUnrealized >= 0 ? '+' : '') +
-                        formatter.format(totalUnrealized.toInt()),
+                    value: AppFmt.pnl(totalUnrealized),
                     valueColor: totalUnrealized >= 0
                         ? const Color(0xFFFFD6D4)
                         : const Color(0xFFB8F0D0),
@@ -281,7 +275,7 @@ class _HoldingTab extends StatelessWidget { //持有頁面
                     SizedBox(height: 12),
                     Text(
                       '目前沒有持倉',
-                      style: TextStyle(color: Color(0xFF9AA3B2), fontSize: 14),
+                      style: TextStyle(color: AppColors.textMuted, fontSize: 14),
                     ),
                   ],
                 ),

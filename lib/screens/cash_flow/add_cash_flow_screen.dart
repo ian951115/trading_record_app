@@ -1,6 +1,7 @@
 //入金/提領 頁面ui
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/app_colors.dart';
 import '../../models/cash_flow.dart';
 import '../../repositories/cash_flow_repository.dart';
 import '../../widgets/common/form_card.dart';
@@ -48,7 +49,7 @@ class _AddCashFlowScreenState extends State<AddCashFlowScreen> {
     if (_amount <= 0) { //底部小彈窗
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('請輸入正確金額'),
-        backgroundColor: const Color(0xFFE8504A),
+        backgroundColor: AppColors.profit,
         behavior: SnackBarBehavior.floating,
       ));
       return;
@@ -125,8 +126,8 @@ class _AddCashFlowScreenState extends State<AddCashFlowScreen> {
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
                             color: _type == CashFlowType.deposit
-                                ? const Color(0xFF3D9E6B)
-                                : const Color(0xFF9AA3B2),
+                                ? AppColors.loss
+                                : AppColors.textMuted,
                           ),
                         ),
                       ),
@@ -159,8 +160,8 @@ class _AddCashFlowScreenState extends State<AddCashFlowScreen> {
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
                             color: _type == CashFlowType.withdraw
-                                ? const Color(0xFFE8504A)
-                                : const Color(0xFF9AA3B2),
+                                ? AppColors.profit
+                                : AppColors.textMuted,
                           ),
                         ),
                       ),
@@ -284,8 +285,8 @@ class _AddCashFlowScreenState extends State<AddCashFlowScreen> {
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: _type == CashFlowType.deposit
-                            ? const Color(0xFF3D9E6B)
-                            : const Color(0xFFE8504A),
+                            ? AppColors.loss
+                            : AppColors.profit,
                       ),
                     ),
                     Text(
@@ -295,8 +296,8 @@ class _AddCashFlowScreenState extends State<AddCashFlowScreen> {
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
                         color: _type == CashFlowType.deposit
-                            ? const Color(0xFF3D9E6B)
-                            : const Color(0xFFE8504A),
+                            ? AppColors.loss
+                            : AppColors.profit,
                       ),
                     ),
                   ],

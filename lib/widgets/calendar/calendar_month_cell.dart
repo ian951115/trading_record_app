@@ -1,8 +1,9 @@
 //月份格子資訊顯示元件
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../charts/mini_sparkline.dart';
 import '../../services/calc/pnl_service.dart';
+import '../../core/formatters.dart';
+import '../../core/app_colors.dart';
 
 class CalendarMonthCell extends StatelessWidget {
   final int month;
@@ -20,7 +21,6 @@ class CalendarMonthCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formatter = NumberFormat('#,###');
     final pnl = data?.totalPnL ?? 0;
     final hasData = data != null && data!.tradeCount > 0;
 
@@ -40,15 +40,9 @@ class CalendarMonthCell extends StatelessWidget {
       borderColor = const Color(0xFFE4E7ED);
     }
 
-    final pnlColor = pnl > 0
-        ? const Color(0xFFE8504A)
-        : pnl < 0
-            ? const Color(0xFF3D9E6B)
-            : const Color(0xFF9AA3B2);
+    final pnlColor = AppColors.pnl(pnl);
 
-    final pnlText = !hasData
-        ? '—'
-        : (pnl > 0 ? '+' : '') + formatter.format(pnl.toInt());
+    final pnlText = !hasData ? '—' : AppFmt.pnl(pnl);
 
     return GestureDetector(
       onTap: onTap,
@@ -108,7 +102,7 @@ class CalendarMonthCell extends StatelessWidget {
                 '${data!.tradeCount} 筆・${(data!.winRate * 100).toStringAsFixed(0)}%',
                 style: const TextStyle(
                   fontSize: 9,
-                  color: Color(0xFF9AA3B2),
+                  color: AppColors.textMuted,
                 ),
               ),
           ],

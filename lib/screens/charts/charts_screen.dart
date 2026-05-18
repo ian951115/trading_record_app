@@ -3,7 +3,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:intl/intl.dart';
+import '../../core/formatters.dart';
+import '../../core/app_colors.dart';
 import '../../models/trade.dart';
 import '../../models/position.dart';
 import '../../models/cash_flow.dart';
@@ -63,7 +64,7 @@ class _ChartsScreenState extends State<ChartsScreen>
             isScrollable: true,
             tabAlignment: TabAlignment.start,
             labelColor: const Color(0xFF4A6FA5), //選中分頁顏色
-            unselectedLabelColor: const Color(0xFF9AA3B2), //其他分頁顏色
+            unselectedLabelColor: AppColors.textMuted, //其他分頁顏色
             indicatorColor: const Color(0xFF4A6FA5), //選中分頁指示器
             indicatorSize: TabBarIndicatorSize.label,
             labelStyle: const TextStyle(
@@ -174,7 +175,6 @@ class _AssetTabState extends State<_AssetTab> {
 
   @override
   Widget build(BuildContext context) {
-    final formatter = NumberFormat('#,###');
     final allData = ChartService.buildAssetHistory(
       trades: widget.trades, cashFlows: widget.cashFlows);
     final data = _filterByRange(allData);
@@ -183,7 +183,7 @@ class _AssetTabState extends State<_AssetTab> {
       return const Center(
         child: Text(
           '尚無資料',
-          style: TextStyle(color: Color(0xFF9AA3B2)),
+          style: TextStyle(color: AppColors.textMuted),
         ),
       );
     }
@@ -203,8 +203,8 @@ class _AssetTabState extends State<_AssetTab> {
     final change = current - first;
     final changePct = first == 0 ? 0.0 : change / first * 100; //範圍內資產變化率
     final changeColor = change >= 0
-        ? const Color(0xFFE8504A)
-        : const Color(0xFF3D9E6B);
+        ? AppColors.profit
+        : AppColors.loss;
 
     // ──Y 軸單位自動判斷 ──
     final useWan = (maxAsset / 10000) >= 1;
@@ -267,7 +267,7 @@ class _AssetTabState extends State<_AssetTab> {
           spots: data.asMap().entries
               .map((e) => FlSpot(e.key.toDouble(), e.value.marketValue))
               .toList(),
-          color: const Color(0xFFE8504A),
+          color: AppColors.profit,
         ),
       );
     }
@@ -277,7 +277,7 @@ class _AssetTabState extends State<_AssetTab> {
           spots: data.asMap().entries
               .map((e) => FlSpot(e.key.toDouble(), e.value.cash))
               .toList(),
-          color: const Color(0xFF3D9E6B),
+          color: AppColors.loss,
         ),
       );
     }
@@ -325,13 +325,12 @@ class _AssetTabState extends State<_AssetTab> {
           cells: [
             StatCell(
               label: '目前總資產',
-              value: formatter.format(current.toInt()),
+              value: AppFmt.num(current),
               valueColor: const Color(0xFF4A6FA5),
             ),
             StatCell(
               label: '期間變化',
-              value: (change >= 0 ? '+' : '') +
-                  formatter.format(change.toInt()),
+              value: AppFmt.pnl(change),
               valueColor: changeColor,
             ),
             StatCell(
@@ -403,7 +402,7 @@ class _AssetTabState extends State<_AssetTab> {
                                 : v.toStringAsFixed(0),
                             style: const TextStyle(
                               fontSize: 9,
-                              color: Color(0xFF9AA3B2),
+                              color: AppColors.textMuted,
                             ),
                           ),
                         ),
@@ -432,7 +431,7 @@ class _AssetTabState extends State<_AssetTab> {
                               _xLabel(d, multiYear),
                               style: const TextStyle(
                                 fontSize: 9,
-                                color: Color(0xFF9AA3B2),
+                                color: AppColors.textMuted,
                               ),
                             );
                           },
@@ -460,7 +459,7 @@ class _AssetTabState extends State<_AssetTab> {
                             final dateStr = (idx == 0 && d != null)
                                 ? '${d.year}/${d.month}/${d.day}\n' : '';
                             return LineTooltipItem(
-                              '$dateStr${formatter.format(s.y.toInt())}元',
+                              '$dateStr${AppFmt.num(s.y)}元',
                               const TextStyle(
                                 color: Colors.white,
                                 fontSize: 11,
@@ -483,7 +482,6 @@ class _AssetTabState extends State<_AssetTab> {
                     : _TouchDetailCard(
                       key: ValueKey(_touchedPoint!.date),
                       point: _touchedPoint!,
-                      formatter: formatter,
                       showStock: _showStock,
                       showCash: _showCash,
                     ),
@@ -493,7 +491,7 @@ class _AssetTabState extends State<_AssetTab> {
         ),
         const SizedBox(height: 10),
         // ──6 格亮點卡片 ──
-        _HighlightCard(data: data, formatter: formatter),
+        _HighlightCard(data: data),
       ],
     );
   }
@@ -537,7 +535,7 @@ class _LineToggle extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
-                color: active ? color : const Color(0xFF9AA3B2),
+                color: active ? color : AppColors.textMuted,
               ),
             ),
           ],
@@ -552,9 +550,9 @@ class _LineToggle extends StatelessWidget {
       children: [
         _pill('總資產', const Color(0xFF4A6FA5), showTotal, onToggleTotal),
         const SizedBox(width: 8),
-        _pill('持股市值', const Color(0xFFE8504A), showStock, onToggleStock),
+        _pill('持股市值', AppColors.profit, showStock, onToggleStock),
         const SizedBox(width: 8),
-        _pill('現金', const Color(0xFF3D9E6B), showCash, onToggleCash),
+        _pill('現金', AppColors.loss, showCash, onToggleCash),
       ],
     );
   }
@@ -563,12 +561,10 @@ class _LineToggle extends StatelessWidget {
 // ──點選詳細卡片 ──
 class _TouchDetailCard extends StatelessWidget {
   final AssetDataPoint point;
-  final NumberFormat formatter;
   final bool showStock, showCash;
   const _TouchDetailCard({
     super.key,
     required this.point,
-    required this.formatter,
     required this.showStock,
     required this.showCash,
   });
@@ -581,7 +577,7 @@ class _TouchDetailCard extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: 10,
-            color: Color(0xFF9AA3B2),
+            color: AppColors.textMuted,
           ),
         ),
         const SizedBox(height: 2),
@@ -617,7 +613,7 @@ class _TouchDetailCard extends StatelessWidget {
           Expanded(
             child: _cell(
               '總資產',
-              formatter.format(point.totalAsset.toInt()),
+              AppFmt.num(point.totalAsset),
               const Color(0xFF4A6FA5),
             ),
           ),
@@ -625,16 +621,16 @@ class _TouchDetailCard extends StatelessWidget {
             Expanded(
               child: _cell(
                 '持股市值',
-                formatter.format(point.marketValue.toInt()),
-                const Color(0xFFE8504A),
+                AppFmt.num(point.marketValue),
+                AppColors.profit,
               ),
             ),
           if (showCash)
             Expanded(
               child: _cell(
                 '現金',
-                formatter.format(point.cash.toInt()),
-                const Color(0xFF3D9E6B),
+                AppFmt.num(point.cash),
+                AppColors.loss,
               ),
             ),
         ],
@@ -646,8 +642,7 @@ class _TouchDetailCard extends StatelessWidget {
 // ── A8：6 格亮點卡片 ──
 class _HighlightCard extends StatelessWidget {
   final List<AssetDataPoint> data;
-  final NumberFormat formatter;
-  const _HighlightCard({required this.data, required this.formatter});
+  const _HighlightCard({required this.data});
 
   @override
   Widget build(BuildContext context) {
@@ -705,30 +700,30 @@ class _HighlightCard extends StatelessWidget {
         children: [
           const Text(
             '📌 期間亮點',
-            style: TextStyle(fontSize: 12, color: Color(0xFF9AA3B2)),
+            style: TextStyle(fontSize: 12, color: AppColors.textMuted),
           ),
           const SizedBox(height: 10),
           Row( //第一行
             children: [
               _HighlightItem(
                 label: '最高資產',
-                value: _shortFmt(maxPoint.totalAsset, formatter),
+                value: _shortFmt(maxPoint.totalAsset),
                 sub: fmt(maxPoint.date),
-                color: const Color(0xFFE8504A),
+                color: AppColors.profit,
                 bgColor: const Color(0xFFFDF0EF),
               ),
               const SizedBox(width: 8),
               _HighlightItem(
                 label: '最低資產',
-                value: _shortFmt(minPoint.totalAsset, formatter),
+                value: _shortFmt(minPoint.totalAsset),
                 sub: fmt(minPoint.date),
-                color: const Color(0xFF3D9E6B),
+                color: AppColors.loss,
                 bgColor: const Color(0xFFEEF7F2),
               ),
               const SizedBox(width: 8),
               _HighlightItem(
                 label: '最大單日漲幅',
-                value: '+${formatter.format(maxDailyGain.toInt())}',
+                value: '+${AppFmt.num(maxDailyGain)}',
                 sub: fmt(maxGainDate),
                 color: const Color(0xFF4A6FA5),
                 bgColor: const Color(0xFFEBF0F8),
@@ -748,9 +743,9 @@ class _HighlightCard extends StatelessWidget {
               const SizedBox(width: 8),
               _HighlightItem(
                 label: '最大單日跌幅',
-                value: formatter.format(maxDailyDrop.toInt()),
+                value: AppFmt.num(maxDailyDrop),
                 sub: fmt(maxDropDate),
-                color: const Color(0xFF3D9E6B),
+                color: AppColors.loss,
                 bgColor: const Color(0xFFEEF7F2),
               ),
               const SizedBox(width: 8),
@@ -773,9 +768,9 @@ class _HighlightCard extends StatelessWidget {
   }
 
   // 大數字縮短顯示（>= 10000 用「萬」）
-  String _shortFmt(double v, NumberFormat f) {
+  String _shortFmt(double v) {
     if (v >= 10000) return '${(v / 10000).toStringAsFixed(1)}萬';
-    return f.format(v.toInt());
+    return AppFmt.num(v);
   }
 }
 
@@ -800,7 +795,7 @@ class _HighlightItem extends StatelessWidget { //亮點卡片格子
           children: [
             Text(
               label,
-              style: const TextStyle(fontSize: 9, color: Color(0xFF9AA3B2)),
+              style: const TextStyle(fontSize: 9, color: AppColors.textMuted),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 3),
@@ -815,7 +810,7 @@ class _HighlightItem extends StatelessWidget { //亮點卡片格子
             ),
             Text(
               sub,
-              style: const TextStyle(fontSize: 9, color: Color(0xFF9AA3B2)),
+              style: const TextStyle(fontSize: 9, color: AppColors.textMuted),
             ),
           ],
         ),
@@ -854,7 +849,6 @@ class _MonthlyTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formatter = NumberFormat('#,###');
     final monthlyPnL = ChartService.buildMonthlyPnL(
       trades: trades, year: year);
 
@@ -894,8 +888,8 @@ class _MonthlyTab extends StatelessWidget {
           BarChartRodData(
             toY: pnl,
             color: pnl >= 0
-                ? const Color(0xFFE8504A)
-                : const Color(0xFF3D9E6B),
+                ? AppColors.profit
+                : AppColors.loss,
             width: 14,
             borderRadius: BorderRadius.circular(4),
           ),
@@ -933,11 +927,10 @@ class _MonthlyTab extends StatelessWidget {
           cells: [
             StatCell(
               label: '年度損益',
-              value: (total >= 0 ? '+' : '') +
-                  formatter.format(total.toInt()),
+              value: AppFmt.pnl(total),
               valueColor: total >= 0
-                  ? const Color(0xFFE8504A)
-                  : const Color(0xFF3D9E6B),
+                  ? AppColors.profit
+                  : AppColors.loss,
             ),
             StatCell(
               label: '獲利月份',
@@ -948,7 +941,7 @@ class _MonthlyTab extends StatelessWidget {
               value: bestMonth == null ? '—' : '$bestMonth 月',
               valueColor: bestMonth == null
                   ? null
-                  : const Color(0xFFE8504A),
+                  : AppColors.profit,
             ),
           ],
         ),
@@ -980,7 +973,7 @@ class _MonthlyTab extends StatelessWidget {
                   ),
                   Text(
                     unitLabel,
-                    style: const TextStyle(fontSize: 9, color: Color(0xFF9AA3B2)),
+                    style: const TextStyle(fontSize: 9, color: AppColors.textMuted),
                   ),
                 ],
               ),
@@ -997,7 +990,7 @@ class _MonthlyTab extends StatelessWidget {
                       drawVerticalLine: false,
                       getDrawingHorizontalLine: (v) => FlLine(
                         color: v == 0
-                            ? const Color(0xFF9AA3B2)
+                            ? AppColors.textMuted
                             : const Color(0xFFE4E7ED),
                         strokeWidth: v == 0 ? 1.5 : 1, //零線加粗
                       ),
@@ -1010,9 +1003,7 @@ class _MonthlyTab extends StatelessWidget {
                         getTooltipItem: (group, _, rod, _) { //內容
                           final pnl = rod.toY;
                           return BarTooltipItem(
-                            '${group.x}月\n'
-                            '${pnl >= 0 ? '+' : ''}'
-                            '${formatter.format(pnl.toInt())}',
+                            '${group.x}月\n${AppFmt.pnl(pnl)}',
                             const TextStyle(
                               color: Colors.white,
                               fontSize: 11,
@@ -1030,7 +1021,7 @@ class _MonthlyTab extends StatelessWidget {
                             '${v.toInt()}月',
                             style: const TextStyle(
                               fontSize: 8,
-                              color: Color(0xFF9AA3B2),
+                              color: AppColors.textMuted,
                             ),
                           ),
                         ),
@@ -1050,7 +1041,7 @@ class _MonthlyTab extends StatelessWidget {
                               label,
                               style: const TextStyle(
                                 fontSize: 8,
-                                color: Color(0xFF9AA3B2),
+                                color: AppColors.textMuted,
                               ),
                             );
                           },
@@ -1100,12 +1091,11 @@ class _PieTabState extends State<_PieTab> {
 
   @override
   Widget build(BuildContext context) {
-    final formatter = NumberFormat('#,###');
     final shares = ChartService.buildHoldingShares(widget.openPositions);
 
     if (shares.isEmpty) {
       return const Center(child: Text('目前沒有持倉',
-        style: TextStyle(color: Color(0xFF9AA3B2))));
+        style: TextStyle(color: AppColors.textMuted)));
     }
 
     // ──unrealized 全負保護 ──
@@ -1120,7 +1110,7 @@ class _PieTabState extends State<_PieTab> {
             const Center(
               child: Text('無未實現收益資料',
                 style: TextStyle(
-                  fontSize: 14, color: Color(0xFF9AA3B2)),
+                  fontSize: 14, color: AppColors.textMuted),
               ),
             ),
           ],
@@ -1235,10 +1225,10 @@ class _PieTabState extends State<_PieTab> {
                             ),
                             FittedBox(
                               child: Text(
-                                '${formatter.format(selectedVal.abs().toInt())} 元',
+                                '${AppFmt.num(selectedVal.abs())} 元',
                                 style: const TextStyle(
                                   fontSize: 9,
-                                  color: Color(0xFF9AA3B2),
+                                  color: AppColors.textMuted,
                                 ),
                               ),
                             ),
@@ -1308,11 +1298,11 @@ class _PieTabState extends State<_PieTab> {
                         SizedBox(
                           width: 90,
                           child: Text(
-                            '${formatter.format(val.abs().toInt())} 元',
+                            '${AppFmt.num(val.abs())} 元',
                             textAlign: TextAlign.right,
                             style: const TextStyle(
                               fontSize: 11,
-                              color: Color(0xFF9AA3B2),
+                              color: AppColors.textMuted,
                             ),
                           ),
                         ),
@@ -1391,13 +1381,12 @@ class _StrategyTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formatter = NumberFormat('#,###');
     final perfs = ChartService.buildStrategyPerf(trades, tradePnLMap);
 
     if (perfs.isEmpty) {
       return const Center(
         child: Text('尚無策略標籤資料',
-          style: TextStyle(color: Color(0xFF9AA3B2))));
+          style: TextStyle(color: AppColors.textMuted)));
     }
 
     final maxAbs = perfs
@@ -1423,14 +1412,14 @@ class _StrategyTab extends StatelessWidget {
             StatCell(
               label: '最佳策略',
               value: perfs.first.name,
-              valueColor: const Color(0xFFE8504A),
+              valueColor: AppColors.profit,
             ),
             StatCell(
               label: '整體勝率',
               value: '${(overallWR * 100).toStringAsFixed(0)}%',
               valueColor: overallWR >= 0.5
-                  ? const Color(0xFFE8504A)
-                  : const Color(0xFF3D9E6B),
+                  ? AppColors.profit
+                  : AppColors.loss,
             ),
           ],
         ),
@@ -1459,8 +1448,8 @@ class _StrategyTab extends StatelessWidget {
               const SizedBox(height: 14),
               ...perfs.map((p) {
                 final pnlColor = p.totalPnL >= 0
-                    ? const Color(0xFFE8504A)
-                    : const Color(0xFF3D9E6B);
+                    ? AppColors.profit
+                    : AppColors.loss;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 16),
                   child: Column(
@@ -1480,8 +1469,7 @@ class _StrategyTab extends StatelessWidget {
                           Row(
                             children: [
                               Text(
-                                (p.totalPnL >= 0 ? '+' : '') +
-                                    formatter.format(p.totalPnL.toInt()),
+                                AppFmt.pnl(p.totalPnL),
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700, color: pnlColor)),
@@ -1490,7 +1478,7 @@ class _StrategyTab extends StatelessWidget {
                                 '勝率 ${(p.winRate*100).toStringAsFixed(0)}%',
                                 style: const TextStyle(
                                   fontSize: 11,
-                                  color: Color(0xFF9AA3B2))),
+                                  color: AppColors.textMuted)),
                             ],
                           ),
                         ],
@@ -1522,7 +1510,7 @@ class _StrategyTab extends StatelessWidget {
                                   left: halfWidth - 0.5,
                                   child: Container(
                                     width: 1, height: 8,
-                                    color: const Color(0xFF9AA3B2),
+                                    color: AppColors.textMuted,
                                   ),
                                 ),
                                 Positioned( //進度條
@@ -1560,7 +1548,7 @@ class _StrategyTab extends StatelessWidget {
                         '${p.tradeCount} 筆交易',
                         style: const TextStyle(
                           fontSize: 10,
-                          color: Color(0xFF9AA3B2))),
+                          color: AppColors.textMuted)),
                     ],
                   ),
                 );

@@ -1,7 +1,8 @@
 //主畫面UI
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
+import '../../core/formatters.dart';
+import '../../core/app_colors.dart';
 import '../../models/add_trade_result.dart';
 import '../../repositories/cash_flow_repository.dart';
 import '../../repositories/trade_repository.dart';
@@ -20,6 +21,7 @@ import '../settings/settings_screen.dart';
 import '../cash_flow/cash_flow_screen.dart';
 import '../recurring/recurring_screen.dart';
 import '../goals/goal_tracking_screen.dart';
+import '../statistics/statistics_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -44,7 +46,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final tradeRepo = context.watch<TradeRepository>();
     final cashRepo = context.watch<CashFlowRepository>();
-    final formatter = NumberFormat('#,###');
 
     final trades = tradeRepo.getAllTrades();
     final cashFlows = cashRepo.getAllFlows();
@@ -86,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
           icon: Icons.inventory_2_outlined,
           label: '庫存明細',
           color: const Color(0xFFEEF7F2),
-          iconColor: const Color(0xFF3D9E6B),
+          iconColor: AppColors.loss,
           onTap: () => Navigator.push(context,
             MaterialPageRoute(builder: (_) => PositionListScreen())),
         ),
@@ -94,7 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
           icon: Icons.calendar_month_outlined,
           label: '收益日曆',
           color: const Color(0xFFFDF0EF),
-          iconColor: const Color(0xFFE8504A),
+          iconColor: AppColors.profit,
           onTap: () => Navigator.push(context,
             MaterialPageRoute(builder: (_) => CalendarScreen())),
         ),
@@ -118,7 +119,7 @@ class _HomeScreenState extends State<HomeScreen> {
           icon: Icons.savings_outlined,
           label: '股利紀錄',
           color: const Color(0xFFEEF7F2),
-          iconColor: const Color(0xFF3D9E6B),
+          iconColor: AppColors.loss,
           onTap: () => Navigator.push(context,
             MaterialPageRoute(builder: (_) => const DividendScreen())),
         ),
@@ -126,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
           icon: Icons.account_balance_wallet_outlined,
           label: '資金管理',
           color: const Color(0xFFFDF0EF),
-          iconColor: const Color(0xFFE8504A),
+          iconColor: AppColors.profit,
           onTap: () => Navigator.push(context,
             MaterialPageRoute(builder: (_) => const CashFlowScreen())),
         ),
@@ -156,6 +157,14 @@ class _HomeScreenState extends State<HomeScreen> {
           iconColor: const Color(0xFF4A6FA5),
           onTap: () => Navigator.push(context,
             MaterialPageRoute(builder: (_) => const RecurringScreen())),
+        ),
+        _QuickItem(
+          icon: Icons.emoji_events_outlined,
+          label: '歷史之最',
+          color: AppColors.primaryLight,
+          iconColor: AppColors.primary,
+          onTap: () => Navigator.push(context,
+            MaterialPageRoute(builder: (_) => const StatisticsScreen())),
         )
       ],
     );
@@ -244,7 +253,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Text(
                             _isObscured
                                 ? '＊＊＊＊＊'
-                                : formatter.format(totalAsset.toInt()),
+                                : AppFmt.num(totalAsset),
                             style: const TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.w700,
@@ -263,14 +272,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                   label: '現金餘額',
                                   value: _isObscured
                                       ? '＊＊＊'
-                                      : formatter.format(cash.toInt()),
+                                      : AppFmt.num(cash),
                                 ),
                                 const _HeroDivider(),
                                 _HeroStat(
                                   label: '持倉市值',
                                   value: _isObscured
                                       ? '＊＊＊'
-                                      : formatter.format(marketValue.toInt()),
+                                      : AppFmt.num(marketValue),
                                 ),
                               ],
                             )
@@ -281,7 +290,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   label: '持倉市值',
                                   value: _isObscured
                                       ? '＊＊＊'
-                                      : formatter.format(marketValue.toInt()),
+                                      : AppFmt.num(marketValue),
                                 ),
                                 const _HeroDivider(),
                                 _HeroStat(
@@ -330,23 +339,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       label: '已實現損益',
                       value: _isObscured
                           ? '＊＊＊'
-                          : (realizedPnL >= 0
-                              ? '+${formatter.format(realizedPnL.toInt())}'
-                              : formatter.format(realizedPnL.toInt())),
-                      valueColor: realizedPnL >= 0
-                          ? const Color(0xFFE8504A)
-                          : const Color(0xFF3D9E6B),
+                          : AppFmt.pnl(realizedPnL),
+                      valueColor: AppColors.pnl(realizedPnL),
                     ),
                     StatCell(
                       label: '未實現損益',
                       value: _isObscured
                           ? '＊＊＊'
-                          : (unrealizedPnL >= 0
-                              ? '+${formatter.format(unrealizedPnL.toInt())}'
-                              : formatter.format(unrealizedPnL.toInt())),
-                      valueColor: unrealizedPnL >= 0
-                          ? const Color(0xFFE8504A)
-                          : const Color(0xFF3D9E6B),
+                          : AppFmt.pnl(unrealizedPnL),
+                      valueColor: AppColors.pnl(unrealizedPnL),
                     ),
                     StatCell(
                       label: '持倉檔數',
@@ -416,7 +417,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Text(
                             '尚無交易紀錄',
                             style: TextStyle(
-                              color: Color(0xFF9AA3B2),
+                              color: AppColors.textMuted,
                               fontSize: 14,
                             ),
                           ),

@@ -1,6 +1,7 @@
 //設定頁面
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/app_colors.dart';
 import '../../repositories/settings_repository.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -35,7 +36,7 @@ class SettingsScreen extends StatelessWidget {
               _SettingsToggleRow(
                 icon: Icons.palette_outlined,
                 iconBg: const Color(0xFFFDF0EF),
-                iconColor: const Color(0xFFE8504A),
+                iconColor: AppColors.profit,
                 title: '紅漲綠跌',
                 subtitle: '台灣慣例，關閉後改為綠漲紅跌',
                 value: settings.redUpGreenDown,
@@ -140,7 +141,7 @@ class SettingsScreen extends StatelessWidget {
               _SettingsNavRow(
                 icon: Icons.water_outlined,
                 iconBg: const Color(0xFFEEF7F2),
-                iconColor: const Color(0xFF3D9E6B),
+                iconColor: AppColors.loss,
                 title: '資金水位警戒線',
                 subtitle: '低於此比例時顯示警告',
                 value: '${(settings.waterLevelThreshold * 100).toInt()}%',
@@ -150,7 +151,7 @@ class SettingsScreen extends StatelessWidget {
               _SettingsToggleRow(
                 icon: Icons.savings_outlined,
                 iconBg: const Color(0xFFEEF7F2),
-                iconColor: const Color(0xFF3D9E6B),
+                iconColor: AppColors.loss,
                 title: '新增買入時預設記錄入金',
                 subtitle: '開啟後同時記錄入金預設為開',
                 value: settings.autoDepositDefault,
@@ -168,7 +169,7 @@ class SettingsScreen extends StatelessWidget {
               _SettingsNavRow(
                 icon: Icons.upload_file_outlined,
                 iconBg: const Color(0xFFF7F8FA),
-                iconColor: const Color(0xFF9AA3B2),
+                iconColor: AppColors.textMuted,
                 title: '匯出資料',
                 subtitle: '匯出為 CSV 檔案',
                 onTap: () => _showComingSoon(context, '匯出資料'),
@@ -177,10 +178,10 @@ class SettingsScreen extends StatelessWidget {
               _SettingsNavRow(
                 icon: Icons.delete_outline,
                 iconBg: const Color(0xFFFDF0EF),
-                iconColor: const Color(0xFFE8504A),
+                iconColor: AppColors.profit,
                 title: '清除所有資料',
                 subtitle: '此操作無法復原',
-                titleColor: const Color(0xFFE8504A),
+                titleColor: AppColors.profit,
                 onTap: () => _showClearDataDialog(context),
               ),
             ],
@@ -308,7 +309,7 @@ class SettingsScreen extends StatelessWidget {
             },
             child: const Text(
               '清除',
-              style: TextStyle(color: Color(0xFFE8504A)),
+              style: TextStyle(color: AppColors.profit),
             ),
           ),
         ],
@@ -359,7 +360,7 @@ class _PnlMethodSheet extends StatelessWidget {
           const SizedBox(height: 6),
           const Text(
             '影響庫存平均成本與已實現損益的計算方式',
-            style: TextStyle(fontSize: 12, color: Color(0xFF9AA3B2)),
+            style: TextStyle(fontSize: 12, color: AppColors.textMuted),
           ),
           const SizedBox(height: 16),
           _OptionTile(
@@ -441,7 +442,7 @@ class _MinFeeSheetState extends State<_MinFeeSheet> {
           const SizedBox(height: 6),
           const Text(
             '計算手續費時若低於此金額，改用最低費用',
-            style: TextStyle(fontSize: 12, color: Color(0xFF9AA3B2)),
+            style: TextStyle(fontSize: 12, color: AppColors.textMuted),
           ),
           const SizedBox(height: 16),
           Row( //輸入區
@@ -625,7 +626,7 @@ class _AboutCard extends StatelessWidget { //名稱及版本顯示
                 'v1.0.0',
                 style: TextStyle(
                   fontSize: 12,
-                  color: Color(0xFF9AA3B2),
+                  color: AppColors.textMuted,
                 ),
               ),
             ],
@@ -649,7 +650,7 @@ class _SectionLabel extends StatelessWidget { //區塊標題
         style: const TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w700,
-          color: Color(0xFF9AA3B2),
+          color: AppColors.textMuted,
           letterSpacing: 0.8,
         ),
       ),
@@ -738,7 +739,7 @@ class _SettingsToggleRow extends StatelessWidget { //開關切換
                   subtitle,
                   style: const TextStyle(
                     fontSize: 11,
-                    color: Color(0xFF9AA3B2),
+                    color: AppColors.textMuted,
                   ),
                 ),
               ],
@@ -811,7 +812,7 @@ class _SettingsNavRow extends StatelessWidget { //點擊彈出下方表單
                     subtitle,
                     style: const TextStyle(
                       fontSize: 11,
-                      color: Color(0xFF9AA3B2),
+                      color: AppColors.textMuted,
                     ),
                   ),
                 ],
@@ -831,7 +832,7 @@ class _SettingsNavRow extends StatelessWidget { //點擊彈出下方表單
             const Icon( //最右邊箭頭
               Icons.chevron_right,
               size: 18,
-              color: Color(0xFF9AA3B2),
+              color: AppColors.textMuted,
             ),
           ],
         ),
@@ -911,7 +912,7 @@ class _OptionTile extends StatelessWidget {
                     subtitle,
                     style: const TextStyle(
                       fontSize: 11,
-                      color: Color(0xFF9AA3B2),
+                      color: AppColors.textMuted,
                     ),
                   ),
                 ],

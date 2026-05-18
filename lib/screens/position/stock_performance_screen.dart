@@ -1,7 +1,8 @@
 //個股績效頁面
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
+import '../../core/formatters.dart';
+import '../../core/app_colors.dart';
 import '../../models/stock_performance.dart';
 import '../../repositories/trade_repository.dart';
 import '../../services/calc/position_service.dart';
@@ -36,7 +37,6 @@ class _StockPerformanceScreenState extends State<StockPerformanceScreen> {
   Widget build(BuildContext context) {
     final repo = context.watch<TradeRepository>();
     final trades = repo.getAllTrades();
-    final formatter = NumberFormat('#,###');
     final allPerfs = buildPerformances(trades);
     final filtered = _applyFilter(allPerfs);
 
@@ -79,8 +79,7 @@ class _StockPerformanceScreenState extends State<StockPerformanceScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  (totalRealized >= 0 ? '+' : '') +
-                      formatter.format(totalRealized.toInt()),
+                  AppFmt.pnl(totalRealized),
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
@@ -120,14 +119,14 @@ class _StockPerformanceScreenState extends State<StockPerformanceScreen> {
               cells: [
                 StatCell(
                   label: '總買入',
-                  value: formatter.format(allPerfs.fold(
-                    0.0, (s, p) => s + p.totalBuyAmount).toInt(),
+                  value: AppFmt.num(allPerfs.fold(
+                    0.0, (s, p) => s + p.totalBuyAmount),
                   ),
                 ),
                 StatCell(
                   label: '總賣出',
-                  value: formatter.format(allPerfs.fold(
-                    0.0, (s, p) => s + p.totalSellAmount).toInt(),
+                  value: AppFmt.num(allPerfs.fold(
+                    0.0, (s, p) => s + p.totalSellAmount),
                   ),
                 ),
                 StatCell(
@@ -183,18 +182,14 @@ class _StockPerformanceScreenState extends State<StockPerformanceScreen> {
               ? const Center(
                 child: Text(
                   '沒有符合的紀錄',
-                  style: TextStyle(color: Color(0xFF9AA3B2)),
+                  style: TextStyle(color: AppColors.textMuted),
                 ),
               )
               : ListView.separated(
                   padding: const EdgeInsets.fromLTRB(14, 4, 14, 24),
                   itemCount: filtered.length,
                   separatorBuilder: (_, _)=> const SizedBox(height: 8),
-                  itemBuilder: (context, i) =>
-                    _PerfTile(
-                      perf: filtered[i],
-                      formatter: formatter,
-                    ),
+                  itemBuilder: (context, i) => _PerfTile(perf: filtered[i]),
               ),
           ),
         ],
@@ -275,10 +270,7 @@ class _FilterChip extends StatelessWidget { //篩選Chip
 
 class _PerfTile extends StatefulWidget { //績效卡片
   final StockPerformance perf;
-  final NumberFormat formatter;
-  const _PerfTile({
-    required this.perf, required this.formatter,
-  });
+  const _PerfTile({required this.perf});
   @override
   State<_PerfTile> createState() => _PerfTileState();
 }
@@ -288,12 +280,8 @@ class _PerfTileState extends State<_PerfTile> {
   @override
   Widget build(BuildContext context) {
     final p = widget.perf;
-    final f = widget.formatter;
-    final pnlColor = p.totalRealizedPnL >= 0
-        ? const Color(0xFFE8504A)
-        : const Color(0xFF3D9E6B);
-    final pnlText = (p.totalRealizedPnL >= 0 ? '+' : '') +
-        f.format(p.totalRealizedPnL.toInt());
+    final pnlColor = AppColors.pnl(p.totalRealizedPnL);
+    final pnlText = AppFmt.pnl(p.totalRealizedPnL);
 
     return GestureDetector(
       onTap: () => setState(() => isExpanded =! isExpanded),
@@ -332,7 +320,7 @@ class _PerfTileState extends State<_PerfTile> {
                     fontWeight: FontWeight.w700,
                     color: p.isOpen
                         ? const Color(0xFF4A6FA5)
-                        : const Color(0xFF9AA3B2))),
+                        : AppColors.textMuted)),
                 ),
                 const SizedBox(width: 12),
                 Expanded( //中間資訊
@@ -372,7 +360,7 @@ class _PerfTileState extends State<_PerfTile> {
                       Text( //第二排
                         '買 ${p.totalBuyCount} 次 · 賣 ${p.totalSellCount} 次'
                         ' · 勝率 ${(p.winRate*100).toStringAsFixed(0)}%',
-                        style: const TextStyle(fontSize:11, color:Color(0xFF9AA3B2)),
+                        style: const TextStyle(fontSize:11, color:AppColors.textMuted),
                       ),
                     ],
                   ),
@@ -395,7 +383,7 @@ class _PerfTileState extends State<_PerfTile> {
                       child: const Icon(
                         Icons.expand_more,
                         size:18,
-                        color:Color(0xFF9AA3B2),
+                        color:AppColors.textMuted,
                       ),
                     ),
                   ],
@@ -416,19 +404,19 @@ class _PerfTileState extends State<_PerfTile> {
                         Expanded(
                           child: _DItem(
                             label: '買入成本',
-                            value: f.format(p.totalBuyAmount.toInt()),
+                            value: AppFmt.num(p.totalBuyAmount),
                           ),
                         ),
                         Expanded(
                           child: _DItem(
                             label: '賣出收入',
-                            value: f.format(p.totalSellAmount.toInt()),
+                            value: AppFmt.num(p.totalSellAmount),
                           ),
                         ),
                         Expanded(
                           child: _DItem(
                             label: '總費用',
-                            value: f.format(p.totalFee.toInt()),
+                            value: AppFmt.num(p.totalFee),
                           ),
                         ),
                       ],
@@ -454,8 +442,8 @@ class _PerfTileState extends State<_PerfTile> {
                                 : '${p.totalRealizedPnL >= 0 ? '+' : ''}'
                                   '${(p.totalRealizedPnL / p.totalBuyAmount * 100).toStringAsFixed(1)}%',
                             valueColor: p.totalRealizedPnL >= 0
-                                ? const Color(0xFFE8504A)
-                                : const Color(0xFF3D9E6B),
+                                ? AppColors.profit
+                                : AppColors.loss,
                           ),
                         ),
                         Expanded(
@@ -477,7 +465,7 @@ class _PerfTileState extends State<_PerfTile> {
                           children: [
                             const Text( //進度條左上
                               '勝率',
-                              style: TextStyle(fontSize:10, color:Color(0xFF9AA3B2)),
+                              style: TextStyle(fontSize:10, color:AppColors.textMuted),
                             ),
                             Text( //進度條右上
                               p.totalSellCount == 0
@@ -485,7 +473,7 @@ class _PerfTileState extends State<_PerfTile> {
                                 : '${p.winCount}/${p.totalSellCount}',
                               style: const TextStyle(
                                 fontSize:10,
-                                color:Color(0xFF9AA3B2),
+                                color:AppColors.textMuted,
                               ),
                             ),
                           ],
@@ -499,8 +487,8 @@ class _PerfTileState extends State<_PerfTile> {
                             backgroundColor: const Color(0xFFF0F2F5),
                             valueColor: AlwaysStoppedAnimation(
                               p.winRate >= 0.5
-                                  ? const Color(0xFFE8504A)
-                                  : const Color(0xFF3D9E6B),
+                                  ? AppColors.profit
+                                  : AppColors.loss,
                             ),
                           ),
                         ),
@@ -535,7 +523,7 @@ class _DItem extends StatelessWidget {
     children: [
       Text(
         label,
-        style: const TextStyle(fontSize:10, color:Color(0xFF9AA3B2)),
+        style: const TextStyle(fontSize:10, color:AppColors.textMuted),
       ),
       const SizedBox(height: 2),
       Text(

@@ -1,8 +1,9 @@
 //交易明細顯示元件
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../common/info_item.dart';
 import '../../models/trade.dart';
+import '../../core/formatters.dart';
+import '../../core/app_colors.dart';
 
 class TradeTile extends StatefulWidget {
   final Trade trade;
@@ -24,7 +25,6 @@ class TradeTile extends StatefulWidget {
 
 class _TradeTileState extends State<TradeTile> {
   bool isExpanded = false;
-  final formatter = NumberFormat('#,###');
 
   @override
   Widget build(BuildContext context) {
@@ -39,16 +39,14 @@ class _TradeTileState extends State<TradeTile> {
         : const Color(0xFFE07B20);
 
     final netText = isBuy //右側應收付金額（無顏色）
-        ? '-${formatter.format(trade.buyCost.toInt())}'
-        : '+${formatter.format(trade.sellIncome.toInt())}';
+        ? '-${AppFmt.num(trade.buyCost)}'
+        : '+${AppFmt.num(trade.sellIncome)}';
 
     final pnl = widget.realizedPnL;
     final pnlDisplay = isBuy
         ? '--'
-        : (pnl != null ? '${pnl >= 0 ? '+' : ''}${formatter.format(pnl.toInt())}' : '--');
-    final pnlColor = (pnl ?? 0) >= 0
-        ? const Color(0xFFE8504A)
-        : const Color(0xFF3D9E6B);
+        : (pnl != null ? '${pnl >= 0 ? '+' : ''}${AppFmt.num(pnl)}' : '--');
+    final pnlColor = AppColors.pnl(pnl ?? 0);
 
     return GestureDetector(
       onTap: () => setState(() => isExpanded = !isExpanded),
@@ -114,7 +112,7 @@ class _TradeTileState extends State<TradeTile> {
                         '${trade.quantity} 股 @ ${trade.price}',
                         style: const TextStyle(
                           fontSize: 11,
-                          color: Color(0xFF9AA3B2)
+                          color: AppColors.textMuted,
                         ),
                       ),
                     ],
@@ -141,7 +139,7 @@ class _TradeTileState extends State<TradeTile> {
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: (isBuy || pnl == null)
-                            ? const Color(0xFF9AA3B2)
+                            ? AppColors.textMuted
                             : pnlColor,
                       ),
                     ),
@@ -156,7 +154,7 @@ class _TradeTileState extends State<TradeTile> {
                   child: const Icon(
                     Icons.expand_more,
                     size: 20,
-                    color: Color(0xFF9AA3B2),
+                    color: AppColors.textMuted,
                   ),
                 ),
               ],
@@ -176,19 +174,19 @@ class _TradeTileState extends State<TradeTile> {
                         Expanded(
                           child: InfoItem(
                             label: '價金',
-                            value: formatter.format(trade.amount.toInt()),
+                            value: AppFmt.num(trade.amount),
                           ),
                         ),
                         Expanded(
                           child: InfoItem(
                             label: '手續費',
-                            value: formatter.format(trade.fee.floor()),
+                            value: AppFmt.num(trade.fee),
                           ),
                         ),
                         Expanded(
                           child: InfoItem(
                             label: '交易稅',
-                            value: formatter.format(trade.tax.floor()),
+                            value: AppFmt.num(trade.tax), //原本是.floor()，請確認不會出錯
                           ),
                         ),
                       ],
@@ -267,7 +265,7 @@ class _TradeTileState extends State<TradeTile> {
                                   Icon(
                                     Icons.delete_outline,
                                     size: 14,
-                                    color: Color(0xFFE8504A),
+                                    color: AppColors.profit,
                                   ),
                                   SizedBox(width: 4),
                                   Text(
@@ -275,7 +273,7 @@ class _TradeTileState extends State<TradeTile> {
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
-                                      color: Color(0xFFE8504A),
+                                      color: AppColors.profit,
                                     ),
                                   ),
                                 ],

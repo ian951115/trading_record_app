@@ -1,6 +1,7 @@
 //日期格子資訊顯示元件
 import 'package:flutter/material.dart';
 import '../../models/daily_pnl.dart';
+import '../../core/app_colors.dart';
 
 class CalendarDayCell extends StatelessWidget {
   final DateTime day;
@@ -47,10 +48,7 @@ class CalendarDayCell extends StatelessWidget {
             ? const Color(0xFF4A6FA5)
             : const Color(0xFF5A6375);
 
-    final pnlColor = pnl >= 0 //損益文字顏色
-        ? const Color(0xFFE8504A)
-        : const Color(0xFF3D9E6B);
-
+    final pnlColor = AppColors.pnl(pnl); //損益文字顏色
 
     return Container(
       margin: const EdgeInsets.all(2),
@@ -110,7 +108,7 @@ class CalendarDayCell extends StatelessWidget {
                     ),
                     Text(
                       '$tradeCount 筆',
-                      style: const TextStyle(fontSize: 7, color: Color(0xFF9AA3B2)),
+                      style: const TextStyle(fontSize: 7, color: AppColors.textMuted),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 3),

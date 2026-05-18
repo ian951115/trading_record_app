@@ -1,7 +1,8 @@
 //交易明細頁面UI
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
+import '../../core/formatters.dart';
+import '../../core/app_colors.dart';
 import '../../models/add_trade_result.dart';
 import '../../models/trade.dart';
 import '../../repositories/trade_repository.dart';
@@ -64,7 +65,6 @@ class _TradeListScreenState extends State<TradeListScreen> {
   }
 
   Map<String, dynamic> _calcStats(List<Trade> trades, Map<String, double> pnlMap) { //計算統計數據
-    final formatter = NumberFormat('#,###');
     final totalCount = trades.length; //交易筆數
     final totalAmount = trades.fold( //總價金
       0.0, (sum, t) => sum + t.amount,
@@ -77,14 +77,10 @@ class _TradeListScreenState extends State<TradeListScreen> {
     
     return {
       'count': totalCount.toString(),
-      'amount': formatter.format(totalAmount.toInt()),
-      'pnl': totalPnL >= 0
-          ? '+${formatter.format(totalPnL.toInt())}'
-          : formatter.format(totalPnL.toInt()),
-      'pnlColor': totalPnL >= 0
-          ? const Color(0xFFE8504A)
-          : const Color(0xFF3D9E6B),
-      'fee': formatter.format(totalFee.toInt()),
+      'amount': AppFmt.num(totalAmount),
+      'pnl': AppFmt.pnl(totalPnL),
+      'pnlColor': AppColors.pnl(totalPnL),
+      'fee': AppFmt.num(totalFee),
     };
   }
 
@@ -204,7 +200,7 @@ class _TradeListScreenState extends State<TradeListScreen> {
                         Text(
                           '尚無交易紀錄',
                           style: TextStyle(
-                            color: Color(0xFF9AA3B2),
+                            color: AppColors.textMuted,
                             fontSize: 14,
                           ),
                         ),
@@ -243,7 +239,7 @@ class _TradeListScreenState extends State<TradeListScreen> {
                                 child: const Text('取消'),
                               ),
                               TextButton(
-                                style: TextButton.styleFrom(foregroundColor: const Color(0xFFE8504A)),
+                                style: TextButton.styleFrom(foregroundColor: AppColors.profit),
                                 onPressed: () => Navigator.pop(context, true),
                                 child: const Text('刪除'),
                               ),

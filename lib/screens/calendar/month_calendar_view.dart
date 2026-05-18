@@ -1,6 +1,7 @@
 //月視圖格子
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
+import '../../core/app_colors.dart';
 import '../../models/daily_pnl.dart';
 import '../../widgets/calendar/calendar_day_cell.dart';
 
@@ -117,12 +118,12 @@ class MonthCalendarView extends StatelessWidget {
                 weekdayStyle: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF9AA3B2),
+                  color: AppColors.textMuted,
                 ),
                 weekendStyle: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFFE8504A),
+                  color: AppColors.profit,
                 ),
                 dowTextFormatter: _weekdayFormatter,
               ),

@@ -1,7 +1,8 @@
 //歷史之最畫面
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
+import '../../core/formatters.dart';
+import '../../core/app_colors.dart';
 import '../../repositories/trade_repository.dart';
 import '../../repositories/cash_flow_repository.dart';
 import '../../services/calc/statistics_service.dart';
@@ -9,15 +10,8 @@ import '../../services/calc/statistics_service.dart';
 class StatisticsScreen extends StatelessWidget {
   const StatisticsScreen({super.key});
 
-  Color _pnlColor(double v) {
-    if (v > 0) return const Color(0xFFE8504A);
-    if (v < 0) return const Color(0xFF3D9E6B);
-    return const Color(0xFF9AA3B2);
-  }
-
   String _fmtDate(DateTime d) =>
       '${d.year}/${d.month.toString().padLeft(2,"0")}/${d.day.toString().padLeft(2,"0")}';
-
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +20,6 @@ class StatisticsScreen extends StatelessWidget {
     final stats = StatisticsService.calculate(
       trades: trades, cashFlows: cashFlows,
     );
-    final fmt = NumberFormat('#,###');
 
     return Scaffold(
       appBar: AppBar(title: const Text('我的歷史之最')),
@@ -51,10 +44,10 @@ class StatisticsScreen extends StatelessWidget {
             _HistTile(
               icon: Icons.emoji_events_outlined,
               iconBg: const Color(0xFFFDF0EF),
-              iconColor: const Color(0xFFE8504A),
+              iconColor: AppColors.profit,
               title: '最大單筆獲利',
-              value: '+${fmt.format(stats.bestTrade!.pnl.toInt())}',
-              valueColor: const Color(0xFFE8504A),
+              value: AppFmt.pnl(stats.bestTrade!.pnl),
+              valueColor: AppColors.profit,
               subtitle:
                   '${stats.bestTrade!.name} (${stats.bestTrade!.symbol})  '
                   '· ${_fmtDate(stats.bestTrade!.date)}',
@@ -66,10 +59,10 @@ class StatisticsScreen extends StatelessWidget {
             _HistTile(
               icon: Icons.trending_down_rounded,
               iconBg: const Color(0xFFEEF7F2),
-              iconColor: const Color(0xFF3D9E6B),
+              iconColor: AppColors.loss,
               title: '最大單筆虧損',
-              value: fmt.format(stats.worstTrade!.pnl.toInt()),
-              valueColor: const Color(0xFF3D9E6B),
+              value: AppFmt.num(stats.worstTrade!.pnl),
+              valueColor: AppColors.loss,
               subtitle:
                   '${stats.worstTrade!.name} (${stats.worstTrade!.symbol})  '
                   '· ${_fmtDate(stats.worstTrade!.date)}',
@@ -84,7 +77,7 @@ class StatisticsScreen extends StatelessWidget {
               iconColor: const Color(0xFF4A6FA5),
               title: '最高報酬率個股',
               value: '+${stats.bestReturnRate.toStringAsFixed(1)}%',
-              valueColor: const Color(0xFFE8504A),
+              valueColor: AppColors.profit,
               subtitle:
                   '${stats.bestReturnName} (${stats.bestReturnSymbol})'
                   '${stats.bestReturnIsOpen ? "  · 持倉中" : ""}',
@@ -99,12 +92,12 @@ class StatisticsScreen extends StatelessWidget {
             left: _StripCell(
               label: '最長連勝 🔥',
               value: '${stats.maxWinStreak} 筆',
-              valueColor: const Color(0xFFE8504A),
+              valueColor: AppColors.profit,
             ),
             right: _StripCell(
               label: '最長連敗 ❄️',
               value: '${stats.maxLossStreak} 筆',
-              valueColor: const Color(0xFF3D9E6B),
+              valueColor: AppColors.loss,
             ),
           ),
 
@@ -133,16 +126,15 @@ class StatisticsScreen extends StatelessWidget {
           _StatsStrip2(
             left: _StripCell(
               label: '期望值 (Expectancy)',
-              value: '${stats.expectancy >= 0 ? '+' : ''}'
-                  '${fmt.format(stats.expectancy.toInt())}',
-              valueColor: _pnlColor(stats.expectancy),
+              value: AppFmt.pnl(stats.expectancy),
+              valueColor: AppColors.pnl(stats.expectancy),
             ),
             right: _StripCell(
               label: '最大回撤 (Max Drop Down)',
               value: '${stats.maxDrawdownPct.toStringAsFixed(1)}%',
               valueColor: stats.maxDrawdownPct < 0
-                  ? const Color(0xFF3D9E6B)
-                  : const Color(0xFF9AA3B2),
+                  ? AppColors.loss
+                  : AppColors.textMuted,
             ),
           ),
 
@@ -168,8 +160,6 @@ class _HeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fmt = NumberFormat('#,###');
-    final sign = totalPnL >= 0 ? '+' : '';
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -197,7 +187,7 @@ class _HeroCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            '$sign${fmt.format(totalPnL.toInt())}',
+            AppFmt.pnl(totalPnL),
             style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w700,
@@ -320,7 +310,7 @@ class _HistTile extends StatelessWidget {
                   title,
                   style: const TextStyle(
                     fontSize: 11,
-                    color: Color(0xFF9AA3B2),
+                    color: AppColors.textMuted,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -335,7 +325,7 @@ class _HistTile extends StatelessWidget {
                 if (subtitle != null) ...[
                   const SizedBox(height: 2),
                   Text(subtitle!, style: const TextStyle(
-                    fontSize: 10, color: Color(0xFF9AA3B2))),
+                    fontSize: 10, color: AppColors.textMuted)),
                 ],
               ],
             ),
@@ -398,7 +388,7 @@ class _Cell extends StatelessWidget { //單格畫面
           cell.label,
           style: const TextStyle(
             fontSize: 10,
-            color: Color(0xFF9AA3B2),
+            color: AppColors.textMuted,
           ),
         ),
         const SizedBox(height: 4),
@@ -426,7 +416,7 @@ class _EmptyHint extends StatelessWidget {
     child: Center(
       child: Text(
         text,
-        style: const TextStyle(fontSize: 13, color: Color(0xFF9AA3B2)),
+        style: const TextStyle(fontSize: 13, color: AppColors.textMuted),
       ),
     ),
   );

@@ -1,7 +1,8 @@
 //資金管理頁面ui
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
+import '../../core/formatters.dart';
+import '../../core/app_colors.dart';
 import '../../models/cash_flow.dart';
 import '../../repositories/cash_flow_repository.dart';
 import '../../repositories/trade_repository.dart';
@@ -17,7 +18,6 @@ class CashFlowScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final cashRepo = context.watch<CashFlowRepository>();
     final tradeRepo = context.watch<TradeRepository>();
-    final formatter = NumberFormat('#,###');
 
     final trades = tradeRepo.getAllTrades();
     final cashFlows = cashRepo.getAllFlows();
@@ -41,7 +41,7 @@ class CashFlowScreen extends StatelessWidget {
 
     final cashColor = cash >= 0
         ? const Color(0xFF1A1F2E)
-        : const Color(0xFFE8504A);
+        : AppColors.profit;
 
     return Scaffold(
       appBar: AppBar(
@@ -63,13 +63,13 @@ class CashFlowScreen extends StatelessWidget {
                       end: Alignment.bottomRight,
                       colors: [
                         Color(0xFF2D6A4F),
-                        Color(0xFF3D9E6B),
+                        AppColors.loss,
                       ],
                     ),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF3D9E6B).withValues(alpha: 0.3),
+                        color: AppColors.loss.withValues(alpha: 0.3),
                         blurRadius: 16,
                         offset: const Offset(0, 6),
                       ),
@@ -88,7 +88,7 @@ class CashFlowScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        formatter.format(cash.toInt()),
+                        AppFmt.num(cash),
                         style: const TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.w700,
@@ -103,17 +103,17 @@ class CashFlowScreen extends StatelessWidget {
                         children: [
                           _HeroStat(
                             label: '總入金',
-                            value: formatter.format(totalDeposit.toInt()),
+                            value: AppFmt.num(totalDeposit),
                           ),
                           const _HeroDivider(),
                           _HeroStat(
                             label: '總提領',
-                            value: formatter.format(totalWithdraw.toInt()),
+                            value: AppFmt.num(totalWithdraw),
                           ),
                           const _HeroDivider(),
                           _HeroStat(
                             label: '淨資金',
-                            value: formatter.format(netCash.toInt()),
+                            value: AppFmt.num(netCash),
                           ),
                         ],
                       ),
@@ -160,7 +160,7 @@ class CashFlowScreen extends StatelessWidget {
                                   child: Icon(
                                     Icons.warning_rounded,
                                     size: 14,
-                                    color: Color(0xFFE8504A),
+                                    color: AppColors.profit,
                                   ),
                                 ),
                               Text(
@@ -169,7 +169,7 @@ class CashFlowScreen extends StatelessWidget {
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
                                   color: isLow
-                                      ? const Color(0xFFE8504A)
+                                      ? AppColors.profit
                                       : const Color(0xFF4A6FA5),
                                 ),
                               ),
@@ -186,7 +186,7 @@ class CashFlowScreen extends StatelessWidget {
                           backgroundColor: const Color(0xFFF0F2F5),
                           valueColor: AlwaysStoppedAnimation<Color>(
                             isLow
-                                ? const Color(0xFFE8504A)
+                                ? AppColors.profit
                                 : const Color(0xFF4A6FA5),
                           ),
                         ),
@@ -199,7 +199,7 @@ class CashFlowScreen extends StatelessWidget {
                             '0',
                             style: TextStyle(
                               fontSize: 10,
-                              color: Color(0xFF9AA3B2),
+                              color: AppColors.textMuted,
                             ),
                           ),
                           Text(
@@ -207,15 +207,15 @@ class CashFlowScreen extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 10,
                               color: isLow
-                                  ? const Color(0xFFE8504A)
-                                  : const Color(0xFF9AA3B2),
+                                  ? AppColors.profit
+                                  : AppColors.textMuted,
                             ),
                           ),
                           Text(
-                            formatter.format(netCash.toInt()),
+                            AppFmt.num(netCash),
                             style: const TextStyle(
                               fontSize: 10,
-                              color: Color(0xFF9AA3B2),
+                              color: AppColors.textMuted,
                             ),
                           ),
                         ],
@@ -245,7 +245,7 @@ class CashFlowScreen extends StatelessWidget {
                     ),
                     StatCell(
                       label: '現金餘額',
-                      value: formatter.format(cash.toInt()),
+                      value: AppFmt.num(cash),
                       valueColor: cashColor,
                     ),
                   ],
@@ -285,7 +285,7 @@ class CashFlowScreen extends StatelessWidget {
                           Text(
                             '尚無資金紀錄',
                             style: TextStyle(
-                              color: Color(0xFF9AA3B2),
+                              color: AppColors.textMuted,
                               fontSize: 14,
                             ),
                           ),
@@ -402,7 +402,7 @@ class _CashFlowTileState extends State<_CashFlowTile> {
             child: const Text('取消'),
           ),
           TextButton(
-            style: TextButton.styleFrom(foregroundColor: const Color(0xFFE8504A)),
+            style: TextButton.styleFrom(foregroundColor: AppColors.profit),
             onPressed: () => Navigator.pop(context, true),
             child: const Text('刪除'),
           ),
@@ -416,7 +416,6 @@ class _CashFlowTileState extends State<_CashFlowTile> {
 
   @override
   Widget build(BuildContext context) {
-    final formatter = NumberFormat('#,###');
     final flow = widget.flow;
     final isDeposit = flow.type == CashFlowType.deposit;
     final dateStr = '${flow.date.year}/${flow.date.month.toString().padLeft(2,'0')}/${flow.date.day.toString().padLeft(2,'0')}';
@@ -460,8 +459,8 @@ class _CashFlowTileState extends State<_CashFlowTile> {
                           : Icons.arrow_upward_rounded,
                       size: 18,
                       color: isDeposit
-                          ? const Color(0xFF3D9E6B)
-                          : const Color(0xFFE8504A),
+                          ? AppColors.loss
+                          : AppColors.profit,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -484,7 +483,7 @@ class _CashFlowTileState extends State<_CashFlowTile> {
                               : dateStr,
                           style: const TextStyle(
                             fontSize: 11,
-                            color: Color(0xFF9AA3B2),
+                            color: AppColors.textMuted,
                           ),
                         ),
                       ],
@@ -492,14 +491,14 @@ class _CashFlowTileState extends State<_CashFlowTile> {
                   ),
                   Text( //右側金額
                     isDeposit
-                        ? '+${formatter.format(flow.amount.toInt())}'
-                        : '-${formatter.format(flow.amount.toInt())}',
+                        ? '+${AppFmt.num(flow.amount)}'
+                        : '-${AppFmt.num(flow.amount)}',
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
                       color: isDeposit
-                          ? const Color(0xFF3D9E6B)
-                          : const Color(0xFFE8504A),
+                          ? AppColors.loss
+                          : AppColors.profit,
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -509,7 +508,7 @@ class _CashFlowTileState extends State<_CashFlowTile> {
                     child: const Icon(
                       Icons.keyboard_arrow_down,
                       size: 18,
-                      color: Color(0xFF9AA3B2),
+                      color: AppColors.textMuted,
                     ),
                   ),
                 ],
@@ -575,7 +574,7 @@ class _CashFlowTileState extends State<_CashFlowTile> {
                               Icon(
                                 Icons.delete_outline,
                                 size: 14,
-                                color: Color(0xFFE8504A),
+                                color: AppColors.profit,
                               ),
                               SizedBox(width: 4),
                               Text(
@@ -583,7 +582,7 @@ class _CashFlowTileState extends State<_CashFlowTile> {
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
-                                  color: Color(0xFFE8504A),
+                                  color: AppColors.profit,
                                 ),
                               ),
                             ],

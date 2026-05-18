@@ -1,8 +1,9 @@
 //庫存明細顯示元件
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../common/info_item.dart';
 import '../../models/position.dart';
+import '../../core/formatters.dart';
+import '../../core/app_colors.dart';
 
 class PositionTile extends StatefulWidget {
   final Position position;
@@ -21,13 +22,11 @@ class _PositionTileState extends State<PositionTile> {
   @override
   Widget build(BuildContext context) {
     final p = widget.position;
-    final formatter = NumberFormat('#,###');
-    final priceFormatter = NumberFormat('#,###.##');
     final pnlColor = p.unrealizedPnL >= 0
         ? Color(0xFFE8504A)
         : Color(0xFF3D9E6B);
     final pnlText = (p.unrealizedPnL >= 0 ? '+' : '') +
-        formatter.format(p.unrealizedPnL.toInt());
+        AppFmt.num(p.unrealizedPnL);
     final retText = '${p.unrealizedReturn >= 0 ? '+' : ''}${p.unrealizedReturn.toStringAsFixed(2)}%';
 
     return GestureDetector(
@@ -91,18 +90,18 @@ class _PositionTileState extends State<PositionTile> {
                         '${p.quantity} 股 · 均 ${p.avgCost.toStringAsFixed(1)}',
                         style: const TextStyle(
                           fontSize: 11,
-                          color: Color(0xFF9AA3B2),
+                          color: AppColors.textMuted,
                         ),
                       ),
                       Text(
                         p.livePrice != null
-                            ? '現價 ${priceFormatter.format(p.currentPrice)}'
+                            ? '現價 ${AppFmt.price(p.currentPrice)}'
                             : '現價載入中…',
                         style: TextStyle(
                           fontSize: 11,
                           color: p.livePrice != null
                               ? const Color(0xFF4A6FA5)
-                              : const Color(0xFF9AA3B2),
+                              :  AppColors.textMuted,
                         ),
                       ),
                     ],
@@ -137,7 +136,7 @@ class _PositionTileState extends State<PositionTile> {
                   child: const Icon(
                     Icons.expand_more,
                     size: 20,
-                    color: Color(0xFF9AA3B2),
+                    color: AppColors.textMuted,
                   ),
                 ),      
               ],
@@ -155,13 +154,13 @@ class _PositionTileState extends State<PositionTile> {
                         Expanded(
                           child: InfoItem(
                             label: '市值',
-                            value: formatter.format(p.marketValue.toInt()),
+                            value: AppFmt.num(p.marketValue),
                           ),
                         ),
                         Expanded(
                           child: InfoItem(
                             label: '成本',
-                            value: formatter.format(p.totalCost.toInt()),
+                            value: AppFmt.num(p.totalCost),
                           ),
                         ),
                         Expanded(
@@ -191,7 +190,7 @@ class _PositionTileState extends State<PositionTile> {
                           child: InfoItem(
                             label: '現價',
                             value: p.livePrice != null
-                                ? priceFormatter.format(p.currentPrice)
+                                ? AppFmt.price(p.currentPrice)
                                 : '—',
                           ),
                         ),
