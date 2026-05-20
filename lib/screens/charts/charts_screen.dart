@@ -639,7 +639,7 @@ class _TouchDetailCard extends StatelessWidget {
   }  
 }
 
-// ── A8：6 格亮點卡片 ──
+// ──6 格亮點卡片 ──
 class _HighlightCard extends StatelessWidget {
   final List<AssetDataPoint> data;
   const _HighlightCard({required this.data});
@@ -933,7 +933,7 @@ class _MonthlyTab extends StatelessWidget {
                   : AppColors.loss,
             ),
             StatCell(
-              label: '獲利月份',
+              label: '總獲利月份',
               value: '${monthlyPnL.values.where((v) => v > 0).length} 月',
             ),
             StatCell(

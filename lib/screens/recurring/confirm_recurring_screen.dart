@@ -192,7 +192,7 @@ class _ConfirmRecurringScreenState extends State<ConfirmRecurringScreen> {
                     Padding(
                       padding: const EdgeInsets.only(bottom: 10),
                       child: Text(
-                        '請確認每筆的股數、成交價及手續費後再送出，價格為系統自動抓取，僅供參考。',
+                        '請確認每筆的股數、成交價及手續費後再送出，價格為系統自動抓取，僅供參考',
                         style: TextStyle(fontSize: 12, color: AppColors.textMuted),
                       ),
                     ),

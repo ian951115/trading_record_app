@@ -119,7 +119,7 @@ class _AnnualTab extends StatelessWidget {
     );
   }
  
-  bool _shouldShowBanner(List<AnnualGoal> goals, List<Trade> trades) {
+  bool _shouldShowBanner(List<AnnualGoal> goals, List<Trade> trades) { //提示欄顯示邏輯
     final month = DateTime.now().month;
     if (month < 11 || goals.isEmpty) return false; //11月以前不顯示
     return goals.any((g) { //已達成目標不顯示
@@ -169,7 +169,7 @@ class _HistorySectionState extends State<_HistorySection> {
           color: const Color(0xFFF0F2F7),
           borderRadius: BorderRadius.circular(10),
         ),
-        child: Row(
+        child: Row( //歷史紀錄區標頭
           children: [
             const Text(
               '📂  我的紀錄',
@@ -214,7 +214,7 @@ class _HistorySectionState extends State<_HistorySection> {
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: const Color(0xFFE4E7ED)),
                 ),
-                child: Row(
+                child: Row( //年分標頭
                   children: [
                     Text(
                       '$y 年',
@@ -1092,7 +1092,7 @@ class _CustomGoalCardState extends State<_CustomGoalCard> {
 // ══════════════════════════════════════════════════════
 // 共用小 Widgets
 // ══════════════════════════════════════════════════════
-class _BannerWidget extends StatelessWidget {
+class _BannerWidget extends StatelessWidget { //提示欄
   final List<AnnualGoal> goals;
   final List<Trade> trades;
   const _BannerWidget({required this.goals, required this.trades});
