@@ -8,6 +8,7 @@ import '../../repositories/trade_repository.dart';
 import '../../repositories/dividend_repository.dart';
 import '../../services/calc/position_service.dart';
 import '../../services/data/stock_price_service.dart';
+import '../../widgets/common/hero_card.dart';
 import '../../widgets/position/position_tile.dart';
 
 class PositionListScreen extends StatefulWidget {
@@ -24,9 +25,7 @@ class _PositionListScreenState extends State<PositionListScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _fetchPrices();
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _fetchPrices());
   }
 
   @override
@@ -43,7 +42,7 @@ class _PositionListScreenState extends State<PositionListScreen> {
         .toList();
     if (symbols.isEmpty) return;
 
-    setState(() { _isLoading = true; });
+    setState(() =>  _isLoading = true);
     final prices = await StockPriceService.fetchPrices(symbols);
     if (mounted) {
       setState(() {
@@ -61,28 +60,24 @@ class _PositionListScreenState extends State<PositionListScreen> {
     final divRepo = context.watch<DividendRepository>();
     final dividends = divRepo.getAllDividends();
 
-    final result = buildPositions(
-      trades,
-      dividends: dividends,
-    );
-
+    final result = buildPositions(trades, dividends: dividends);
     final allPositions = result.positions;
     for (final p in allPositions) {
-      if (_livePrices.containsKey(p.symbol)) {
-        p.livePrice = _livePrices[p.symbol];
-      }
+      if (_livePrices.containsKey(p.symbol)) p.livePrice = _livePrices[p.symbol];
     }
 
     final openPositions = allPositions
         .where((p) => p.quantity > 0).toList(); //庫存(>0)
-
-    final totalMV = openPositions.fold(
-        0.0, (s, p) => s + p.marketValue);
-    final totalCost = openPositions.fold(
-        0.0, (s, p) => s + p.totalCost);
+    final totalMV = openPositions.fold(0.0, (s, p) => s + p.marketValue);
+    final totalCost = openPositions.fold(0.0, (s, p) => s + p.totalCost);
     final totalUnrealized = totalMV - totalCost;
     final totalReturn = totalCost == 0
         ? 0.0 : (totalUnrealized / totalCost) * 100;
+
+    //深藍背景上的損益對比色
+    final pnlOnDark = totalUnrealized >= 0
+        ? const Color(0xFFFFD6D4)
+        : const Color(0xFFB8F0D0);
 
     return Scaffold(
       appBar: AppBar(
@@ -97,7 +92,7 @@ class _PositionListScreenState extends State<PositionListScreen> {
                   width: 16, height: 16,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: Color(0xFF4A6FA5),
+                    color: AppColors.primary,
                   ),
                 ),
               ),
@@ -109,7 +104,7 @@ class _PositionListScreenState extends State<PositionListScreen> {
                 padding: const EdgeInsets.symmetric(
                   horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEEF7F2),
+                  color: AppColors.lossBg,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: const Text(
@@ -130,7 +125,7 @@ class _PositionListScreenState extends State<PositionListScreen> {
               child: Container(
                 width: 34, height: 34,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEBF0F8),
+                  color: AppColors.primaryLight,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: AnimatedRotation(
@@ -139,7 +134,7 @@ class _PositionListScreenState extends State<PositionListScreen> {
                   child: const Icon(
                     Icons.refresh,
                     size: 18,
-                    color: Color(0xFF4A6FA5),
+                    color: AppColors.primary,
                   ),
                 ),
               ),
@@ -153,6 +148,7 @@ class _PositionListScreenState extends State<PositionListScreen> {
         totalCost: totalCost,
         totalUnrealized: totalUnrealized,
         totalReturn: totalReturn,
+        pnlOnDark: pnlOnDark,
       ),
     );
   }
@@ -160,10 +156,8 @@ class _PositionListScreenState extends State<PositionListScreen> {
 
 class _HoldingTab extends StatelessWidget { //持有頁面
   final List<Position> openPositions;
-  final double totalMV;
-  final double totalCost;
-  final double totalUnrealized;
-  final double totalReturn;
+  final double totalMV, totalCost, totalUnrealized, totalReturn;
+  final Color pnlOnDark;
 
   const _HoldingTab({
     required this.openPositions,
@@ -171,89 +165,38 @@ class _HoldingTab extends StatelessWidget { //持有頁面
     required this.totalCost,
     required this.totalUnrealized,
     required this.totalReturn,
+    required this.pnlOnDark,
   });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Container( //Hero總覽卡片
-          margin: const EdgeInsets.fromLTRB(14, 12, 14, 0),
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFF2D4A7A),
-                Color(0xFF4A6FA5),
-                Color(0xFF5E85BF),
-              ],
+        Padding( //Hero總覽卡片
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
+          child: HeroCard(
+            title: '持倉總市值',
+            mainValue: Text(
+              AppFmt.num(totalMV),
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+                letterSpacing: -0.5,
+              ),
             ),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF4A6FA5).withValues(alpha: 0.3),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
+            stats: [
+              HeroStat(label: '總成本', value: AppFmt.num(totalCost)),
+              HeroStat(
+                label: '未實現損益',
+                value: AppFmt.pnl(totalUnrealized),
+                valueColor: pnlOnDark,
               ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                '持倉總市值',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: Colors.white60,
-                  letterSpacing: 1,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                AppFmt.num(totalMV),
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 14),
-              const Divider(color: Colors.white24, height: 1),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  _HeroStat(
-                    label: '總成本',
-                    value: AppFmt.num(totalCost),
-                  ),
-                  Container(
-                    width: 1, height: 28,
-                    color: Colors.white24,
-                    margin: const EdgeInsets.symmetric(horizontal: 12),
-                  ),
-                  _HeroStat(
-                    label: '未實現損益',
-                    value: AppFmt.pnl(totalUnrealized),
-                    valueColor: totalUnrealized >= 0
-                        ? const Color(0xFFFFD6D4)
-                        : const Color(0xFFB8F0D0),
-                  ),
-                  Container(
-                    width: 1, height: 28,
-                    color: Colors.white24,
-                    margin: const EdgeInsets.symmetric(horizontal: 12),
-                  ),
-                  _HeroStat(
-                    label: '報酬率',
-                    value: '${totalReturn >= 0 ? '+' : ''}'
-                        '${totalReturn.toStringAsFixed(2)}%',
-                    valueColor: totalUnrealized >= 0
-                        ? const Color(0xFFFFD6D4)
-                        : const Color(0xFFB8F0D0),
-                  ),
-                ],
+              HeroStat(
+                label: '報酬率',
+                value: '${totalReturn >= 0 ? '+' : ''}'
+                      '${totalReturn.toStringAsFixed(2)}%',
+                valueColor: pnlOnDark,
               ),
             ],
           ),
@@ -270,7 +213,7 @@ class _HoldingTab extends StatelessWidget { //持有頁面
                     Icon(
                       Icons.inventory_2_outlined,
                       size: 48,
-                      color: Color(0xFFE4E7ED),
+                      color: AppColors.border,
                     ),
                     SizedBox(height: 12),
                     Text(
@@ -284,52 +227,11 @@ class _HoldingTab extends StatelessWidget { //持有頁面
                 padding: const EdgeInsets.fromLTRB(14, 8, 14, 24),
                 itemCount: openPositions.length,
                 separatorBuilder: (_,_) => const SizedBox(height: 8),
-                itemBuilder: (context, index) {
-                  return PositionTile(
-                    position: openPositions[index],
-                  );
-                },
+                itemBuilder: (context, index) =>
+                  PositionTile(position: openPositions[index]),
               ),
         ),
       ],
-    );
-  }
-}
-
-class _HeroStat extends StatelessWidget { //卡片小資訊
-  final String label;
-  final String value;
-  final Color valueColor;
-
-  const _HeroStat({
-    required this.label,
-    required this.value,
-    this.valueColor = Colors.white,
-  });
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 10,
-              color: Colors.white60,
-            ),
-          ),
-          const SizedBox(height: 3),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: valueColor,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

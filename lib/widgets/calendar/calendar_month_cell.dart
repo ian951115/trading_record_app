@@ -24,24 +24,22 @@ class CalendarMonthCell extends StatelessWidget {
     final pnl = data?.totalPnL ?? 0;
     final hasData = data != null && data!.tradeCount > 0;
 
-    Color bgColor;
-    Color borderColor;
+    Color bgColor, borderColor;
     if (!hasData) {
       bgColor = Colors.white;
-      borderColor = const Color(0xFFE4E7ED);
+      borderColor = AppColors.border;
     } else if (pnl > 0) {
-      bgColor = const Color(0xFFFDF0EF);
-      borderColor = const Color(0xFFF5C4C2);
+      bgColor = AppColors.profitBgStrong;
+      borderColor = AppColors.profitBorder;
     } else if (pnl < 0) {
-      bgColor = const Color(0xFFEEF7F2);
-      borderColor = const Color(0xFFB8DFC9);
+      bgColor = AppColors.lossBgStrong;
+      borderColor = AppColors.lossBorder;
     } else {
       bgColor = const Color(0xFFF7F8FA);
-      borderColor = const Color(0xFFE4E7ED);
+      borderColor = AppColors.border;
     }
 
     final pnlColor = AppColors.pnl(pnl);
-
     final pnlText = !hasData ? '—' : AppFmt.pnl(pnl);
 
     return GestureDetector(
@@ -52,13 +50,10 @@ class CalendarMonthCell extends StatelessWidget {
           color: bgColor,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: borderColor),
-          boxShadow: [
-            BoxShadow(
+          boxShadow: [BoxShadow(
               color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 4,
-              offset: const Offset(0, 1),
-            ),
-          ],
+              offset: const Offset(0, 1))],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -67,20 +62,17 @@ class CalendarMonthCell extends StatelessWidget {
               '$month 月',
               style: const TextStyle(
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF5A6375),
+                color: AppColors.textSecond,
               ),
             ),
             if (hasData) //迷你走勢線（有資料才顯示）
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: SizedBox(
-                  height: 20,
-                  width: double.infinity,
+                  height: 20, width: double.infinity,
                   child: Opacity(
                     opacity: 0.6,
-                    child: MiniSparkline(
-                      data: data!.equitySequence,
-                    ),
+                    child: MiniSparkline(data: data!.equitySequence),
                   ),
                 ),
               )

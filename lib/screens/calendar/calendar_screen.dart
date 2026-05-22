@@ -135,15 +135,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
       body: _viewMode == CalendarViewMode.month
           ? Column(
               children: [
-                SizedBox(
-                  height: 160,
-                  child: CalendarStatsCard(
-                    focusedDay: focusedDay,
-                    stats: stats,
-                    streak: streak,
-                    formatPnL: formatPnLDisplay,
-                  ),
-                ),
+                CalendarStatsCard(
+                  focusedDay: focusedDay,
+                  stats: stats,
+                  streak: streak,
+                  formatPnL: formatPnLDisplay,
+                ),      
                 Expanded(
                   child: MonthCalendarView(
                     key: const ValueKey('month'),

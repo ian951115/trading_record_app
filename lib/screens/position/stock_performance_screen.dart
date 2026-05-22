@@ -6,6 +6,8 @@ import '../../core/app_colors.dart';
 import '../../models/stock_performance.dart';
 import '../../repositories/trade_repository.dart';
 import '../../services/calc/position_service.dart';
+import '../../widgets/common/app_filter_chip.dart';
+import '../../widgets/common/hero_card.dart';
 import '../../widgets/common/stats_strip.dart';
 
 class StockPerformanceScreen extends StatefulWidget {
@@ -22,14 +24,10 @@ class _StockPerformanceScreenState extends State<StockPerformanceScreen> {
   List<StockPerformance> _applyFilter(List<StockPerformance> all) {
     return switch (_filter) {
       _PerfFilter.all => all,
-      _PerfFilter.open =>
-        all.where((p) => p.isOpen).toList(),
-      _PerfFilter.closed =>
-        all.where((p) => !p.isOpen).toList(),
-      _PerfFilter.profit =>
-        all.where((p) => p.totalRealizedPnL > 0).toList(),
-      _PerfFilter.loss =>
-        all.where((p) => p.totalRealizedPnL < 0).toList(),
+      _PerfFilter.open => all.where((p) => p.isOpen).toList(),
+      _PerfFilter.closed => all.where((p) => !p.isOpen).toList(),
+      _PerfFilter.profit => all.where((p) => p.totalRealizedPnL > 0).toList(),
+      _PerfFilter.loss => all.where((p) => p.totalRealizedPnL < 0).toList(),
     };
   }
 
@@ -46,71 +44,40 @@ class _StockPerformanceScreenState extends State<StockPerformanceScreen> {
         ? 0.0
         : winPerfs.map((p) => p.winRate).reduce((a,b) => a + b) / winPerfs.length;
 
+    // 深藍背景上的主數值顏色
+    final totalPnlOnDark = totalRealized >= 0
+        ? const Color(0xFFFFD6D4)
+        : const Color(0xFFB8F0D0);
+
     return Scaffold(
       appBar: AppBar(title: const Text('個股績效')),
       body: Column(
         children: [
-          Container(
-            margin: const EdgeInsets.fromLTRB(14,12,14,0),
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFF3D5A8A),Color(0xFF4A6FA5)],
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
+            child: HeroCard(
+              title: '總已實現損益',
+              mainValue: Text(
+                AppFmt.pnl(totalRealized),
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
+                  color: totalPnlOnDark,
+                  letterSpacing: -0.5,
+                ),
               ),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [BoxShadow(
-                color: const Color(0xFF4A6FA5).withValues(alpha: 0.3),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
-              )],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  '總已實現損益',
-                  style: TextStyle(
-                    fontSize:10,
-                    color:Colors.white60,
-                    letterSpacing:1,
-                  ),
+              stats: [
+                HeroStat(label: '交易股票數', value: '${allPerfs.length}'),
+                HeroStat(
+                  label: '整體勝率',
+                  value: '${(overallWinRate*100).toStringAsFixed(0)}%',
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  AppFmt.pnl(totalRealized),
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                    color: totalRealized >= 0
-                        ? const Color(0xFFFFD6D4)
-                        : const Color(0xFFB8F0D0),
-                  ),
-                ),
-                const SizedBox(height: 14),
-                const Divider(color: Colors.white24, height: 1),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    _HStat(
-                      label: '交易股票數',
-                      value: '${allPerfs.length}',
-                    ),
-                    _HDivider(),
-                    _HStat(
-                      label: '整體勝率',
-                      value: '${(overallWinRate*100).toStringAsFixed(0)}%',
-                    ),
-                    _HDivider(),
-                    _HStat(
-                      label: '仍持有',
-                      value: '${allPerfs.where((p)=>p.isOpen).length}',
-                    ),
-                  ],
+                HeroStat(
+                  label: '仍持有',
+                  value: '${allPerfs.where((p)=>p.isOpen).length}',
                 ),
               ],
-           ),
+            ),
           ),
           const SizedBox(height: 10),
           Padding( //Stats strip
@@ -149,27 +116,27 @@ class _StockPerformanceScreenState extends State<StockPerformanceScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             child: Row(
               children: [
-                _FilterChip(
+                AppFilterChip(
                   label:'全部',
                   isActive: _filter == _PerfFilter.all,
                   onTap: () => setState(() => _filter = _PerfFilter.all),
                 ),
-                _FilterChip(
+                AppFilterChip(
                   label:'持有中',
                   isActive: _filter == _PerfFilter.open,
                   onTap: () => setState(() => _filter = _PerfFilter.open),
                 ),
-                _FilterChip(
+                AppFilterChip(
                   label:'已平倉',
                   isActive: _filter == _PerfFilter.closed,
                   onTap: () => setState(() => _filter = _PerfFilter.closed),
                 ),
-                _FilterChip(
+                AppFilterChip(
                   label:'獲利 ↑',
                   isActive: _filter == _PerfFilter.profit,
                   onTap: () => setState(() => _filter = _PerfFilter.profit),
                 ),
-                _FilterChip(
+                AppFilterChip(
                   label:'虧損 ↓',
                   isActive: _filter == _PerfFilter.loss,
                   onTap: () => setState(() => _filter = _PerfFilter.loss),
@@ -198,76 +165,6 @@ class _StockPerformanceScreenState extends State<StockPerformanceScreen> {
   }
 }
 
-class _HStat extends StatelessWidget { //Hero小元件
-  final String label, value;
-  const _HStat({required this.label, required this.value});
-  @override
-  Widget build(BuildContext context) => Expanded(child: Column(
-    children: [
-      Text(
-        label,
-        style: const TextStyle(
-          fontSize: 9, color: Colors.white60),
-      ),
-      const SizedBox(height: 3),
-      Text(
-        value,
-        style: const TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w700,
-          color: Colors.white,
-        ),
-      ),
-    ],
-  ));
-}
-
-class _HDivider extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) => Container(
-    width:1, height:28, color:Colors.white24,
-    margin: const EdgeInsets.symmetric(horizontal:4));
-}
-
-class _FilterChip extends StatelessWidget { //篩選Chip
-  final String label;
-  final bool isActive;
-  final VoidCallback onTap;
-  const _FilterChip({
-    required this.label, required this.isActive,
-    required this.onTap,
-  });
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        margin: const EdgeInsets.only(right: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-        decoration: BoxDecoration(
-          color: isActive
-              ? const Color(0xFF4A6FA5) : Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: isActive
-              ? const Color(0xFF4A6FA5)
-              : const Color(0xFFE4E7ED)),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: isActive
-              ? Colors.white
-              : const Color(0xFF5A6375),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _PerfTile extends StatefulWidget { //績效卡片
   final StockPerformance perf;
   const _PerfTile({required this.perf});
@@ -277,6 +174,7 @@ class _PerfTile extends StatefulWidget { //績效卡片
 
 class _PerfTileState extends State<_PerfTile> {
   bool isExpanded = false;
+
   @override
   Widget build(BuildContext context) {
     final p = widget.perf;
@@ -284,21 +182,21 @@ class _PerfTileState extends State<_PerfTile> {
     final pnlText = AppFmt.pnl(p.totalRealizedPnL);
 
     return GestureDetector(
-      onTap: () => setState(() => isExpanded =! isExpanded),
+      onTap: () => setState(() => isExpanded = !isExpanded),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: isExpanded
-              ? const Color(0xFFEBF0F8) : Colors.white,
+          color: isExpanded ? AppColors.primaryLight : Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: isExpanded
-              ? const Color(0xFFC5D4EC)
-              : const Color(0xFFE4E7ED)),
+          border: Border.all(
+            color: isExpanded
+                ? const Color(0xFFC5D4EC)
+                : AppColors.border
+          ),
           boxShadow: [BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 4, offset: const Offset(0, 1),
-          )],
+            blurRadius: 4, offset: const Offset(0, 1))],
         ),
         child: Column(
           children: [
@@ -308,7 +206,7 @@ class _PerfTileState extends State<_PerfTile> {
                   width: 44, height: 44,
                   decoration: BoxDecoration(
                     color: p.isOpen
-                        ? const Color(0xFFEBF0F8)
+                        ? AppColors.primaryLight
                         : const Color(0xFFF7F8FA),
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -319,8 +217,10 @@ class _PerfTileState extends State<_PerfTile> {
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
                     color: p.isOpen
-                        ? const Color(0xFF4A6FA5)
-                        : AppColors.textMuted)),
+                        ? AppColors.primary
+                        : AppColors.textMuted,
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded( //中間資訊
@@ -334,7 +234,7 @@ class _PerfTileState extends State<_PerfTile> {
                             style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF1A1F2E),
+                              color: AppColors.textPrimary,
                             ),
                           ),
                           if (p.isOpen) ...[ //持有中顯示
@@ -342,7 +242,7 @@ class _PerfTileState extends State<_PerfTile> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal:6, vertical:1),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFEBF0F8),
+                                color: AppColors.primaryLight,
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: const Text(
@@ -350,7 +250,7 @@ class _PerfTileState extends State<_PerfTile> {
                                 style: TextStyle(
                                   fontSize:9,
                                   fontWeight:FontWeight.w600,
-                                  color:Color(0xFF4A6FA5),
+                                  color:AppColors.primary,
                                 ),
                               ),
                             ),
@@ -421,9 +321,7 @@ class _PerfTileState extends State<_PerfTile> {
                         ),
                       ],
                     ),
-                    
                     const SizedBox(height: 10),
-
                     Row( //第二排：持有天數、報酬率、交易次數
                       children: [
                         Expanded(
@@ -454,9 +352,7 @@ class _PerfTileState extends State<_PerfTile> {
                         )
                       ],
                     ),
-
                     const SizedBox(height: 10),
-
                     Column( //勝率條
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -484,7 +380,7 @@ class _PerfTileState extends State<_PerfTile> {
                           child: LinearProgressIndicator(
                             value: p.winRate,
                             minHeight: 6,
-                            backgroundColor: const Color(0xFFF0F2F5),
+                            backgroundColor: AppColors.scaffoldBg,
                             valueColor: AlwaysStoppedAnimation(
                               p.winRate >= 0.5
                                   ? AppColors.profit
@@ -531,7 +427,7 @@ class _DItem extends StatelessWidget {
         style: TextStyle(
           fontSize:12,
           fontWeight:FontWeight.w600,
-          color: valueColor ?? const Color(0xFF1A1F2E),
+          color: valueColor ?? AppColors.textPrimary,
         ),
       ),
     ],

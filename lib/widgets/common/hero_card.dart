@@ -25,14 +25,14 @@ class HeroCard extends StatelessWidget {
   final List<HeroStat> stats;
 
   //右上角額外元件（例如眼睛按鈕），可省略
-  final Widget? trailiing;
+  final Widget? trailing;
 
   const HeroCard({
     super.key,
     required this.title,
     required this.mainValue,
     required this.stats,
-    this.trailiing,
+    this.trailing,
   });
 
   @override
@@ -70,7 +70,7 @@ class HeroCard extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              if (trailiing != null) trailiing!,
+              if (trailing != null) trailing!,
             ],
           ),
           const SizedBox(height: 4),
@@ -94,6 +94,7 @@ class HeroCard extends StatelessWidget {
     );
   }
 }
+
 class _HeroStatCell extends StatelessWidget {
   final HeroStat stat;
   const _HeroStatCell({required this.stat});

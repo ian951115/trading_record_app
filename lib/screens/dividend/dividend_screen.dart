@@ -5,6 +5,8 @@ import '../../core/formatters.dart';
 import '../../core/app_colors.dart';
 import '../../models/dividend.dart';
 import '../../repositories/dividend_repository.dart';
+import '../../widgets/common/app_filter_chip.dart';
+import '../../widgets/common/hero_divider.dart';
 import '../../widgets/common/stats_strip.dart';
 import 'add_dividend_screen.dart';
 
@@ -14,7 +16,7 @@ class DividendScreen extends StatefulWidget {
   State<DividendScreen> createState() => _DividendScreenState();
 }
 
-enum _DivFilter { all, cash, stock }
+enum _DivFilter {all, cash, stock}
 
 class _DividendScreenState extends State<DividendScreen> {
   _DivFilter _filter = _DivFilter.all;
@@ -46,7 +48,7 @@ class _DividendScreenState extends State<DividendScreen> {
                     gradient: const LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [Color(0xFF2D6A4F),AppColors.loss],
+                      colors: [Color(0xFF2D6A4F), AppColors.loss],
                     ),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [BoxShadow(
@@ -70,8 +72,11 @@ class _DividendScreenState extends State<DividendScreen> {
                       Text(
                         AppFmt.num(repo.totalCashDividend),
                         style: const TextStyle(
-                          fontSize:24, fontWeight:FontWeight.w700,
-                          color:Colors.white)),
+                          fontSize:24,
+                          fontWeight:FontWeight.w700,
+                          color:Colors.white
+                        ),
+                      ),
                       const SizedBox(height: 14),
                       const Divider(color:Colors.white24, height:1),
                       const SizedBox(height: 12),
@@ -81,12 +86,12 @@ class _DividendScreenState extends State<DividendScreen> {
                             label:'現金股利',
                             value: AppFmt.num(repo.totalCashDividend),
                           ),
-                          _DivHeroDivider(),
+                          const HeroDivider(),
                           _DivHeroStat(
                             label:'股票股利',
                             value: '${repo.totalShareDividend} 股',
                           ),
-                          _DivHeroDivider(),
+                          const HeroDivider(),
                           _DivHeroStat(
                             label:'扣費後淨額',
                             value: AppFmt.num(repo.totalNetCashDividend),
@@ -104,18 +109,9 @@ class _DividendScreenState extends State<DividendScreen> {
                   padding: const EdgeInsets.symmetric(horizontal:14),
                   child: StatsStrip(
                     cells: [
-                      StatCell(
-                        label:'配息次數',
-                        value: '${all.length}',
-                      ),
-                      StatCell(
-                        label:'二代健保',
-                        value: AppFmt.num(repo.totalHealthInsurance),
-                      ),
-                      StatCell(
-                        label:'手續費',
-                        value: AppFmt.num(repo.totalFee),
-                      ),
+                      StatCell(label:'配息次數', value: '${all.length}'),
+                      StatCell(label:'二代健保', value: AppFmt.num(repo.totalHealthInsurance)),
+                      StatCell(label:'手續費', value: AppFmt.num(repo.totalFee)),
                     ],
                   ),
                 ),
@@ -127,19 +123,22 @@ class _DividendScreenState extends State<DividendScreen> {
                   padding: const EdgeInsets.symmetric(horizontal:14, vertical:6),
                   child: Row(
                     children: [
-                      _DivFilterChip(
+                      AppFilterChip(
                         label:'全部',
                         isActive: _filter == _DivFilter.all,
+                        activeColor: AppColors.loss,
                         onTap: () => setState(() => _filter = _DivFilter.all),
                       ),
-                      _DivFilterChip(
+                      AppFilterChip(
                         label:'現金股利',
                         isActive: _filter == _DivFilter.cash,
+                        activeColor: AppColors.loss,
                         onTap: () => setState(() => _filter = _DivFilter.cash),
                       ),
-                      _DivFilterChip(
+                      AppFilterChip(
                         label:'股票股利',
                         isActive: _filter == _DivFilter.stock,
+                        activeColor: AppColors.loss,
                         onTap: () => setState(() => _filter = _DivFilter.stock),
                       ),
                     ],
@@ -148,12 +147,12 @@ class _DividendScreenState extends State<DividendScreen> {
           
                 Padding( //列表標題
                   padding: const EdgeInsets.fromLTRB(14, 4, 14, 8),
-                  child: Text(
+                  child: const Text(
                     '股利紀錄',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize:14,
                       fontWeight:FontWeight.w700,
-                      color:Color(0xFF1A1F2E),
+                      color:AppColors.textPrimary,
                     ),
                   ),
                 ),
@@ -183,8 +182,7 @@ class _DividendScreenState extends State<DividendScreen> {
                               child: const Text('取消'),
                             ),
                             TextButton(
-                              style: TextButton.styleFrom(
-                                foregroundColor: AppColors.profit),
+                              style: TextButton.styleFrom(foregroundColor: AppColors.profit),
                               onPressed: () => Navigator.pop(context, true),
                               child: const Text('刪除'),
                             ),
@@ -193,11 +191,9 @@ class _DividendScreenState extends State<DividendScreen> {
                       );
                       if (ok == true) repo.removeDividend(d.id);
                     },
-                    onEdit: () => Navigator.push(
-                      context,
+                    onEdit: () => Navigator.push(context,
                       MaterialPageRoute(
-                        builder: (_) => AddDividendScreen(), //暫無編輯功能
-                      ),
+                        builder: (_) => AddDividendScreen()), //暫無編輯功能
                     ),
                   )),
                 const SizedBox(height: 80),
@@ -245,57 +241,9 @@ class _DivHeroStat extends StatelessWidget { //Hero統計小元件
   );
 }
 
-class _DivHeroDivider extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) => Container(
-    width:1, height:28, color:Colors.white24,
-    margin: const EdgeInsets.symmetric(horizontal:4));
-}
-
-class _DivFilterChip extends StatelessWidget { //篩選Chip
-  final String label;
-  final bool isActive;
-  final VoidCallback onTap;
-  const _DivFilterChip({
-    required this.label, required this.isActive,
-    required this.onTap,
-  });
-  @override
-  Widget build(BuildContext context) => GestureDetector(
-    onTap: onTap,
-    child: AnimatedContainer(
-      duration: const Duration(milliseconds:150),
-      margin: const EdgeInsets.only(right:8),
-      padding: const EdgeInsets.symmetric(horizontal:14, vertical:6),
-      decoration: BoxDecoration(
-        color: isActive
-            ? AppColors.loss
-            : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isActive
-              ? AppColors.loss
-              : const Color(0xFFE4E7ED)),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize:12,
-          fontWeight:FontWeight.w600,
-          color: isActive
-              ? Colors.white
-              : const Color(0xFF5A6375),
-        ),
-      ),
-    ),
-  );
-}
-
 class _DividendTile extends StatefulWidget { //股利卡片
   final Dividend dividend;
-  final VoidCallback onDelete;
-  final VoidCallback onEdit;
-
+  final VoidCallback onDelete, onEdit;
   const _DividendTile({
     required this.dividend,
     required this.onDelete,
@@ -325,14 +273,13 @@ class _DividendTileState extends State<_DividendTile> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: _expanded
-                ? const Color(0xFF4A6FA5)
-                : const Color(0xFFE4E7ED),
+            color: _expanded ? AppColors.primary : AppColors.border,
             width: _expanded ? 1.5 : 1,
           ),
           boxShadow: [BoxShadow(
             color: Colors.black.withValues(alpha:0.04),
-            blurRadius:4, offset: const Offset(0,1),
+            blurRadius:4,
+            offset: const Offset(0,1),
           )],
         ),
         child: Column(
@@ -346,18 +293,16 @@ class _DividendTileState extends State<_DividendTile> {
                     width:36, height:36,
                     decoration: BoxDecoration(
                       color: isCash
-                          ? const Color(0xFFEEF7F2)
-                          : const Color(0xFFEBF0F8),
+                          ? AppColors.lossBg
+                          : AppColors.primaryLight,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
-                      isCash
-                          ? Icons.payments_outlined
-                          : Icons.trending_up,
-                      size:18,
+                      isCash ? Icons.payments_outlined : Icons.trending_up,
+                      size: 18,
                       color: isCash
                           ? AppColors.loss
-                          : const Color(0xFF4A6FA5),
+                          : AppColors.primary,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -372,7 +317,7 @@ class _DividendTileState extends State<_DividendTile> {
                               style: const TextStyle(
                                 fontSize:13,
                                 fontWeight:FontWeight.w700,
-                                color:Color(0xFF1A1F2E),
+                                color:AppColors.textPrimary,
                               ),
                             ),
                             const SizedBox(width: 6),
@@ -380,8 +325,8 @@ class _DividendTileState extends State<_DividendTile> {
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                               decoration: BoxDecoration(
                                 color: isCash
-                                    ? const Color(0xFFEEF7F2)
-                                    : const Color(0xFFEBF0F8),
+                                    ? AppColors.lossBg
+                                    : AppColors.primaryLight,
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
@@ -389,9 +334,7 @@ class _DividendTileState extends State<_DividendTile> {
                                 style: TextStyle(
                                   fontSize:9,
                                   fontWeight:FontWeight.w700,
-                                  color: isCash
-                                      ? AppColors.loss
-                                      : const Color(0xFF4A6FA5),
+                                  color: isCash ? AppColors.loss : AppColors.primary,
                                 ),
                               ),
                             ),
@@ -411,15 +354,11 @@ class _DividendTileState extends State<_DividendTile> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        isCash
-                          ? AppFmt.pnl(d.cashAmount)
-                          : '+${d.shareAmount} 股',
+                        isCash ? AppFmt.pnl(d.cashAmount) : '+${d.shareAmount} 股',
                         style: TextStyle(
                           fontSize:14,
                           fontWeight:FontWeight.w700,
-                          color: isCash
-                              ? AppColors.loss
-                              : const Color(0xFF4A6FA5),
+                          color: isCash ? AppColors.loss : AppColors.primary,
                         ),
                       ),
                       if (isCash && d.netCashAmount != d.cashAmount)
@@ -440,7 +379,7 @@ class _DividendTileState extends State<_DividendTile> {
             if (_expanded) ...[
               Divider(
                 height: 1,
-                color: const Color(0xFFE4E7ED),
+                color: AppColors.border,
                 indent: 14,
                 endIndent: 14,
               ),
@@ -454,7 +393,7 @@ class _DividendTileState extends State<_DividendTile> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFEBF0F8),
+                            color: AppColors.primaryLight,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Row(
@@ -463,7 +402,7 @@ class _DividendTileState extends State<_DividendTile> {
                               Icon(
                                 Icons.edit_outlined,
                                 size: 14,
-                                color: Color(0xFF4A6FA5),
+                                color: AppColors.primary,
                               ),
                               SizedBox(width: 4),
                               Text(
@@ -471,7 +410,7 @@ class _DividendTileState extends State<_DividendTile> {
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
-                                  color: Color(0xFF4A6FA4),
+                                  color: AppColors.primary,
                                 ),
                               ),
                             ],
@@ -486,7 +425,7 @@ class _DividendTileState extends State<_DividendTile> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFDF0EF),
+                            color: AppColors.profitBg,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Row(

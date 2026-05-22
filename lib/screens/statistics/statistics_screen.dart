@@ -6,6 +6,7 @@ import '../../core/app_colors.dart';
 import '../../repositories/trade_repository.dart';
 import '../../repositories/cash_flow_repository.dart';
 import '../../services/calc/statistics_service.dart';
+import '../../widgets/common/hero_card.dart';
 
 class StatisticsScreen extends StatelessWidget {
   const StatisticsScreen({super.key});
@@ -27,11 +28,25 @@ class StatisticsScreen extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         children: [
           // ── Hero 卡片 ──────────────────────────
-          _HeroCard(
-            totalPnL: stats.totalRealizedPnL,
-            tradingDays: stats.totalTradingDays,
-            sellCount: stats.sellCount,
-            winRate: stats.winRate,
+          HeroCard(
+            title: '交易生涯總覽',
+            mainValue: Text(
+              AppFmt.pnl(stats.totalRealizedPnL),
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+                letterSpacing: -0.5,
+              ),
+            ),
+            stats: [
+              HeroStat(label: '交易天數', value: '${stats.totalTradingDays}天'),
+              HeroStat(label: '總結清比數', value: '${stats.sellCount}筆'),
+              HeroStat(
+                label: '整體勝率',
+                value: '${(stats.winRate * 100).toStringAsFixed(1)}%',
+              ),
+            ],
           ),
 
           const SizedBox(height: 16),
@@ -43,7 +58,7 @@ class StatisticsScreen extends StatelessWidget {
           if (stats.bestTrade != null)
             _HistTile(
               icon: Icons.emoji_events_outlined,
-              iconBg: const Color(0xFFFDF0EF),
+              iconBg: AppColors.profitBg,
               iconColor: AppColors.profit,
               title: '最大單筆獲利',
               value: AppFmt.pnl(stats.bestTrade!.pnl),
@@ -58,7 +73,7 @@ class StatisticsScreen extends StatelessWidget {
           if (stats.worstTrade != null)
             _HistTile(
               icon: Icons.trending_down_rounded,
-              iconBg: const Color(0xFFEEF7F2),
+              iconBg: AppColors.lossBg,
               iconColor: AppColors.loss,
               title: '最大單筆虧損',
               value: AppFmt.num(stats.worstTrade!.pnl),
@@ -73,8 +88,8 @@ class StatisticsScreen extends StatelessWidget {
           if (stats.bestReturnSymbol != null)
             _HistTile(
               icon: Icons.trending_up_rounded,
-              iconBg: const Color(0xFFEBF0F8),
-              iconColor: const Color(0xFF4A6FA5),
+              iconBg: AppColors.primaryLight,
+              iconColor: AppColors.primary,
               title: '最高報酬率個股',
               value: '+${stats.bestReturnRate.toStringAsFixed(1)}%',
               valueColor: AppColors.profit,
@@ -109,11 +124,11 @@ class StatisticsScreen extends StatelessWidget {
           if (stats.longestHoldingSymbol != null)
            _HistTile(
             icon: Icons.hourglass_bottom_rounded,
-            iconBg: const Color(0xFFEBF0F8),
-            iconColor: const Color(0xFF4A6FA5),
+            iconBg: AppColors.primaryLight,
+            iconColor: AppColors.primary,
             title: '最長持有',
             value: '${stats.longestHoldingDays} 天',
-            valueColor: const Color(0xFF4A6FA5),
+            valueColor: AppColors.primary,
             subtitle: '${stats.longestHoldingName} (${stats.longestHoldingSymbol})',
            )
           else _EmptyHint(text: '尚無持倉紀錄'),
@@ -145,106 +160,6 @@ class StatisticsScreen extends StatelessWidget {
   }
 }
 
-// ── Hero 卡片 ───────────────────────────────────
-class _HeroCard extends StatelessWidget {
-  final double totalPnL;
-  final int tradingDays;
-  final int sellCount;
-  final double winRate;
-  const _HeroCard({
-    required this.totalPnL,
-    required this.tradingDays,
-    required this.sellCount,
-    required this.winRate,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF3D5A8A), Color(0xFF4A6FA5)],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(
-          color: const Color(0xFF4A6FA5).withValues(alpha: 0.3),
-          blurRadius: 16, offset: const Offset(0, 6),
-        )],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            '交易生涯總覽',
-            style: TextStyle(
-              fontSize: 11,
-              color: Colors.white60,
-              letterSpacing: 1.2,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            AppFmt.pnl(totalPnL),
-            style: const TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-              letterSpacing: -0.5,
-            ),
-          ),
-          const SizedBox(height: 14),
-          const Divider(color: Colors.white24, height: 1),
-          const SizedBox(height: 14),
-          Row(children: [
-            _HeroStat(label: '交易天數', value: '$tradingDays 天'),
-            _HDivider(),
-            _HeroStat(label: '總結清筆數', value: '$sellCount 筆'),
-            _HDivider(),
-            _HeroStat(label: '整體勝率', value: '${(winRate * 100).toStringAsFixed(1)}%'),
-          ]),
-        ],
-      ),
-    );
-  }
-}
-
-class _HeroStat extends StatelessWidget {
-  final String label, value;
-  const _HeroStat({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) => Expanded(
-    child: Column(
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 10, color: Colors.white60),
-        ),
-        const SizedBox(height: 3),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-class _HDivider extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) => Container(
-    width: 1, height: 28, color: Colors.white24,
-    margin: const EdgeInsets.symmetric(horizontal: 4),
-  );
-}
-
 // ── 區塊標題 ────────────────────────────────────
 class _SectionTitle extends StatelessWidget {
   final String title;
@@ -255,7 +170,7 @@ class _SectionTitle extends StatelessWidget {
     style: const TextStyle(
       fontSize: 14,
       fontWeight: FontWeight.w700,
-      color: Color(0xFF1A1F2E),
+      color: AppColors.textPrimary,
     ),
   );
 }
@@ -263,20 +178,15 @@ class _SectionTitle extends StatelessWidget {
 // ── 單筆紀錄 Tile ────────────────────────────────
 class _HistTile extends StatelessWidget {
   final IconData icon;
-  final Color iconBg;
-  final Color iconColor;
-  final String title;
-  final String value;
+  final Color iconBg, iconColor;
+  final String title, value;
   final Color valueColor;
   final String? subtitle;
 
   const _HistTile({
-    required this.icon,
-    required this.iconBg,
-    required this.iconColor,
-    required this.title,
-    required this.value,
-    required this.valueColor,
+    required this.icon, required this.iconBg,
+    required this.iconColor, required this.title,
+    required this.value, required this.valueColor,
     this.subtitle,
   });
 
@@ -287,7 +197,7 @@ class _HistTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE4E7ED)),
+        border: Border.all(color: AppColors.border),
         boxShadow: [BoxShadow(
           color: Colors.black.withValues(alpha: 0.04),
           blurRadius: 4, offset: const Offset(0, 1),
@@ -352,12 +262,12 @@ class _StatsStrip2 extends StatelessWidget { //兩格的排版關係
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE4E7ED)),
+        border: Border.all(color: AppColors.border),
       ),
       child: Row(
         children: [
           Expanded(child: _Cell(cell: left, isLeft: true)),
-          Container(width: 1, height: 56, color: const Color(0xFFE4E7ED)),
+          Container(width: 1, height: 56, color: AppColors.border),
           Expanded(child: _Cell(cell: right, isLeft: false)),
         ],
       ),

@@ -8,6 +8,7 @@ import '../../repositories/cash_flow_repository.dart';
 import '../../repositories/trade_repository.dart';
 import '../../repositories/settings_repository.dart';
 import '../../services/calc/portfolio_service.dart';
+import '../../widgets/common/hero_divider.dart';
 import '../../widgets/common/stats_strip.dart';
 import 'add_cash_flow_screen.dart';
 
@@ -40,20 +41,17 @@ class CashFlowScreen extends StatelessWidget {
     final isLow = waterLevel < threshold;
 
     final cashColor = cash >= 0
-        ? const Color(0xFF1A1F2E)
+        ? AppColors.textPrimary
         : AppColors.profit;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('資金管理'),
-      ),
+      appBar: AppBar(title: const Text('資金管理')),
       body: Column(
         children: [
           Expanded(
             child: ListView(
               padding: const EdgeInsets.all(14),
               children: [
-
                 // ── Hero 卡片 ──────────────────
                 Container(
                   padding: const EdgeInsets.all(20),
@@ -67,13 +65,11 @@ class CashFlowScreen extends StatelessWidget {
                       ],
                     ),
                     borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.loss.withValues(alpha: 0.3),
-                        blurRadius: 16,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
+                    boxShadow: [BoxShadow(
+                      color: AppColors.loss.withValues(alpha: 0.3),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    )],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -101,20 +97,11 @@ class CashFlowScreen extends StatelessWidget {
                       const SizedBox(height: 14),
                       Row(
                         children: [
-                          _HeroStat(
-                            label: '總入金',
-                            value: AppFmt.num(totalDeposit),
-                          ),
-                          const _HeroDivider(),
-                          _HeroStat(
-                            label: '總提領',
-                            value: AppFmt.num(totalWithdraw),
-                          ),
-                          const _HeroDivider(),
-                          _HeroStat(
-                            label: '淨資金',
-                            value: AppFmt.num(netCash),
-                          ),
+                          _HeroStat(label: '總入金', value: AppFmt.num(totalDeposit)),
+                          const HeroDivider(horizontalMargin: 12),
+                          _HeroStat(label: '總提領', value: AppFmt.num(totalWithdraw)),
+                          const HeroDivider(horizontalMargin: 12),
+                          _HeroStat(label: '淨資金', value: AppFmt.num(netCash)),
                         ],
                       ),
                     ],
@@ -129,14 +116,12 @@ class CashFlowScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFE4E7ED)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 4,
-                        offset: const Offset(0, 1),
-                      ),
-                    ],
+                    border: Border.all(color: AppColors.border),
+                    boxShadow: [BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    )],
                   ),
                   child: Column(
                     children: [
@@ -148,7 +133,7 @@ class CashFlowScreen extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF5A6375),
+                              color: AppColors.textSecond,
                               letterSpacing: 0.5,
                             ),
                           ),
@@ -170,7 +155,7 @@ class CashFlowScreen extends StatelessWidget {
                                   fontWeight: FontWeight.w700,
                                   color: isLow
                                       ? AppColors.profit
-                                      : const Color(0xFF4A6FA5),
+                                      : AppColors.primary,
                                 ),
                               ),
                             ],
@@ -183,12 +168,9 @@ class CashFlowScreen extends StatelessWidget {
                         child: LinearProgressIndicator(
                           value: waterLevel,
                           minHeight: 10,
-                          backgroundColor: const Color(0xFFF0F2F5),
+                          backgroundColor: AppColors.scaffoldBg,
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            isLow
-                                ? AppColors.profit
-                                : const Color(0xFF4A6FA5),
-                          ),
+                            isLow ? AppColors.profit : AppColors.primary),
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -206,9 +188,7 @@ class CashFlowScreen extends StatelessWidget {
                             isLow ? '⚠️ 水位偏低（低於 ${threshold * 100}%）' : '水位正常',
                             style: TextStyle(
                               fontSize: 10,
-                              color: isLow
-                                  ? AppColors.profit
-                                  : AppColors.textMuted,
+                              color: isLow ? AppColors.profit : AppColors.textMuted,
                             ),
                           ),
                           Text(
@@ -261,7 +241,7 @@ class CashFlowScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF1A1F2E),
+                        color: AppColors.textPrimary,
                       ),
                     ),
                   ],
@@ -279,7 +259,7 @@ class CashFlowScreen extends StatelessWidget {
                           Icon(
                             Icons.account_balance_wallet_outlined,
                             size: 48,
-                            color: Color(0xFFE4E7ED),
+                            color: AppColors.border,
                           ),
                           SizedBox(height: 12),
                           Text(
@@ -300,16 +280,10 @@ class CashFlowScreen extends StatelessWidget {
           ),
         ],
       ),
-
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const AddCashFlowScreen(),
-            ),
-          );
-        },
+        onPressed: () => Navigator.push(context,
+          MaterialPageRoute(builder: (_) => const AddCashFlowScreen()),
+        ),
         child: const Icon(Icons.add),
       ),
     );
@@ -318,53 +292,32 @@ class CashFlowScreen extends StatelessWidget {
 
 // ── Hero 卡片小元件 ─────────────────────────────
 class _HeroStat extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _HeroStat({
-    required this.label,
-    required this.value,
-  });
+  final String label, value;
+  const _HeroStat({required this.label, required this.value});
 
   @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 10,
-              color: Colors.white60,
-            ),
+  Widget build(BuildContext context) => Expanded(
+    child: Column(
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 10,
+            color: Colors.white60,
           ),
-          const SizedBox(height: 3),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-            ),
+        ),
+        const SizedBox(height: 3),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _HeroDivider extends StatelessWidget {
-  const _HeroDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 1,
-      height: 28,
-      color: Colors.white24,
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-    );
-  }
+        ),
+      ],
+    ),
+  );
 }
 
 // ── 資金紀錄列 ─────────────────────────────────
@@ -380,11 +333,8 @@ class _CashFlowTileState extends State<_CashFlowTile> {
   bool _expanded = false;
 
   void _onEdit(BuildContext context) { //跳到編輯畫面
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => AddCashFlowScreen(existingFlow: widget.flow),
-      ),
+    Navigator.push(context,
+      MaterialPageRoute(builder: (_) => AddCashFlowScreen(existingFlow: widget.flow)),
     );
   }
 
@@ -418,7 +368,9 @@ class _CashFlowTileState extends State<_CashFlowTile> {
   Widget build(BuildContext context) {
     final flow = widget.flow;
     final isDeposit = flow.type == CashFlowType.deposit;
-    final dateStr = '${flow.date.year}/${flow.date.month.toString().padLeft(2,'0')}/${flow.date.day.toString().padLeft(2,'0')}';
+    final dateStr = '${flow.date.year}/'
+        '${flow.date.month.toString().padLeft(2,'0')}/'
+        '${flow.date.day.toString().padLeft(2,'0')}';
 
     return GestureDetector(
       onTap: () => setState(() => _expanded = !_expanded),
@@ -429,8 +381,8 @@ class _CashFlowTileState extends State<_CashFlowTile> {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: _expanded
-                ? const Color(0xFF4A6FA5)
-                : const Color(0xFFE4E7ED),
+                ? AppColors.primary
+                : AppColors.border,
             width: _expanded ? 1.5 : 1,
           ),
           boxShadow: [BoxShadow(
@@ -449,8 +401,8 @@ class _CashFlowTileState extends State<_CashFlowTile> {
                     width: 36, height: 36,
                     decoration: BoxDecoration(
                       color: isDeposit
-                          ? const Color(0xFFEEF7F2)
-                          : const Color(0xFFFDF0EF),
+                          ? AppColors.lossBg
+                          : AppColors.profitBg,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
@@ -473,7 +425,7 @@ class _CashFlowTileState extends State<_CashFlowTile> {
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF1A1F2E),
+                            color: AppColors.textPrimary,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -519,7 +471,7 @@ class _CashFlowTileState extends State<_CashFlowTile> {
             if (_expanded) ...[
               Divider(
                 height: 1,
-                color: const Color(0xFFE4E7ED),
+                color: AppColors.border,
                 indent: 14,
                 endIndent: 14,
               ),
@@ -533,7 +485,7 @@ class _CashFlowTileState extends State<_CashFlowTile> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFEBF0F8),
+                            color: AppColors.primaryLight,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Row(
@@ -542,7 +494,7 @@ class _CashFlowTileState extends State<_CashFlowTile> {
                               Icon(
                                 Icons.edit_outlined,
                                 size: 14,
-                                color: Color(0xFF4A6FA5),
+                                color: AppColors.primary,
                               ),
                               SizedBox(width: 4),
                               Text(
@@ -550,7 +502,7 @@ class _CashFlowTileState extends State<_CashFlowTile> {
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
-                                  color: Color(0xFF4A6FA5),
+                                  color: AppColors.primary,
                                 ),
                               ),
                             ],
@@ -565,7 +517,7 @@ class _CashFlowTileState extends State<_CashFlowTile> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFDF0EF),
+                            color: AppColors.profitBg,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Row(

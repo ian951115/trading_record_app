@@ -29,24 +29,24 @@ class CalendarDayCell extends StatelessWidget {
     final bgColor = !hasPnL //底色
         ? Colors.transparent
         : pnl > 0
-            ? const Color(0xFFFDF0EF)
-            : const Color(0xFFEEF7F2);
+            ? AppColors.profitBgStrong
+            : AppColors.lossBgStrong;
 
-    final overlayColor = isSelected //選中狀態：疊加半透明深色，保留熱力圖底色
-        ? const Color(0xFF4A6FA5).withValues(alpha: 0.15)
+    final overlayColor = isSelected //選中狀態：疊加半透明深色保留底色
+        ? AppColors.primary.withValues(alpha: 0.15)
         : Colors.transparent;
 
     final border = isToday //今天邊框
-        ? Border.all(color: const Color(0xFF4A6FA5), width: 1.5)
+        ? Border.all(color: AppColors.primary, width: 1.5)
         : isSelected
-            ? Border.all(color: const Color(0xFF4A6FA5), width: 1.5)
+            ? Border.all(color: AppColors.primary, width: 1.5)
             : null;
 
     final dayNumColor = isToday //日期數字顏色
-        ? const Color(0xFF4A6FA5)
+        ? AppColors.primary
         : isSelected
-            ? const Color(0xFF4A6FA5)
-            : const Color(0xFF5A6375);
+            ? AppColors.primary
+            : AppColors.textSecond;
 
     final pnlColor = AppColors.pnl(pnl); //損益文字顏色
 
@@ -85,7 +85,6 @@ class CalendarDayCell extends StatelessWidget {
                   ),
                 ),
               ),
-
               const Spacer(),
               if (hasPnL) //下方資訊
                 Column(
@@ -121,4 +120,3 @@ class CalendarDayCell extends StatelessWidget {
     );
   }
 }
-

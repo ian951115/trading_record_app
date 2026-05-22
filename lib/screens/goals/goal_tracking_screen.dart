@@ -20,7 +20,6 @@ class GoalTrackingScreen extends StatefulWidget {
   State<GoalTrackingScreen> createState() => _GoalTrackingScreenState();
 }
 
-//目標追蹤主函式
 class _GoalTrackingScreenState extends State<GoalTrackingScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tab;
@@ -99,8 +98,11 @@ class _AnnualTab extends StatelessWidget {
                   Text(
                     '${DateTime.now().year} 年',
                     style: const TextStyle(
-                      fontSize: 12, fontWeight: FontWeight.w700,
-                      color: AppColors.textMuted, letterSpacing: 0.06),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textMuted,
+                      letterSpacing: 0.06,
+                    ),
                   ),
                   Text(
                     '${current.length} 個目標',
@@ -166,7 +168,7 @@ class _HistorySectionState extends State<_HistorySection> {
       Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: const Color(0xFFF0F2F7),
+          color: AppColors.cardBg,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Row( //歷史紀錄區標頭
@@ -176,12 +178,11 @@ class _HistorySectionState extends State<_HistorySection> {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF5A6375),
+                color: AppColors.textSecond,
               ),
             ),
             const Spacer(),
-            //顯示共有幾年
-            Text(
+            Text( //顯示共有幾年
               '${widget.years.length} 年紀錄',
               style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
             ),
@@ -210,9 +211,9 @@ class _HistorySectionState extends State<_HistorySection> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF8F9FC),
+                  color: AppColors.surfaceAlt,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFFE4E7ED)),
+                  border: Border.all(color: AppColors.border),
                 ),
                 child: Row( //年分標頭
                   children: [
@@ -221,17 +222,16 @@ class _HistorySectionState extends State<_HistorySection> {
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF5A6375),
+                        color: AppColors.textSecond,
                       ),
                     ),
                     const SizedBox(width: 8),
-                    // 達成率小 badge
-                    Container(
+                    Container( // 達成率小 badge
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: doneCount == goals.length
                             ? const Color(0xFFF2FBF6)
-                            : const Color(0xFFF0F2F7),
+                            : AppColors.cardBg,
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
@@ -255,8 +255,7 @@ class _HistorySectionState extends State<_HistorySection> {
                 ),
               ),
             ),
-            // 展開後顯示該年的卡片
-            if (isYearOpen)
+            if (isYearOpen) //展開後顯示該年的卡片
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Column(
@@ -342,35 +341,34 @@ class _AnnualGoalCardState extends State<_AnnualGoalCard> {
     Color barColor, bgColor, borderColor;
     String badgeText;
     Color badgeBg, badgeFg;
-
     if (isFuture) {
       barColor    = AppColors.textMuted;
       bgColor     = Colors.white;
-      borderColor = const Color(0xFFE4E7ED);
+      borderColor = AppColors.border;
       badgeText   = '尚未開始';
-      badgeBg     = const Color(0xFFF0F2F7);
+      badgeBg     = AppColors.cardBg;
       badgeFg     = AppColors.textMuted;
     } else if (isDone) {
       barColor    = AppColors.loss;
       bgColor     = const Color(0xFFF2FBF6);
-      borderColor = const Color(0xFFB8DFC9);
+      borderColor = AppColors.lossBorder;
       badgeText   = '✓ 達成';
       badgeBg     = AppColors.loss;
       badgeFg     = Colors.white;
     } else if (isFailed) {
       barColor    = AppColors.profit;
       bgColor     = const Color(0xFFFDF5F5);
-      borderColor = const Color(0xFFF5C4C2);
+      borderColor = AppColors.profitBorder;
       badgeText   = '✗ 未達成';
-      badgeBg     = const Color(0xFFFDF0EF);
+      badgeBg     = AppColors.profitBg;
       badgeFg     = AppColors.profit;
     } else { // 進行中
-      barColor    = const Color(0xFF4A6FA5);
+      barColor    = AppColors.primary;
       bgColor     = Colors.white;
-      borderColor = const Color(0xFFE4E7ED);
+      borderColor = AppColors.border;
       badgeText   = '進行中';
-      badgeBg     = const Color(0xFFEBF0F8);
-      badgeFg     = const Color(0xFF4A6FA5);
+      badgeBg     = AppColors.primaryLight;
+      badgeFg     = AppColors.primary;
     }
 
     return GestureDetector(
@@ -446,7 +444,7 @@ class _AnnualGoalCardState extends State<_AnnualGoalCard> {
                   padding: EdgeInsets.symmetric(horizontal: 5),
                   child: CircleAvatar(
                     radius: 1.5,
-                    backgroundColor: Color(0xFFE4E7ED),
+                    backgroundColor: AppColors.border,
                   ),
                 ),
                 Text(
@@ -493,7 +491,7 @@ class _AnnualGoalCardState extends State<_AnnualGoalCard> {
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF5A6375),
+                        color: AppColors.textSecond,
                       ),
                     ),
                   ],
@@ -509,7 +507,7 @@ class _AnnualGoalCardState extends State<_AnnualGoalCard> {
               child: LinearProgressIndicator(
                 value: progress,
                 minHeight: 8,
-                backgroundColor: const Color(0xFFE4E7ED),
+                backgroundColor: AppColors.border,
                 valueColor: AlwaysStoppedAnimation<Color>(barColor),
               ),
             ),
@@ -569,7 +567,7 @@ class _AnnualGoalCardState extends State<_AnnualGoalCard> {
                             Icon(
                               Icons.edit_outlined,
                               size: 14,
-                              color: Color(0xFF4A6FA5),
+                              color: AppColors.primary,
                             ),
                             SizedBox(width: 4),
                             Text(
@@ -577,7 +575,7 @@ class _AnnualGoalCardState extends State<_AnnualGoalCard> {
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: Color(0xFF4A6FA5),
+                                color: AppColors.primary,
                               ),
                             ),
                           ],
@@ -592,7 +590,7 @@ class _AnnualGoalCardState extends State<_AnnualGoalCard> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFDF0EF),
+                          color: AppColors.profitBg,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Row(
@@ -760,7 +758,7 @@ class _CustomGoalCardState extends State<_CustomGoalCard> {
       case CustomGoalStatus.ended:
         return _badge(
           '✗ 已結束',
-          bg: const Color(0xFFFDF0EF),
+          bg: AppColors.profitBg,
           fg: AppColors.profit,
         );
       case CustomGoalStatus.ongoing:
@@ -807,9 +805,9 @@ class _CustomGoalCardState extends State<_CustomGoalCard> {
 
   Color get _borderColor {
     switch (widget.status) {
-      case CustomGoalStatus.achieved: return const Color(0xFFB8DFC9);
-      case CustomGoalStatus.ended: return const Color(0xFFF5C4C2);
-      case CustomGoalStatus.ongoing: return const Color(0xFFE4E7ED);
+      case CustomGoalStatus.achieved: return AppColors.lossBorder;
+      case CustomGoalStatus.ended: return AppColors.profitBorder;
+      case CustomGoalStatus.ongoing: return AppColors.border;
     }
   }
 
@@ -910,7 +908,7 @@ class _CustomGoalCardState extends State<_CustomGoalCard> {
                 ),
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 5),
-                  child: CircleAvatar(radius: 1.5, backgroundColor: Color(0xFFE4E7ED)),
+                  child: CircleAvatar(radius: 1.5, backgroundColor: AppColors.border),
                 ),
                 Text(
                   '${_fmt(goal.startDate)} – ${_fmt(goal.endDate)}',
@@ -956,7 +954,7 @@ class _CustomGoalCardState extends State<_CustomGoalCard> {
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF5A6375),
+                        color: AppColors.textSecond,
                       ),
                     ),
                   ],
@@ -972,7 +970,7 @@ class _CustomGoalCardState extends State<_CustomGoalCard> {
               child: LinearProgressIndicator(
                 value: progress,
                 minHeight: 8,
-                backgroundColor: const Color(0xFFE4E7ED),
+                backgroundColor: AppColors.border,
                 valueColor: AlwaysStoppedAnimation<Color>(_barColor),
               ),
             ),
@@ -1054,7 +1052,7 @@ class _CustomGoalCardState extends State<_CustomGoalCard> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFDF0EF),
+                          color: AppColors.profitBg,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Row(
@@ -1129,7 +1127,7 @@ class _AnnualEmptyHint extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.flag_outlined, size: 48, color: Color(0xFFE4E7ED)),
+          Icon(Icons.flag_outlined, size: 48, color: AppColors.border),
           SizedBox(height: 12),
           Text('尚無年度目標', style: TextStyle(color: AppColors.textMuted)),
           SizedBox(height: 6),
@@ -1150,7 +1148,7 @@ class _CustomEmptyHint extends StatelessWidget {
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.track_changes_outlined, size: 48, color: Color(0xFFE4E7ED)),
+        Icon(Icons.track_changes_outlined, size: 48, color: AppColors.border),
         SizedBox(height: 12),
         Text('尚無自訂義目標', style: TextStyle(color: AppColors.textMuted)),
         SizedBox(height: 6),
