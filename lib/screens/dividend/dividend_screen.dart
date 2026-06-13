@@ -193,7 +193,7 @@ class _DividendScreenState extends State<DividendScreen> {
                     },
                     onEdit: () => Navigator.push(context,
                       MaterialPageRoute(
-                        builder: (_) => AddDividendScreen()), //暫無編輯功能
+                        builder: (_) => AddDividendScreen(editingDividend: d)), //暫無編輯功能
                     ),
                   )),
                 const SizedBox(height: 80),
@@ -389,7 +389,7 @@ class _DividendTileState extends State<_DividendTile> {
                   children: [
                     Expanded(
                       child: GestureDetector(
-                        onTap: () => widget.onEdit,
+                        onTap: widget.onEdit,
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           decoration: BoxDecoration(
@@ -421,7 +421,7 @@ class _DividendTileState extends State<_DividendTile> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: GestureDetector(
-                        onTap: () => widget.onDelete,
+                        onTap: widget.onDelete,
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           decoration: BoxDecoration(

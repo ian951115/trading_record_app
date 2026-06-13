@@ -72,4 +72,10 @@ class RecurringRepository extends ChangeNotifier {
     _plans = _box.values.toList()
       ..sort((a, b) => a.startDate.compareTo(b.startDate));
   }
+
+  Future<void> clear() async {
+    await _box.clear();
+    _plans.clear();
+    notifyListeners();
+  }
 }

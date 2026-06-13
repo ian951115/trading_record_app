@@ -45,4 +45,10 @@ class CustomGoalRepository extends ChangeNotifier {
     _goals = _box.values.toList()
       ..sort((a, b) => a.endDate.compareTo(b.endDate));
   }
+
+  Future<void> clear() async {
+    await _box.clear();
+    _goals.clear();
+    notifyListeners();
+  }
 }

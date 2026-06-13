@@ -2,7 +2,6 @@
 import '../models/trade.dart';
 import '../services/calc/position_service.dart';
 
-
 class GoalPnlHelper {
   // 計算指定日期範圍與標的的已實現損益
   static double calc({

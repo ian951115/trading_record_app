@@ -3,6 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/app_colors.dart';
 import '../../repositories/settings_repository.dart';
+import '../../repositories/trade_repository.dart';
+import '../../repositories/cash_flow_repository.dart';
+import '../../repositories/annual_goal_repository.dart';
+import '../../repositories/custom_goal_repository.dart';
+import '../../repositories/dividend_repository.dart';
+import '../../repositories/recurring_repository.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -296,16 +302,23 @@ class SettingsScreen extends StatelessWidget {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('清除所有資料'),
-        content: const Text('確定要清除所有交易紀錄和資金紀錄嗎？\n\n此操作無法復原。'),
+        content: const Text('確定要清除所有交易紀錄、股利、目標和定期定額嗎？\n\n此操作無法復原。'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('取消'),
           ),
           TextButton(
-            onPressed: () {
-              //之後實作
+            onPressed: () async {
               Navigator.pop(context);
+              await Future.wait([
+                context.read<TradeRepository>().clear(),
+                context.read<CashFlowRepository>().clear(),
+                context.read<DividendRepository>().clear(),
+                context.read<RecurringRepository>().clear(),
+                context.read<AnnualGoalRepository>().clear(),
+                context.read<CustomGoalRepository>().clear(),
+              ]);
             },
             child: const Text(
               '清除',

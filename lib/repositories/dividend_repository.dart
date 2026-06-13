@@ -72,4 +72,10 @@ class DividendRepository extends ChangeNotifier {
   int get totalShareDividend => _dividends //總股票股利
     .where((d) => d.type == DividendType.stock)
     .fold(0, (s, d) => s + d.shareAmount);
+
+  Future<void> clear() async {
+    await _box.clear();
+    _dividends.clear();
+    notifyListeners();
+  }
 }

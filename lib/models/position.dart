@@ -15,13 +15,12 @@ class Position { //all
 
   double get avgCost => quantity == 0 ? 0 : totalCost / quantity;
 
-  //現價優先用 livePrice，沒有的話用 avgCost*1.05（暫時假設）
-  double get currentPrice => livePrice ?? avgCost * 1.05;
+  double? get currentPrice => livePrice;
 
-  double get marketValue => currentPrice * quantity; //市值
-  double get unrealizedPnL => marketValue - totalCost; //未實現損益
+  double get marketValue => (livePrice ?? avgCost) * quantity; //市值
+  double get unrealizedPnL => livePrice == null ? 0 : marketValue - totalCost; //未實現損益
   double get unrealizedReturn => //未實現報酬率
-       totalCost == 0 ? 0 : (unrealizedPnL / totalCost) * 100;
+       (livePrice == null || totalCost == 0) ? 0 : (unrealizedPnL / totalCost) * 100;
 
   int get holdingDays { //持有天數計算
     if (firstBuyDate == null || quantity == 0) return 0;

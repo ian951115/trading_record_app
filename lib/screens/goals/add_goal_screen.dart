@@ -118,7 +118,9 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
 
   // ── 自動查股票名稱 ──────────────────────────────────────
   Future<void> _onSymbolChanged(String value) async {
-    final name = StockNameService.getName(value.trim());
+    final trimmed = value.trim();
+    setState(() => _stockSymbol = trimmed.isEmpty ? null : trimmed);
+    final name = StockNameService.getName(trimmed);
     if (name != null) {
       setState(() => _stockName = name);
       _stockNameCtrl.text = name;

@@ -100,4 +100,10 @@ class AnnualGoalRepository extends ChangeNotifier {
       (type == GoalType.totalPnL || g.stockSymbol == symbol),
     );
   }
+
+  Future<void> clear() async {
+    await _box.clear();
+    _goals.clear();
+    notifyListeners();
+  }
 }

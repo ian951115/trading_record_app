@@ -14,7 +14,8 @@ double _calcHealthInsurance(double amount) { //二代健保計算
 }
 
 class AddDividendScreen extends StatefulWidget {
-  const AddDividendScreen({super.key});
+  final Dividend? editingDividend;
+  const AddDividendScreen({super.key, this.editingDividend});
   @override
   State<AddDividendScreen> createState() => _AddDividendScreenState();
 }
@@ -46,13 +47,36 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
   @override
   void initState() {
     super.initState();
-    _symbolCtrl = TextEditingController();
-    _priceCtrl = TextEditingController();
-    _sharesCtrl = TextEditingController();
-    _shareAmtCtrl = TextEditingController();
-    _nameCtrl = TextEditingController();
-    _feeCtrl = TextEditingController(text: '0');
-    _noteCtrl = TextEditingController();
+    final d = widget.editingDividend;
+
+    if (d != null) {
+      _type = d.type;
+      _date = d.date;
+      _symbol = d.symbol;
+      _name = d.name;
+      _fee = d.fee;
+      _note = d.note ?? '';
+      if (d.type == DividendType.cash) {
+        // cashAmount 是毛額，無法還原拆成「每股股利 × 股數」，
+        // 故以「每股股利＝原毛額、股數＝1」回填，使加總一致；
+        // 使用者可自行調整成原本的拆法。
+        _pricePerShare = d.cashAmount;
+        _heldShares = 1;
+      } else {
+        _shareAmount = d.shareAmount;
+      }
+    }
+
+    _symbolCtrl = TextEditingController(text: _symbol);
+    _priceCtrl = TextEditingController(
+      text: _pricePerShare == 0 ? '' : _pricePerShare.toString());
+    _sharesCtrl = TextEditingController(
+      text: _heldShares == 0 ? '' : _heldShares.toString());
+    _shareAmtCtrl = TextEditingController(
+      text: _shareAmount == 0 ? '' : _shareAmount.toString());
+    _nameCtrl = TextEditingController(text: _name);
+    _feeCtrl = TextEditingController(text: _fee.toString());
+    _noteCtrl = TextEditingController(text: _note);
   }
 
   @override
@@ -74,6 +98,7 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
     if (_type == DividendType.stock && _shareAmount <= 0) return;
 
     final div = Dividend(
+      id: widget.editingDividend?.id,
       date: _date,
       symbol: _symbol,
       name: _name,
@@ -85,7 +110,12 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
       note: _note.isEmpty ? null : _note,
     );
 
-    await context.read<DividendRepository>().addDividend(div);
+    final repo = context.read<DividendRepository>();
+    if (widget.editingDividend != null) {
+      await repo.updateDividend(div);
+    } else {
+      await repo.addDividend(div);
+    }
     Navigator.pop(context);
   }
 
@@ -117,7 +147,7 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
           icon: const Icon(Icons.close),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('新增股利'),
+        title: Text(widget.editingDividend == null ? '新增股利' : '編輯股利'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

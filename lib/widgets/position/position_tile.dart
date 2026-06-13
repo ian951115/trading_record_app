@@ -95,7 +95,7 @@ class _PositionTileState extends State<PositionTile> {
                       ),
                       Text(
                         p.livePrice != null
-                            ? '現價 ${AppFmt.price(p.currentPrice)}'
+                            ? '現價 ${p.livePrice != null ? AppFmt.price(p.livePrice!) : '-'}'
                             : '現價載入中…',
                         style: TextStyle(
                           fontSize: 11,
@@ -190,7 +190,7 @@ class _PositionTileState extends State<PositionTile> {
                           child: InfoItem(
                             label: '現價',
                             value: p.livePrice != null
-                                ? AppFmt.price(p.currentPrice)
+                                ?  AppFmt.price(p.livePrice!)
                                 : '—',
                           ),
                         ),

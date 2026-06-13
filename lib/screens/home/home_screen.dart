@@ -6,8 +6,10 @@ import '../../core/app_colors.dart';
 import '../../models/add_trade_result.dart';
 import '../../repositories/cash_flow_repository.dart';
 import '../../repositories/trade_repository.dart';
+import '../../repositories/dividend_repository.dart';
 import '../../services/calc/position_service.dart';
 import '../../services/calc/portfolio_service.dart';
+import '../../services/data/stock_price_service.dart';
 import '../../widgets/common/hero_card.dart';
 import '../../widgets/common/stats_strip.dart';
 import '../../widgets/trade/trade_tile.dart';
@@ -36,6 +38,34 @@ class _HomeScreenState extends State<HomeScreen> {
   final _pageCtrl = PageController();
   int _currentPage = 0;
   static const int _totalPages = 2;
+  Map<String, double> _livePrices = {};
+  bool _pricesFetched = false; //避免重複抓
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _fetchPrices());
+  }
+
+  Future<void> _fetchPrices() async {
+    final tradeRepo = context.read<TradeRepository>();
+    final dividendRepo = context.read<DividendRepository>();
+    final result = buildPositions(
+      tradeRepo.getAllTrades(),
+      dividends: dividendRepo.getAllDividends(),
+    );
+    final symbols = result.positions
+        .where((p) => p.quantity > 0)
+        .map((p) => p.symbol)
+        .toList();
+    if (symbols.isEmpty) return; //資料還沒載入完成，先不標記fetched等下次build再試
+
+    _pricesFetched = true;
+    final prices = await StockPriceService.fetchPrices(symbols);
+    if (mounted) {
+      setState(() => _livePrices = prices);
+    }
+  }
 
   @override
   void dispose() {
@@ -47,11 +77,22 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final tradeRepo = context.watch<TradeRepository>();
     final cashRepo = context.watch<CashFlowRepository>();
+    final dividendRepo = context.watch<DividendRepository>();
 
     final trades = tradeRepo.getAllTrades();
     final cashFlows = cashRepo.getAllFlows();
-    final result = buildPositions(trades);
+    final dividends = dividendRepo.getAllDividends();
+    final result = buildPositions(trades, dividends: dividends);
     final positions = result.positions;
+    for (final p in positions) {
+      if (_livePrices.containsKey(p.symbol)) p.livePrice = _livePrices[p.symbol];
+    }
+
+    //首次build時Hive可能還沒載入完成，等真的有持倉資料後再補抓一次
+    if (!_pricesFetched && positions.any((p) => p.quantity > 0)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _fetchPrices());
+    }
+
     final hasCashData = cashFlows.isNotEmpty;
 
     final cash = PortfolioService.calculateCash(
