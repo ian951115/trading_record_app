@@ -74,6 +74,7 @@ class DividendRepository extends ChangeNotifier {
     .fold(0, (s, d) => s + d.shareAmount);
 
   Future<void> clear() async {
+    if (!_isReady) return;
     await _box.clear();
     _dividends.clear();
     notifyListeners();

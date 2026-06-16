@@ -91,8 +91,8 @@ class ChartService {
       name: p.name,
       marketValue: p.marketValue,
       percentage: p.marketValue / total * 100,
-      cost: p.avgCost * p.quantity * 1000,
-      unrealized: p.marketValue - (p.avgCost * p.quantity * 1000),
+      cost: p.totalCost,
+      unrealized: p.marketValue - p.totalCost,
     )).toList()
     ..sort((a,b) => b.marketValue.compareTo(a.marketValue)); //依市值排序
   }

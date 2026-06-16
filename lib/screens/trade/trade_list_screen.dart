@@ -1,6 +1,7 @@
 //交易明細頁面UI
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:trading_record_app/models/cash_flow.dart';
 import '../../core/formatters.dart';
 import '../../core/app_colors.dart';
 import '../../models/add_trade_result.dart';
@@ -208,7 +209,29 @@ class _TradeListScreenState extends State<TradeListScreen> {
                           MaterialPageRoute(
                             builder: (_) => AddTradeScreen(editingTrade: trade)),
                         );
-                        if (result != null) tradeRepo.updateTrade(trade, result.trade);
+                        if (result != null) {
+                          tradeRepo.updateTrade(trade, result.trade);
+                          final oldLinked = cashRepo.getAllFlows()
+                              .where((f) => f.tradeId == trade.id)
+                              .firstOrNull;
+                          if (result.autoDeposit != null) {
+                            if (oldLinked != null) {
+                              final updated = CashFlow(
+                                id: oldLinked.id,
+                                date: result.autoDeposit!.date,
+                                type: result.autoDeposit!.type,
+                                amount: result.autoDeposit!.amount,
+                                note: result.autoDeposit!.note,
+                                tradeId: result.autoDeposit!.tradeId,
+                              );
+                              cashRepo.updateFlow(updated);
+                            } else {
+                              cashRepo.addFlow(result.autoDeposit!);
+                            }
+                          } else {
+                            if (oldLinked != null) cashRepo.removeFlow(oldLinked.id);
+                          }
+                        }
                       },
                       onDelete: () async {
                         final confirm = await showDialog<bool>(

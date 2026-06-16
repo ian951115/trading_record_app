@@ -24,6 +24,8 @@ class CashFlow {
   final double amount;
   @HiveField(4)
   final String? note;
+  @HiveField(5)
+  final String? tradeId; //關聯的交易ID（null=手動入金）
 
   CashFlow({
     String? id,
@@ -31,6 +33,7 @@ class CashFlow {
     required this.type,
     required this.amount,
     this.note,
+    this.tradeId,
   }) : id = id ?? const Uuid().v4();
 
   double get netAmount {

@@ -66,12 +66,24 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
     autoDepositAmount = totalAmount;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final settings = context.read<SettingsRepository>().settings;
+      final settingsRepo = context.read<SettingsRepository>();
+      if (!settingsRepo.isReady) return;
+      final settings = settingsRepo.settings;
       setState(() {
         defaultFeeRate = settings.defaultFeeRate;
         defaultTaxRate = settings.defaultTaxRate;
-        autoDepositEnabled = settings.autoDepositDefault;
-        //更新controller顯示值
+        if (widget.editingTrade != null) {
+          final cashRepo = context.read<CashFlowRepository>();
+          final linked = cashRepo.getAllFlows()
+              .where((f) => f.tradeId == widget.editingTrade!.id)
+              .firstOrNull;
+          autoDepositEnabled = linked !=null;
+          if (linked != null) {
+            autoDepositController.text = linked.amount.toStringAsFixed(0);
+          }
+        } else {
+          autoDepositEnabled = settings.autoDepositDefault;
+        }
         feeRateController.text = (defaultFeeRate * 100).toStringAsFixed(4);
         taxRateController.text = (defaultTaxRate * 100).toStringAsFixed(3);
       });
@@ -167,6 +179,7 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
         date: selectedDate,
         type: CashFlowType.deposit,
         amount: double.tryParse(autoDepositController.text) ?? totalAmount,
+        tradeId: trade.id,
       );
     }
     Navigator.pop(context, AddTradeResult(

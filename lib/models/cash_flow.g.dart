@@ -22,13 +22,14 @@ class CashFlowAdapter extends TypeAdapter<CashFlow> {
       type: fields[2] as CashFlowType,
       amount: fields[3] as double,
       note: fields[4] as String?,
+      tradeId: fields[5] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, CashFlow obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(6)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -38,7 +39,9 @@ class CashFlowAdapter extends TypeAdapter<CashFlow> {
       ..writeByte(3)
       ..write(obj.amount)
       ..writeByte(4)
-      ..write(obj.note);
+      ..write(obj.note)
+      ..writeByte(5)
+      ..write(obj.tradeId);
   }
 
   @override

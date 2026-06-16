@@ -12,6 +12,7 @@ import '../../repositories/trade_repository.dart';
 import '../../repositories/cash_flow_repository.dart';
 import '../../services/calc/chart_service.dart';
 import '../../services/calc/position_service.dart';
+import '../../services/data/stock_price_service.dart';
 import '../../widgets/common/stats_strip.dart';
 
 // 圖表頁面顏色常數
@@ -33,17 +34,31 @@ class _ChartsScreenState extends State<ChartsScreen>
   late TabController _tabController;
   String _assetRange = '1m'; // 1m / 3m / 1y / all
   int _monthlyYear = DateTime.now().year;
+  Map<String, double> _livePrices = {};
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _fetchPrices());
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> _fetchPrices() async {
+    final trades = context.read<TradeRepository>().getAllTrades();
+    final result = buildPositions(trades);
+    final symbols = result.positions
+        .where((p) => p.quantity > 0)
+        .map((p) => p.symbol)
+        .toList();
+    if (symbols.isEmpty) return;
+    final prices = await StockPriceService.fetchPrices(symbols);
+    if (mounted) setState(() => _livePrices = prices);
   }
 
   @override
@@ -54,6 +69,9 @@ class _ChartsScreenState extends State<ChartsScreen>
     final cashFlows = cashRepo.getAllFlows();
     final posResult = buildPositions(trades);
     final openPositions = posResult.positions.where((p) => p.quantity > 0).toList();
+    for (final p in openPositions) {
+      if (_livePrices.containsKey(p.symbol)) p.livePrice = _livePrices[p.symbol];
+    }
 
     return Scaffold(
       appBar: AppBar(title: const Text('各式圖表')),
@@ -394,7 +412,7 @@ class _AssetTabState extends State<_AssetTab> {
                       leftTitles: AxisTitles( //左邊顯示金額
                         sideTitles: SideTitles(
                           showTitles: true,
-                          reservedSize: 52,
+                          reservedSize: 35,
                           // ──Y 軸單位自動 ──
                           getTitlesWidget: (v, _) => Text(
                             useWan
@@ -876,7 +894,6 @@ class _MonthlyTab extends StatelessWidget {
  
     // ──統一單位 ──
     final useWan = nicePos >= 10000;
-    final unitLabel = useWan ? '單位：萬元' : '單位：元';
 
     //建立BarChart資料
     final groups = List.generate(12, (i) {
@@ -971,10 +988,6 @@ class _MonthlyTab extends StatelessWidget {
                       color: Color(0xFF1A1F2E),
                     ),
                   ),
-                  Text(
-                    unitLabel,
-                    style: const TextStyle(fontSize: 9, color: AppColors.textMuted),
-                  ),
                 ],
               ),
               const SizedBox(height: 14),
@@ -988,6 +1001,7 @@ class _MonthlyTab extends StatelessWidget {
                     barGroups: groups,
                     gridData: FlGridData(
                       drawVerticalLine: false,
+                      horizontalInterval: nicePos / 4,
                       getDrawingHorizontalLine: (v) => FlLine(
                         color: v == 0
                             ? AppColors.textMuted
@@ -1029,7 +1043,8 @@ class _MonthlyTab extends StatelessWidget {
                       leftTitles: AxisTitles( //左邊顯示金額
                         sideTitles: SideTitles(
                           showTitles: true,
-                          reservedSize: 52,
+                          reservedSize: 25,
+                          interval: nicePos / 4,
                           getTitlesWidget: (v, meta) {
                             if (v == meta.min || v == meta.max) {
                               return const SizedBox.shrink();
@@ -1037,11 +1052,14 @@ class _MonthlyTab extends StatelessWidget {
                             final label = useWan
                                 ? '${(v / 10000).toStringAsFixed(0)}萬'
                                 : v.toStringAsFixed(0);
-                            return Text(
-                              label,
-                              style: const TextStyle(
-                                fontSize: 8,
-                                color: AppColors.textMuted,
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 6),
+                              child: Text(
+                                label,
+                                style: const TextStyle(
+                                  fontSize: 8,
+                                  color: AppColors.textMuted,
+                                ),
                               ),
                             );
                           },
@@ -1334,7 +1352,7 @@ class _PieTabState extends State<_PieTab> {
           child: GestureDetector(
             onTap: () => setState(() {
               _pieMode = mode;
-              _selectedIndex = 0;
+              _selectedIndex = -1;
             }),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 150),

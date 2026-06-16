@@ -102,6 +102,7 @@ class AnnualGoalRepository extends ChangeNotifier {
   }
 
   Future<void> clear() async {
+    if (!_isReady) return;
     await _box.clear();
     _goals.clear();
     notifyListeners();
