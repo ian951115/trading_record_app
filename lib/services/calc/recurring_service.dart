@@ -32,7 +32,8 @@ class RecurringService {
           //周末順延
           if (d.weekday == DateTime.saturday) d = d.add(const Duration(days: 2));
           if (d.weekday == DateTime.sunday) d = d.add(const Duration(days: 1));
-          if (!d.isBefore(plan.startDate) && !d.isAfter(today)) {
+          final isPaused = plan.pausedPeriods.any((p) => p.contains(d));
+          if (!d.isBefore(plan.startDate) && !d.isAfter(today) && !isPaused) {
             result.add(d);
           }
         } catch (_) {

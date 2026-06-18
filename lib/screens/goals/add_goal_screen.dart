@@ -13,12 +13,12 @@ import '../../widgets/common/form_card.dart';
 import '../../widgets/common/section_title.dart';
 
 class AddGoalScreen extends StatefulWidget {
-  final GoalMode mode;
-  final AnnualGoal?  existingAnnual;
-  final CustomGoal?  existingCustom;
+  final GoalMode? initialMode;
+  final AnnualGoal? existingAnnual;
+  final CustomGoal? existingCustom;
   const AddGoalScreen({
     super.key,
-    required this.mode,
+    this.initialMode,
     this.existingAnnual,
     this.existingCustom,
   });
@@ -41,6 +41,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
   late String? _stockName;
   late double _targetAmount;
   late String _note;
+  late GoalMode _mode;
 
   // ── 年度目標專用 ──────────────────────────────────────
   late int _year;
@@ -72,8 +73,13 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
       DateTime.now().year - 1960 + 2, //1960年到未來兩年
       (i) => 1960 + i,
     );
- 
-    if (widget.mode == GoalMode.annual) {
+
+    _mode = widget.initialMode ?? GoalMode.annual;
+    _startDate = DateTime.now();
+    _endDate = DateTime(DateTime.now().year, 12, 31);
+    _title = '';
+    _note = '';
+    if (_mode == GoalMode.annual) {
       final g = widget.existingAnnual;
       _year = g?.year ?? now.year;
       _goalType = g?.goalType ?? GoalType.totalPnL;
@@ -98,7 +104,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
     }
 
     // 初始化 controllers
-    _titleCtrl = TextEditingController(text: widget.mode == GoalMode.custom ? _title : '');
+    _titleCtrl = TextEditingController(text: _mode == GoalMode.custom ? _title : '');
     _stockCtrl = TextEditingController(text: _stockSymbol ?? '');
     _stockNameCtrl = TextEditingController(text: _stockName ?? '');
     _targetCtrl = TextEditingController(
@@ -170,7 +176,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
       return;
     }
  
-    if (widget.mode == GoalMode.annual) {
+    if (_mode == GoalMode.annual) {
       if (_goalType == GoalType.stockPnL &&
           (_stockSymbol == null || _stockSymbol!.trim().isEmpty)) {
         _showSnack('請輸入股票代號');
@@ -421,7 +427,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.existingAnnual != null || widget.existingCustom != null;
-    final modeLabel = widget.mode == GoalMode.annual ? '年度目標' : '自訂義目標';
+    final modeLabel = _mode == GoalMode.annual ? '年度目標' : '自訂義目標';
 
     return Scaffold(
       appBar: AppBar(
@@ -436,8 +442,45 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (widget.initialMode == null) ...[
+              const SectionTitle(title: '種類及標的'),
+              FormCard(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0F2F5),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: const EdgeInsets.all(3),
+                  child: Row(
+                    children: [
+                      _ModeTab(
+                        label: '年度目標',
+                        isActive: _mode == GoalMode.annual,
+                        onTap: () => setState(() {
+                          _mode = GoalMode.annual;
+                          _titleCtrl.text = '';
+                        }),
+                      ),
+                      _ModeTab(
+                        label: '自定義目標',
+                        isActive: _mode == GoalMode.custom,
+                        onTap: () => setState(() {
+                          _mode = GoalMode.custom;
+                          _titleCtrl.text = _title;
+                          if (_endDate.isBefore(_startDate)) {
+                            _endDate = DateTime(_startDate.year, 12, 31);
+                          }
+                        }),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 4),
+            ],
+
             // ── 自訂義：標題 ──────────────────
-            if (widget.mode == GoalMode.custom) ...[
+            if (_mode == GoalMode.custom) ...[
               const SectionTitle(title: '目標標題'),
               FormCard(
                 child: TextField(
@@ -453,7 +496,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
             ],
 
             // ── 年度：年份 ──────────────────────
-            if (widget.mode == GoalMode.annual) ...[
+            if (_mode == GoalMode.annual) ...[
               const SectionTitle(title: '目標年份'),
               FormCard(
                 child: DropdownButtonFormField<int>(
@@ -480,7 +523,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
             if (_goalType == GoalType.stockPnL) _buildStockField(),
  
             // ── 自訂義：日期範圍 ──────────────
-            if (widget.mode == GoalMode.custom) _buildQuickDateChips(),
+            if (_mode == GoalMode.custom) _buildQuickDateChips(),
 
             const SizedBox(height: 20),
 
@@ -517,7 +560,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
             ),
 
             // ── 年度目標說明提示 ──────────────
-            if (widget.mode == GoalMode.annual) ...[
+            if (_mode == GoalMode.annual) ...[
               const SizedBox(height: 16),
               Container(
                 width: double.infinity,
@@ -597,4 +640,49 @@ class _FieldLabel extends StatelessWidget {
       ),
     ),
   );
+}
+
+class _ModeTab extends StatelessWidget {
+  final String label;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _ModeTab({
+    required this.label,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isActive ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: isActive
+                ? [BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  )]
+                : [],
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+              color: isActive ? AppColors.primary : AppColors.textMuted,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

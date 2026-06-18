@@ -9,6 +9,7 @@ import 'models/dividend.dart';
 import 'models/app_settings.dart';
 import 'models/recurring_plan.dart';
 import 'models/annual_goal.dart';
+import 'models/pause_period.dart';
 import 'repositories/cash_flow_repository.dart';
 import 'repositories/trade_repository.dart';
 import 'repositories/settings_repository.dart';
@@ -35,6 +36,7 @@ void main() async {
   Hive.registerAdapter(AppSettingsAdapter());
   Hive.registerAdapter(RecurringFrequencyAdapter());
   Hive.registerAdapter(RecurringPlanAdapter());
+  Hive.registerAdapter(PausePeriodAdapter());
   Hive.registerAdapter(AnnualGoalAdapter());
   Hive.registerAdapter(CustomGoalAdapter());
 

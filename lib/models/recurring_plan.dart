@@ -1,6 +1,7 @@
 //定期定額計畫model
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
+import 'pause_period.dart';
 
 part 'recurring_plan.g.dart';
 
@@ -16,32 +17,24 @@ enum RecurringFrequency {
 class RecurringPlan {
   @HiveField(0)
   final String id;
-
   @HiveField(1)
   final String symbol; //股票代碼，e.g."0050"
-
   @HiveField(2)
   final String name; //股票名稱，e.g."元大台灣50"
-
   @HiveField(3)
   final RecurringFrequency frequency;
-
   @HiveField(4)
-  final List<int> dayOfMonth;
-  //每月幾號扣款，可多個，e.g. [5, 20]
-  //範圍 1~28（避免月底天數問題）
-
+  final List<int> dayOfMonth; //每月幾號扣款，可多個，e.g. [5, 20]
   @HiveField(5)
   final double amountPerTime; //每次扣款金額（元）
-
   @HiveField(6)
   bool isActive; //是否啟用，可暫停
-
   @HiveField(7)
   final DateTime startDate; //計畫開始日
-
   @HiveField(8)
   final String? note; //備註（選填）
+  @HiveField(9)
+  final List<PausePeriod> pausedPeriods; //暫停區間紀錄
 
   RecurringPlan({
     String? id,
@@ -53,7 +46,9 @@ class RecurringPlan {
     this.isActive = true,
     required this.startDate,
     this.note,
-  }) : id = id ?? const Uuid().v4();
+    List<PausePeriod>? pausedPeriods,
+  }) : id = id ?? const Uuid().v4(),
+      pausedPeriods = pausedPeriods ?? [];
 
   // 每月總扣款金額（次數 × 每次金額）
   double get monthlyAmount => amountPerTime * dayOfMonth.length;
@@ -68,6 +63,7 @@ class RecurringPlan {
     bool? isActive,
     DateTime? startDate,
     String? note,
+    List<PausePeriod>? pausedPeriods,
   }) {
     return RecurringPlan(
       id: id, //id不變
@@ -79,6 +75,7 @@ class RecurringPlan {
       isActive: isActive ?? this.isActive,
       startDate: startDate ?? this.startDate,
       note: note ?? this.note,
+      pausedPeriods: pausedPeriods ?? this.pausedPeriods,
     );
   }
 }

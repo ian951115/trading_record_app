@@ -38,9 +38,8 @@ class _GoalTrackingScreenState extends State<GoalTrackingScreen>
   }
  
   void _onFab() { //新增計畫
-    final mode = _tab.index == 0 ? GoalMode.annual : GoalMode.custom;
     Navigator.push(context, MaterialPageRoute(
-      builder: (_) => AddGoalScreen(mode: mode),
+      builder: (_) => AddGoalScreen(),
     ));
   }
  
@@ -551,7 +550,7 @@ class _AnnualGoalCardState extends State<_AnnualGoalCard> {
                     child: GestureDetector(
                       onTap: () => Navigator.push(context,MaterialPageRoute(
                         builder: (_) => AddGoalScreen(
-                          mode: GoalMode.annual,
+                          initialMode: GoalMode.annual,
                           existingAnnual: goal,
                         ),
                       )),
@@ -1013,7 +1012,7 @@ class _CustomGoalCardState extends State<_CustomGoalCard> {
                     child: GestureDetector(
                       onTap: () => Navigator.push(context,MaterialPageRoute(
                         builder: (_) => AddGoalScreen(
-                          mode: GoalMode.custom,
+                          initialMode: GoalMode.custom,
                           existingCustom: goal,
                         ),
                       )),

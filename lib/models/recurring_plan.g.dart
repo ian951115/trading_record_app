@@ -26,13 +26,14 @@ class RecurringPlanAdapter extends TypeAdapter<RecurringPlan> {
       isActive: fields[6] as bool,
       startDate: fields[7] as DateTime,
       note: fields[8] as String?,
+      pausedPeriods: (fields[9] as List?)?.cast<PausePeriod>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, RecurringPlan obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -50,7 +51,9 @@ class RecurringPlanAdapter extends TypeAdapter<RecurringPlan> {
       ..writeByte(7)
       ..write(obj.startDate)
       ..writeByte(8)
-      ..write(obj.note);
+      ..write(obj.note)
+      ..writeByte(9)
+      ..write(obj.pausedPeriods);
   }
 
   @override

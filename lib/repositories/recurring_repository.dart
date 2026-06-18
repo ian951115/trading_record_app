@@ -2,6 +2,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/recurring_plan.dart';
+import '../models/pause_period.dart';
 
 class RecurringRepository extends ChangeNotifier {
   static const String boxName = 'recurring_plans';
@@ -62,7 +63,28 @@ class RecurringRepository extends ChangeNotifier {
 
   // 切換啟用/暫停
   Future<void> toggleActive(RecurringPlan plan) async {
-    final updated = plan.copyWith(isActive: !plan.isActive);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final periods = List<PausePeriod>.from(plan.pausedPeriods);
+
+    if (plan.isActive) {
+      //啟用 → 暫停：新增一筆開啟中的暫停區間
+      periods.add(PausePeriod(pausedAt: today));
+    } else {
+      //暫停 → 恢復：找到最後一筆未結束的區間，補上resumedAt
+      final lastIndex = periods.lastIndexWhere((p) => p.resumedAt == null);
+      if (lastIndex != -1) {
+        periods[lastIndex] = PausePeriod(
+          pausedAt: periods[lastIndex].pausedAt,
+          resumedAt: today,
+        );
+      }
+    }
+
+    final updated = plan.copyWith(
+      isActive: !plan.isActive,
+      pausedPeriods: periods,
+    );
     await update(updated);
   }
 
