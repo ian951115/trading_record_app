@@ -63,6 +63,7 @@ class _AddRecurringScreenState extends State<AddRecurringScreen> {
   }
 
   Future <void> _onSymbolChanged(String value) async {
+    setState(() => _symbol = value.trim());
     final name = StockNameService.getName(value.trim());
     if (name != null) {
       setState(() => _name = name);

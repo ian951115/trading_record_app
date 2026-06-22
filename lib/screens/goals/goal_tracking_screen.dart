@@ -141,7 +141,6 @@ class _HistorySection extends StatefulWidget {
   final Map<int, List<AnnualGoal>> grouped;
   final List<Trade> trades;
   const _HistorySection({
-    super.key,
     required this.years,
     required this.grouped,
     required this.trades,

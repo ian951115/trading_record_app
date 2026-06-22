@@ -10,7 +10,7 @@ class TradeRepository extends ChangeNotifier {
   List<Trade> _trades = []; //清單
   bool _isReady = false; //確定初始化好了沒
 
-  bool get isRead => _isReady;
+  bool get isReady => _isReady;
 
   TradeRepository() {
     _init(); //這是async，但constructor不會等它完成跑完就結束了，所以有時候Provider在

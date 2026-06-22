@@ -311,13 +311,27 @@ class SettingsScreen extends StatelessWidget {
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
+              final tradeRepo = context.read<TradeRepository>();
+              final cashRepo = context.read<CashFlowRepository>();
+              final dividendRepo = context.read<DividendRepository>();
+              final recurringRepo = context.read<RecurringRepository>();
+              final annualRepo = context.read<AnnualGoalRepository>();
+              final customRepo = context.read<CustomGoalRepository>();
+
+              final deadline = DateTime.now().add(const Duration(seconds: 3));
+              while (DateTime.now().isBefore(deadline)) {
+                if (tradeRepo.isReady && cashRepo.isReady &&
+                    dividendRepo.isReady && recurringRepo.isReady &&
+                    annualRepo.isReady && customRepo.isReady) break;
+                await Future.delayed(const Duration(milliseconds: 100));
+              }
               await Future.wait([
-                context.read<TradeRepository>().clear(),
-                context.read<CashFlowRepository>().clear(),
-                context.read<DividendRepository>().clear(),
-                context.read<RecurringRepository>().clear(),
-                context.read<AnnualGoalRepository>().clear(),
-                context.read<CustomGoalRepository>().clear(),
+                tradeRepo.clear(),
+                cashRepo.clear(),
+                dividendRepo.clear(),
+                recurringRepo.clear(),
+                annualRepo.clear(),
+                customRepo.clear(),
               ]);
             },
             child: const Text(
