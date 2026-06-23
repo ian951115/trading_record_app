@@ -8,14 +8,12 @@ import '../../core/app_colors.dart';
 class CalendarMonthCell extends StatelessWidget {
   final int month;
   final YearMonthData? data;
-  final String Function(double) formatPnL;
   final VoidCallback onTap;
 
   const CalendarMonthCell({
     super.key,
     required this.month,
     required this.data,
-    required this.formatPnL,
     required this.onTap,
   });
 

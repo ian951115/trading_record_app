@@ -53,59 +53,23 @@ class CashFlowScreen extends StatelessWidget {
               padding: const EdgeInsets.all(14),
               children: [
                 // ── Hero 卡片 ──────────────────
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient( //漸層
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Color(0xFF2D6A4F),
-                        AppColors.loss,
-                      ],
+                HeroCard(
+                  title: '可用現金',
+                  colors: const [Color(0xFF2D6A4F), AppColors.loss],
+                  mainValue: Text(
+                    AppFmt.num(cash),
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      letterSpacing: -0.5,
                     ),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [BoxShadow(
-                      color: AppColors.loss.withValues(alpha: 0.3),
-                      blurRadius: 16,
-                      offset: const Offset(0, 6),
-                    )],
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        '可用現金',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.white70,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        AppFmt.num(cash),
-                        style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Divider(color: Colors.white24, height: 1),
-                      const SizedBox(height: 14),
-                      Row(
-                        children: [
-                          _HeroStat(label: '總入金', value: AppFmt.num(totalDeposit)),
-                          const HeroDivider(horizontalMargin: 12),
-                          _HeroStat(label: '總提領', value: AppFmt.num(totalWithdraw)),
-                          const HeroDivider(horizontalMargin: 12),
-                          _HeroStat(label: '淨資金', value: AppFmt.num(netCash)),
-                        ],
-                      ),
-                    ],
-                  ),
+                  stats: [
+                    HeroStat(label: '總入金', value: AppFmt.num(totalDeposit)),
+                    HeroStat(label: '總提領', value: AppFmt.num(totalWithdraw)),
+                    HeroStat(label: '淨資金', value: AppFmt.num(netCash)),
+                  ],
                 ),
 
                 const SizedBox(height: 12),
@@ -288,36 +252,6 @@ class CashFlowScreen extends StatelessWidget {
       ),
     );
   }
-}
-
-// ── Hero 卡片小元件 ─────────────────────────────
-class _HeroStat extends StatelessWidget {
-  final String label, value;
-  const _HeroStat({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) => Expanded(
-    child: Column(
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 10,
-            color: Colors.white60,
-          ),
-        ),
-        const SizedBox(height: 3),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-          ),
-        ),
-      ],
-    ),
-  );
 }
 
 // ── 資金紀錄列 ─────────────────────────────────

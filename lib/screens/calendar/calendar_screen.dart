@@ -63,16 +63,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  String formatPnLDisplay(double pnl) { //輸出格式化
-    String sign = pnl >= 0 ? '+' : '-';
-    double absValue = pnl.abs();
-
-    if (absValue >= 10000) {
-      return '$sign${(absValue / 10000).toStringAsFixed(2)}萬';
-    }
-    return '$sign${absValue.toStringAsFixed(2)}';
-  }
-
   void _toggleViewMode() { //年/月視圖切換
     setState(() {
       _viewMode = _viewMode == CalendarViewMode.month
@@ -139,7 +129,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   focusedDay: focusedDay,
                   stats: stats,
                   streak: streak,
-                  formatPnL: formatPnLDisplay,
                 ),      
                 Expanded(
                   child: MonthCalendarView(
@@ -147,7 +136,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     focusedDay: focusedDay,
                     selectedDay: selectedDay,
                     dailyPnLMap: dailyPnLMap,
-                    formatPnL: formatPnLDisplay,
                     onDaySelected: (selected, focused) {
                       setState(() {
                         selectedDay =selected;
@@ -168,7 +156,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
               key: const ValueKey('year'),
               currentYear: currentYear,
               yearData: yearData,
-              formatPnL: formatPnLDisplay,
               onPrevYear: () {
                 setState(() {
                   currentYear--;

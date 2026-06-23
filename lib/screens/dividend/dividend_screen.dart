@@ -43,61 +43,30 @@ class _DividendScreenState extends State<DividendScreen> {
               children: [
                 Container( //Hero卡片
                   margin: const EdgeInsets.fromLTRB(14, 12, 14, 0),
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [Color(0xFF2D6A4F), AppColors.loss],
+                  child: HeroCard(
+                    title: '累計股利收入',
+                    colors: const [Color(0xFF2D6A4F), AppColors.loss],
+                    mainValue: Text(
+                      AppFmt.num(repo.totalCashDividend),
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
                     ),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [BoxShadow(
-                      color: AppColors.loss.withValues(alpha: 0.3),
-                      blurRadius: 16,
-                      offset: const Offset(0, 6),
-                    )],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        '累計股利收入',
-                        style: TextStyle(
-                          fontSize:10,
-                          color:Colors.white60,
-                          letterSpacing:1,
-                        ),
+                    stats: [
+                      HeroStat(
+                        label:'現金股利',
+                        value: AppFmt.num(repo.totalCashDividend),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        AppFmt.num(repo.totalCashDividend),
-                        style: const TextStyle(
-                          fontSize:24,
-                          fontWeight:FontWeight.w700,
-                          color:Colors.white
-                        ),
+                      HeroStat(
+                        label:'股票股利',
+                        value: '${repo.totalShareDividend} 股',
                       ),
-                      const SizedBox(height: 14),
-                      const Divider(color:Colors.white24, height:1),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          _DivHeroStat(
-                            label:'現金股利',
-                            value: AppFmt.num(repo.totalCashDividend),
-                          ),
-                          const HeroDivider(),
-                          _DivHeroStat(
-                            label:'股票股利',
-                            value: '${repo.totalShareDividend} 股',
-                          ),
-                          const HeroDivider(),
-                          _DivHeroStat(
-                            label:'扣費後淨額',
-                            value: AppFmt.num(repo.totalNetCashDividend),
-                            valueColor: const Color(0xFFB8F0D0),
-                          ),
-                        ],
+                      HeroStat(
+                        label:'扣費後淨額',
+                        value: AppFmt.num(repo.totalNetCashDividend),
+                        valueColor: const Color(0xFFB8F0D0),
                       ),
                     ],
                   ),
@@ -210,35 +179,6 @@ class _DividendScreenState extends State<DividendScreen> {
       ),
     );
   }
-}
-
-class _DivHeroStat extends StatelessWidget { //Hero統計小元件
-  final String label, value;
-  final Color valueColor;
-  const _DivHeroStat({
-    required this.label, required this.value,
-    this.valueColor = Colors.white,
-  });
-  @override
-  Widget build(BuildContext context) => Expanded(
-    child: Column(
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize:9, color:Colors.white60),
-        ),
-        const SizedBox(height: 3),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize:12,
-            fontWeight:FontWeight.w700,
-            color:valueColor,
-          ),
-        ),
-      ],
-    ),
-  );
 }
 
 class _DividendTile extends StatefulWidget { //股利卡片

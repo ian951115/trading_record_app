@@ -7,14 +7,12 @@ class CalendarStatsCard extends StatelessWidget {
   final DateTime focusedDay;
   final Map stats;
   final int streak;
-  final String Function(double) formatPnL;
 
   const CalendarStatsCard({
     super.key,
     required this.focusedDay,
     required this.stats,
     required this.streak,
-    required this.formatPnL,
   });
   
   @override

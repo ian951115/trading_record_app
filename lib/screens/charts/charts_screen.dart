@@ -14,6 +14,7 @@ import '../../services/calc/chart_service.dart';
 import '../../services/calc/position_service.dart';
 import '../../services/data/stock_price_service.dart';
 import '../../widgets/common/stats_strip.dart';
+import '../../widgets/common/year_switcher.dart';
 
 // 圖表頁面顏色常數
 const _chartColors = [
@@ -917,28 +918,7 @@ class _MonthlyTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(14),
       children: [
-        Row( //年份切換
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _NavBtn(
-              icon: Icons.chevron_left,
-              onTap: () => onYearChanged(year - 1),
-            ),
-            const SizedBox(width: 16),
-            Text('$year 年',
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF1A1F2E),
-              ),
-            ),
-            const SizedBox(width: 16),
-            _NavBtn(
-              icon: Icons.chevron_right,
-              onTap: () => onYearChanged(year + 1),
-            ),
-          ],
-        ),
+        YearSwitcher(year: year, onChanged: onYearChanged),
         const SizedBox(height: 10),
         StatsStrip( //統計列
           cells: [
@@ -1627,32 +1607,6 @@ class _RangeChips extends StatelessWidget { //時間範圍選擇器
           ),
         );
       }).toList(),
-    );
-  }
-}
-
-class _NavBtn extends StatelessWidget { //導航按鈕
-  final IconData icon;
-  final VoidCallback onTap;
-  const _NavBtn({required this.icon, required this.onTap});
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 32, height: 32,
-        decoration: BoxDecoration(
-          color: const Color(0xFFEBF0F8),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: const Color(0xFFC5D4EC)),
-        ),
-        child: Icon(
-          icon,
-          size: 18,
-          color: const Color(0xFF4A6FA5),
-        ),
-      ),
     );
   }
 }

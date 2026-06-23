@@ -30,7 +30,7 @@ class AppFmt {
     if (abs >= 1e8) {
       return '${(value / 1e8).toStringAsFixed(2)}億';
     } else if (abs >= 1e4) {
-      return '${(value / 1e4).toStringAsFixed(1)}萬';
+      return '${(value / 1e4).toStringAsFixed(2)}萬';
     }
     return _comma.format(value.toInt());
   }

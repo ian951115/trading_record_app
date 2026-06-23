@@ -11,7 +11,6 @@ class MonthCalendarView extends StatelessWidget {
   final Map<DateTime, DailyPnl> dailyPnLMap;
   final void Function(DateTime selected, DateTime focused) onDaySelected;
   final void Function(DateTime focusedDay) onPageChanged;
-  final String Function(double) formatPnL;
 
   const MonthCalendarView({
     super.key,
@@ -20,7 +19,6 @@ class MonthCalendarView extends StatelessWidget {
     required this.dailyPnLMap,
     required this.onDaySelected,
     required this.onPageChanged,
-    required this.formatPnL,
   });
 
   @override
@@ -166,7 +164,6 @@ class MonthCalendarView extends StatelessWidget {
       daily: daily,
       isSelected: isSelected,
       isToday: isToday,
-      formatPnL: formatPnL,
       tradeCount: daily?.trades.length ?? 0,
     );
   }

@@ -11,7 +11,6 @@ class YearCalendarView extends StatelessWidget {
   final VoidCallback onPrevYear;
   final VoidCallback onNextYear;
   final void Function(int month) onMonthTap;
-  final String Function(double) formatPnL;
 
   const YearCalendarView({
     super.key,
@@ -20,7 +19,6 @@ class YearCalendarView extends StatelessWidget {
     required this.onPrevYear,
     required this.onNextYear,
     required this.onMonthTap,
-    required this.formatPnL,
   });
 
   @override
@@ -169,7 +167,6 @@ class YearCalendarView extends StatelessWidget {
                 return CalendarMonthCell(
                   month: month,
                   data: data,
-                  formatPnL: formatPnL,
                   onTap: () => onMonthTap(month),
                 );
               },

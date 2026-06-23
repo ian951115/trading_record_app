@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import '../../models/daily_pnl.dart';
 import '../../core/app_colors.dart';
+import '../../core/formatters.dart';
 
 class CalendarDayCell extends StatelessWidget {
   final DateTime day;
@@ -9,13 +10,11 @@ class CalendarDayCell extends StatelessWidget {
   final bool isSelected;
   final bool isToday;
   final int tradeCount;
-  final String Function(double) formatPnL;
 
   const CalendarDayCell({
     super.key,
     required this.day,
     required this.daily,
-    required this.formatPnL,
     required this.tradeCount,
     this.isSelected = false,
     this.isToday = false,
@@ -95,7 +94,7 @@ class CalendarDayCell extends StatelessWidget {
                       child: FittedBox(
                         fit: BoxFit.scaleDown,
                         child: Text(
-                          formatPnL(pnl),
+                          AppFmt.pnlCompact(pnl),
                           style: TextStyle(
                             fontSize: 8,
                             fontWeight: FontWeight.w700,
