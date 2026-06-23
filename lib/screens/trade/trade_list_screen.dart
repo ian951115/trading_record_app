@@ -11,6 +11,7 @@ import '../../repositories/cash_flow_repository.dart';
 import '../../services/calc/position_service.dart';
 import '../../widgets/common/app_filter_chip.dart';
 import '../../widgets/common/stats_strip.dart';
+import '../../widgets/common/hero_card.dart';
 import '../../widgets/trade/trade_tile.dart';
 import 'add_trade_screen.dart';
 
@@ -98,11 +99,13 @@ class _TradeListScreenState extends State<TradeListScreen> {
         children: [
           // ── 篩選器 ────────────────────────
           Container(
+            width: double.infinity,
             color: Colors.white,
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   AppFilterChip(
                     label: '全部',

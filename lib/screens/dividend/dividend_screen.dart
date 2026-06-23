@@ -6,7 +6,7 @@ import '../../core/app_colors.dart';
 import '../../models/dividend.dart';
 import '../../repositories/dividend_repository.dart';
 import '../../widgets/common/app_filter_chip.dart';
-import '../../widgets/common/hero_divider.dart';
+import '../../widgets/common/hero_card.dart';
 import '../../widgets/common/stats_strip.dart';
 import 'add_dividend_screen.dart';
 

@@ -111,10 +111,13 @@ class _StockPerformanceScreenState extends State<StockPerformanceScreen> {
             ),
           ),
           const SizedBox(height: 6),
-          SingleChildScrollView( //Filter chips
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          child:  SingleChildScrollView( //Filter chips
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 AppFilterChip(
                   label:'全部',
@@ -143,6 +146,7 @@ class _StockPerformanceScreenState extends State<StockPerformanceScreen> {
                 ),
               ],
             ),
+          ),
           ),
           Expanded( //List
             child: filtered.isEmpty

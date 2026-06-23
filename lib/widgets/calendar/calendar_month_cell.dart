@@ -67,7 +67,7 @@ class CalendarMonthCell extends StatelessWidget {
             ),
             if (hasData) //迷你走勢線（有資料才顯示）
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
+                padding: const EdgeInsets.symmetric(vertical: 3),
                 child: SizedBox(
                   height: 20, width: double.infinity,
                   child: Opacity(
@@ -88,7 +88,6 @@ class CalendarMonthCell extends StatelessWidget {
                 color: pnlColor,
               ),
             ),
-
             if (hasData) //交易筆數 + 勝率
               Text(
                 '${data!.tradeCount} 筆・${(data!.winRate * 100).toStringAsFixed(0)}%',

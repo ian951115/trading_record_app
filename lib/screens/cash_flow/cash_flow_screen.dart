@@ -8,7 +8,7 @@ import '../../repositories/cash_flow_repository.dart';
 import '../../repositories/trade_repository.dart';
 import '../../repositories/settings_repository.dart';
 import '../../services/calc/portfolio_service.dart';
-import '../../widgets/common/hero_divider.dart';
+import '../../widgets/common/hero_card.dart';
 import '../../widgets/common/stats_strip.dart';
 import 'add_cash_flow_screen.dart';
 

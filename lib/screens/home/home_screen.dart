@@ -329,13 +329,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 // ── 快捷功能 2×4 ───────────────
                 const _SectionHeader(title: '快捷功能'),
                 const SizedBox(height: 10),
-                SizedBox(
-                  height: 200,
-                  child: PageView(
-                    controller: _pageCtrl,
-                    onPageChanged: (i) => setState(() => _currentPage = i),
-                    children: [buildPage1(), buildPage2()],
-                  ),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final itemW = (constraints.maxWidth - 8 *3) / 4;
+                    final itemH = itemW / 0.95;
+                    final gridH = itemH * 2 + 8;
+                    return SizedBox(
+                      height: gridH,
+                      child: PageView(
+                        controller: _pageCtrl,
+                        onPageChanged: (i) => setState(() => _currentPage = i),
+                        children: [buildPage1(), buildPage2()],
+                      ),
+                    );
+                  },
                 ),
                 const SizedBox(height: 8),
                 Row( //圓點指示器
