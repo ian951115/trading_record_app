@@ -56,7 +56,7 @@ class _StockPerformanceScreenState extends State<StockPerformanceScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
             child: HeroCard(
-              title: '總已實現損益',
+              title: '已實現損益',
               mainValue: Text(
                 AppFmt.pnl(totalRealized),
                 style: TextStyle(

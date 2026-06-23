@@ -22,7 +22,7 @@ class YearSwitcher extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         _NavBtn(onTap: () => onChanged(year - 1), icon: Icons.chevron_left),
-        const SizedBox(width: 16),
+        const SizedBox(width: 64),
         Text(
           label ?? '$year 年',
           style: const TextStyle(
@@ -31,7 +31,7 @@ class YearSwitcher extends StatelessWidget {
             color: Color(0xFF1A1F2E),
           ),
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: 64),
         _NavBtn(onTap: () => onChanged(year + 1), icon: Icons.chevron_right),
       ],
     );

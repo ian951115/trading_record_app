@@ -156,16 +156,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               key: const ValueKey('year'),
               currentYear: currentYear,
               yearData: yearData,
-              onPrevYear: () {
-                setState(() {
-                  currentYear--;
-                });
-              },
-              onNextYear: () {
-                setState(() {
-                  currentYear++;
-                });
-              },
+              onYearChanged: (y) => setState(() => currentYear = y),
               onMonthTap: (month) {
                 setState(() {
                   focusedDay = DateTime(currentYear, month, 1);

@@ -4,20 +4,19 @@ import '../../core/formatters.dart';
 import '../../core/app_colors.dart';
 import '../../services/calc/pnl_service.dart';
 import '../../widgets/calendar/calendar_month_cell.dart';
+import '../../widgets/common/year_switcher.dart';
 
 class YearCalendarView extends StatelessWidget {
   final int currentYear;
   final Map<int, YearMonthData> yearData;
-  final VoidCallback onPrevYear;
-  final VoidCallback onNextYear;
+  final ValueChanged<int> onYearChanged;
   final void Function(int month) onMonthTap;
 
   const YearCalendarView({
     super.key,
     required this.currentYear,
     required this.yearData,
-    required this.onPrevYear,
-    required this.onNextYear,
+    required this.onYearChanged,
     required this.onMonthTap,
   });
 
@@ -50,9 +49,9 @@ class YearCalendarView extends StatelessWidget {
       onHorizontalDragEnd: (details) {
         if (details.primaryVelocity == null) return;
         if (details.primaryVelocity! < -200) {
-          onNextYear(); //左滑換年
+          onYearChanged(currentYear + 1); //左滑換年
         } else if (details.primaryVelocity! > 200) {
-          onPrevYear(); //右滑
+          onYearChanged(currentYear - 1); //右滑
         }
       },
       child: Column(
@@ -130,23 +129,10 @@ class YearCalendarView extends StatelessWidget {
 
           // ── 年份導航 ──────────────────────
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
-            child: Row(
-              children: [
-                _NavBtn(onTap: onPrevYear, icon: Icons.chevron_left),
-                Expanded(
-                  child: Text(
-                    '$currentYear 年',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF1A1F2E),
-                    ),
-                  ),
-                ),
-                _NavBtn(onTap: onNextYear, icon: Icons.chevron_right),
-              ],
+            padding: const EdgeInsets.fromLTRB(14, 8, 14, 0),
+            child: YearSwitcher(
+              year: currentYear,
+              onChanged: onYearChanged,
             ),
           ),
 
@@ -228,29 +214,6 @@ class _YearDivider extends StatelessWidget {
       width: 1, height: 28,
       color: Colors.white24,
       margin: const EdgeInsets.symmetric(horizontal: 4),
-    );
-  }
-}
-
-class _NavBtn extends StatelessWidget {
-  final VoidCallback onTap;
-  final IconData icon;
-
-  const _NavBtn({required this.onTap, required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 34, height: 34,
-        decoration: BoxDecoration(
-          color: const Color(0xFFEBF0F8),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFFC5D4EC)),
-        ),
-        child: Icon(icon, size: 18, color: const Color(0xFF4A6FA5)),
-      ),
     );
   }
 }

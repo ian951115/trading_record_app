@@ -10,7 +10,6 @@ import '../../repositories/trade_repository.dart';
 import '../../repositories/cash_flow_repository.dart';
 import '../../services/calc/position_service.dart';
 import '../../widgets/common/app_filter_chip.dart';
-import '../../widgets/common/stats_strip.dart';
 import '../../widgets/common/hero_card.dart';
 import '../../widgets/trade/trade_tile.dart';
 import 'add_trade_screen.dart';
@@ -77,10 +76,10 @@ class _TradeListScreenState extends State<TradeListScreen> {
     
     return {
       'count': totalCount.toString(),
-      'amount': AppFmt.num(totalAmount),
+      'amountRaw': totalAmount,
       'pnl': AppFmt.pnl(totalPnL),
       'pnlColor': AppColors.pnl(totalPnL),
-      'fee': AppFmt.num(totalFee),
+      'feeRaw': totalFee,
     };
   }
 
@@ -97,10 +96,37 @@ class _TradeListScreenState extends State<TradeListScreen> {
       appBar: AppBar(title: const Text('交易明細')),
       body: Column(
         children: [
+          // ── HeroCard ──────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
+            child: HeroCard(
+              title: '已實現損益',
+              mainValue: Text(
+                stats['pnl'] as String,
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w700,
+                  color: stats['pnlColor'] as Color,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              stats: [
+                HeroStat(label: '交易筆數', value: stats['count'] as String),
+                HeroStat(
+                  label: '總價金',
+                  value: AppFmt.compact(stats['amountRaw'] as double)
+                ),
+                HeroStat(
+                  label: '交易費用',
+                  value: AppFmt.compact(stats['feeRaw'] as double),
+                ),
+              ],
+            ),
+          ),
+
           // ── 篩選器 ────────────────────────
           Container(
             width: double.infinity,
-            color: Colors.white,
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -156,23 +182,6 @@ class _TradeListScreenState extends State<TradeListScreen> {
           ),
 
           const Divider(height: 1), //分隔線寬
-
-          // ── 統計列 ────────────────────────
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
-            child: StatsStrip(
-              cells: [
-                StatCell(label: '交易筆數', value: stats['count']),
-                StatCell(label: '總價金', value: stats['amount']),
-                StatCell(
-                  label: '損益',
-                  value: stats['pnl'],
-                  valueColor: stats['pnlColor'],
-                ),
-                StatCell(label: '交易費用', value: stats['fee']),
-              ],
-            ),
-          ),
 
           // ── 交易列表 ──────────────────────
           Expanded(
