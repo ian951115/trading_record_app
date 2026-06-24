@@ -7,6 +7,7 @@ import '../../models/recurring_plan.dart';
 import '../../repositories/recurring_repository.dart';
 import '../../repositories/trade_repository.dart';
 import '../../services/calc/recurring_service.dart';
+import '../../widgets/common/expanded_actions.dart';
 import 'add_recurring_screen.dart';
 import 'confirm_recurring_screen.dart';
 
@@ -188,28 +189,6 @@ class _RecurringTile extends StatefulWidget {
 class _RecurringTileState extends State<_RecurringTile> {
   bool _expanded = false;
 
-  Future<void> _confirmDelete(BuildContext context, RecurringRepository repo) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('確認刪除'),
-        content: Text('刪除「${widget.plan.name}」的定期定額計畫？\n已入帳的交易紀錄不受影響'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            style: TextButton.styleFrom(foregroundColor: AppColors.profit),
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('刪除'),
-          ),
-        ],
-      ),
-    );
-    if (ok == true && context.mounted) repo.delete(widget.plan.id);
-  }
-
   @override
   Widget build(BuildContext context) {
     final plan = widget.plan;
@@ -382,9 +361,8 @@ class _RecurringTileState extends State<_RecurringTile> {
                     ),
                   ),
                 ],
-                Row(
-                  children: [
-                    // 暫停/恢復
+                ExpandedActions(
+                  extraActions: [ // 暫停/恢復
                     Expanded(
                       child: GestureDetector(
                         onTap: () => repo.toggleActive(plan),
@@ -397,12 +375,14 @@ class _RecurringTileState extends State<_RecurringTile> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(isPaused ? Icons.play_arrow_outlined : Icons.pause_outlined,
+                              Icon(
+                                isPaused ? Icons.play_arrow_outlined : Icons.pause_outlined,
                                 size: 14,
                                 color: const Color(0xFFE07B20),
                               ),
                               const SizedBox(width: 4),
-                              Text(isPaused ? '恢復' : '暫停',
+                              Text(
+                                isPaused ? '恢復' : '暫停',
                                 style: const TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
@@ -414,68 +394,15 @@ class _RecurringTileState extends State<_RecurringTile> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 6),
-                    // 編輯
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => Navigator.push(context, MaterialPageRoute(
-                        builder: (_) => AddRecurringScreen(existingPlan: plan))),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFEBF0F8),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.edit_outlined, size: 14, color: Color(0xFF4A6FA5)),
-                              SizedBox(width: 4),
-                              Text(
-                                '編輯',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF4A6FA5),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    // 刪除
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => _confirmDelete(context, repo),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFDF0EF),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.delete_outline,
-                                size: 14,
-                                color: AppColors.profit,
-                              ),
-                              SizedBox(width: 4),
-                              Text('刪除',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.profit,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
                   ],
+                  onEdit: () => Navigator.push(context, MaterialPageRoute(
+                    builder: (_) => AddRecurringScreen(existingPlan: plan),
+                  )),
+                  onDelete: () async {
+                    if (await ExpandedActions.confirmDelete(context)) {
+                      if (context.mounted) repo.delete(plan.id);
+                    }
+                  },
                 ),
               ],
             ],

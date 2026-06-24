@@ -8,6 +8,7 @@ import '../../repositories/dividend_repository.dart';
 import '../../widgets/common/app_filter_chip.dart';
 import '../../widgets/common/hero_card.dart';
 import '../../widgets/common/stats_strip.dart';
+import '../../widgets/common/expanded_actions.dart';
 import 'add_dividend_screen.dart';
 
 class DividendScreen extends StatefulWidget {
@@ -40,56 +41,50 @@ class _DividendScreenState extends State<DividendScreen> {
         children: [
           Expanded(
             child: ListView(
+              padding: const EdgeInsets.all(14),
               children: [
-                Container( //Hero卡片
-                  margin: const EdgeInsets.fromLTRB(14, 12, 14, 0),
-                  child: HeroCard(
-                    title: '累計股利收入',
-                    colors: const [Color(0xFF2D6A4F), AppColors.loss],
-                    mainValue: Text(
-                      AppFmt.num(repo.totalCashDividend),
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
+                HeroCard(
+                  title: '累計股利收入',
+                  colors: const [Color(0xFF2D6A4F), AppColors.loss],
+                  mainValue: Text(
+                    AppFmt.num(repo.totalCashDividend),
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
                     ),
-                    stats: [
-                      HeroStat(
-                        label:'現金股利',
-                        value: AppFmt.num(repo.totalCashDividend),
-                      ),
-                      HeroStat(
-                        label:'股票股利',
-                        value: '${repo.totalShareDividend} 股',
-                      ),
-                      HeroStat(
-                        label:'扣費後淨額',
-                        value: AppFmt.num(repo.totalNetCashDividend),
-                        valueColor: const Color(0xFFB8F0D0),
-                      ),
-                    ],
                   ),
+                  stats: [
+                    HeroStat(
+                      label:'現金股利',
+                      value: AppFmt.num(repo.totalCashDividend),
+                    ),
+                    HeroStat(
+                      label:'股票股利',
+                      value: '${repo.totalShareDividend} 股',
+                    ),
+                    HeroStat(
+                      label:'扣費後淨額',
+                      value: AppFmt.num(repo.totalNetCashDividend),
+                      valueColor: const Color(0xFFB8F0D0),
+                    ),
+                  ],
                 ),
-
-                const SizedBox(height: 10),
+                
+                const SizedBox(height: 12),
           
-                Padding( //Stats
-                  padding: const EdgeInsets.symmetric(horizontal:14),
-                  child: StatsStrip(
-                    cells: [
-                      StatCell(label:'配息次數', value: '${all.length}'),
-                      StatCell(label:'二代健保', value: AppFmt.num(repo.totalHealthInsurance)),
-                      StatCell(label:'手續費', value: AppFmt.num(repo.totalFee)),
-                    ],
-                  ),
+                StatsStrip(
+                  cells: [
+                    StatCell(label:'配息次數', value: '${all.length}'),
+                    StatCell(label:'二代健保', value: AppFmt.num(repo.totalHealthInsurance)),
+                    StatCell(label:'手續費', value: AppFmt.num(repo.totalFee)),
+                  ],
                 ),
-
-                const SizedBox(height: 8),
+                
+                const SizedBox(height: 12),
           
                 SingleChildScrollView( //Filter chips
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal:14, vertical:6),
                   child: Row(
                     children: [
                       AppFilterChip(
@@ -113,18 +108,8 @@ class _DividendScreenState extends State<DividendScreen> {
                     ],
                   ),
                 ),
-          
-                Padding( //列表標題
-                  padding: const EdgeInsets.fromLTRB(14, 4, 14, 8),
-                  child: const Text(
-                    '股利紀錄',
-                    style: TextStyle(
-                      fontSize:14,
-                      fontWeight:FontWeight.w700,
-                      color:AppColors.textPrimary,
-                    ),
-                  ),
-                ),
+
+                const SizedBox(height: 12),
           
                 if (filtered.isEmpty) //列表
                   const Center(
@@ -140,25 +125,9 @@ class _DividendScreenState extends State<DividendScreen> {
                   ...filtered.map((d) => _DividendTile(
                     dividend: d,
                     onDelete: () async {
-                      final ok = await showDialog<bool>(
-                        context: context,
-                        builder: (_) => AlertDialog(
-                          title: const Text('確認刪除'),
-                          content: const Text('確定要刪除這筆股利紀錄？\n此操作無法復原。'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, false),
-                              child: const Text('取消'),
-                            ),
-                            TextButton(
-                              style: TextButton.styleFrom(foregroundColor: AppColors.profit),
-                              onPressed: () => Navigator.pop(context, true),
-                              child: const Text('刪除'),
-                            ),
-                          ],
-                        ),
-                      );
-                      if (ok == true) repo.removeDividend(d.id);
+                      if (await ExpandedActions.confirmDelete(context)) {
+                        repo.removeDividend(d.id);
+                      }
                     },
                     onEdit: () => Navigator.push(context,
                       MaterialPageRoute(
@@ -349,73 +318,10 @@ class _DividendTileState extends State<_DividendTile> {
                 ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: widget.onEdit,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryLight,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.edit_outlined,
-                                size: 14,
-                                color: AppColors.primary,
-                              ),
-                              SizedBox(width: 4),
-                              Text(
-                                '編輯',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: widget.onDelete,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          decoration: BoxDecoration(
-                            color: AppColors.profitBg,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.delete_outline,
-                                size: 14,
-                                color: AppColors.profit,
-                              ),
-                              SizedBox(width: 4),
-                              Text(
-                                '刪除',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.profit,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                child: ExpandedActions(
+                  onEdit: widget.onEdit,
+                  onDelete: widget.onDelete,
+                )
               ),
             ],
           ],

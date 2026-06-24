@@ -11,6 +11,7 @@ import '../../repositories/cash_flow_repository.dart';
 import '../../services/calc/position_service.dart';
 import '../../widgets/common/app_filter_chip.dart';
 import '../../widgets/common/hero_card.dart';
+import '../../widgets/common/expanded_actions.dart';
 import '../../widgets/trade/trade_tile.dart';
 import 'add_trade_screen.dart';
 
@@ -246,25 +247,9 @@ class _TradeListScreenState extends State<TradeListScreen> {
                         }
                       },
                       onDelete: () async {
-                        final confirm = await showDialog<bool>(
-                          context: context,
-                          builder: (_) => AlertDialog(
-                            title: const Text('確認刪除'),
-                            content: const Text('確定要刪除這筆交易紀錄？\n此操作無法復原。'),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context, false),
-                                child: const Text('取消'),
-                              ),
-                              TextButton(
-                                style: TextButton.styleFrom(foregroundColor: AppColors.profit),
-                                onPressed: () => Navigator.pop(context, true),
-                                child: const Text('刪除'),
-                              ),
-                            ],
-                          ),
-                        );
-                        if (confirm == true) tradeRepo.removeTrade(trade);
+                        if (await ExpandedActions.confirmDelete(context)) {
+                          tradeRepo.removeTrade(trade);
+                        }
                       },
                     );
                   },

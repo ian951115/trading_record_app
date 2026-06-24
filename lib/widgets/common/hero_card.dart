@@ -9,7 +9,7 @@ class HeroDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 1,
+      width: 1, height: 32,
       color: Colors.white24,
       margin: EdgeInsets.symmetric(horizontal: horizontalMargin),
     );

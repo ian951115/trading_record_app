@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/formatters.dart';
 import '../../core/app_colors.dart';
+import '../../core/goal_pnl_helper.dart';
 import '../../models/goal_type.dart';
 import '../../models/trade.dart';
 import '../../models/annual_goal.dart';
@@ -10,7 +11,7 @@ import '../../models/custom_goal.dart';
 import '../../repositories/trade_repository.dart';
 import '../../repositories/annual_goal_repository.dart';
 import '../../repositories/custom_goal_repository.dart';
-import '../../core/goal_pnl_helper.dart';
+import '../../widgets/common/expanded_actions.dart';
 import '../goals/add_goal_screen.dart';
 
 class GoalTrackingScreen extends StatefulWidget {
@@ -298,30 +299,6 @@ class _AnnualGoalCardState extends State<_AnnualGoalCard> {
         : null,
   );
 
-  Future<void> _confirmDelete(BuildContext context) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('確認刪除'),
-        content: Text('刪除 ${widget.goal.year} 年「$_title」目標？'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            style: TextButton.styleFrom(foregroundColor: AppColors.profit),
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('刪除'),
-          ),
-        ],
-      ),
-    );
-    if (ok == true && context.mounted) {
-      context.read<AnnualGoalRepository>().delete(widget.goal.id);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final goal = widget.goal;
@@ -543,77 +520,20 @@ class _AnnualGoalCardState extends State<_AnnualGoalCard> {
               const SizedBox(height: 12),
               const Divider(height: 1),
               const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => Navigator.push(context,MaterialPageRoute(
-                        builder: (_) => AddGoalScreen(
-                          initialMode: GoalMode.annual,
-                          existingAnnual: goal,
-                        ),
-                      )),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEBF0F8),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.edit_outlined,
-                              size: 14,
-                              color: AppColors.primary,
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              '編輯',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+              ExpandedActions(
+                onEdit: () => Navigator.push(context, MaterialPageRoute(
+                  builder: (_) => AddGoalScreen(
+                    initialMode: GoalMode.annual,
+                    existingAnnual: goal,
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => _confirmDelete(context),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        decoration: BoxDecoration(
-                          color: AppColors.profitBg,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.delete_outline,
-                              size: 14,
-                              color: AppColors.profit,
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              '刪除',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.profit,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                )),
+                onDelete: () async {
+                  if (await ExpandedActions.confirmDelete(context)) {
+                    if (context.mounted) {
+                      context.read<AnnualGoalRepository>().delete(widget.goal.id);
+                    }
+                  }
+                },
               ),
             ],
           ],
@@ -817,30 +737,6 @@ class _CustomGoalCardState extends State<_CustomGoalCard> {
     }
   }
 
-  Future<void> _confirmDelete(BuildContext context) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('確認刪除'),
-        content: Text('刪除「${widget.goal.title}」？'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            style: TextButton.styleFrom(foregroundColor: AppColors.profit),
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('刪除'),
-          ),
-        ],
-      ),
-    );
-    if (ok == true && context.mounted) {
-      context.read<CustomGoalRepository>().delete(widget.goal.id);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final goal = widget.goal;
@@ -1005,77 +901,20 @@ class _CustomGoalCardState extends State<_CustomGoalCard> {
               const SizedBox(height: 12),
               const Divider(height: 1),
               const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => Navigator.push(context,MaterialPageRoute(
-                        builder: (_) => AddGoalScreen(
-                          initialMode: GoalMode.custom,
-                          existingCustom: goal,
-                        ),
-                      )),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEBF0F8),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.edit_outlined,
-                              size: 14,
-                              color: Color(0xFF4A6FA5),
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              '編輯',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF4A6FA5),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+              ExpandedActions(
+                onEdit: () => Navigator.push(context, MaterialPageRoute(
+                  builder: (_) => AddGoalScreen(
+                    initialMode: GoalMode.custom,
+                    existingCustom: goal,
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => _confirmDelete(context),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        decoration: BoxDecoration(
-                          color: AppColors.profitBg,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.delete_outline,
-                              size: 14,
-                              color: AppColors.profit,
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              '刪除',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.profit,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                )),
+                onDelete: () async {
+                  if (await ExpandedActions.confirmDelete(context)) {
+                    if (context.mounted) {
+                      context.read<CustomGoalRepository>().delete(widget.goal.id);
+                    }
+                  }
+                },
               ),
             ],
           ],

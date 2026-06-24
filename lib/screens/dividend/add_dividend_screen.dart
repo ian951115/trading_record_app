@@ -91,7 +91,7 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
     if (_symbol.trim().isEmpty) {
       _showError('請填入股票代碼'); return;
     }
-    if (_pricePerShare <= 0) {
+    if (_pricePerShare <= 0 && _shareAmount <= 0) {
       _showError('請填入有效每股股利'); return;
     }
     if (_type == DividendType.cash && _grossAmount <= 0) return;

@@ -10,6 +10,7 @@ import '../../repositories/settings_repository.dart';
 import '../../services/calc/portfolio_service.dart';
 import '../../widgets/common/hero_card.dart';
 import '../../widgets/common/stats_strip.dart';
+import '../../widgets/common/expanded_actions.dart';
 import 'add_cash_flow_screen.dart';
 
 class CashFlowScreen extends StatelessWidget {
@@ -195,23 +196,7 @@ class CashFlowScreen extends StatelessWidget {
                   ],
                 ),
 
-                const SizedBox(height: 16),
-
-                // ── 紀錄列表標題 ───────────────
-                const Row(
-                  children: [
-                    Text(
-                      '資金紀錄',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
 
                 // ── 紀錄列表 ───────────────────
                 if (cashFlows.isEmpty)
@@ -270,32 +255,6 @@ class _CashFlowTileState extends State<_CashFlowTile> {
     Navigator.push(context,
       MaterialPageRoute(builder: (_) => AddCashFlowScreen(existingFlow: widget.flow)),
     );
-  }
-
-  Future<void> _onDelete(BuildContext context) async { //刪除確認
-    final flow = widget.flow;
-    final typeName = flow.type == CashFlowType.deposit ? '入金' : '提領';
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('確認刪除'),
-        content: Text('確定要刪除這筆$typeName紀錄？\n此操作無法復原。'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            style: TextButton.styleFrom(foregroundColor: AppColors.profit),
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('刪除'),
-          ),
-        ],
-      ),
-    );
-    if (ok == true && context.mounted) {
-      context.read<CashFlowRepository>().removeFlow(flow.id);
-    }
   }
 
   @override
@@ -411,73 +370,16 @@ class _CashFlowTileState extends State<_CashFlowTile> {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
-                child: Row(
-                  children: [
-                    Expanded( //編輯
-                      child: GestureDetector(
-                        onTap: () => _onEdit(context),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryLight,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.edit_outlined,
-                                size: 14,
-                                color: AppColors.primary,
-                              ),
-                              SizedBox(width: 4),
-                              Text(
-                                '編輯',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded( //刪除
-                      child: GestureDetector(
-                        onTap: () => _onDelete(context),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          decoration: BoxDecoration(
-                            color: AppColors.profitBg,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.delete_outline,
-                                size: 14,
-                                color: AppColors.profit,
-                              ),
-                              SizedBox(width: 4),
-                              Text(
-                                '刪除',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.profit,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                child: ExpandedActions(
+                  onEdit: () => _onEdit(context),
+                  onDelete: () async {
+                    if (await ExpandedActions.confirmDelete(context)) {
+                      if (context.mounted) {
+                        context.read<CashFlowRepository>().removeFlow(widget.flow.id);
+                      }
+                    }
+                  },
+                )
               ),
             ],
           ],
