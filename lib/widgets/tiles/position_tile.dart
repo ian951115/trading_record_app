@@ -35,13 +35,12 @@ class _PositionTileState extends State<PositionTile> {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: isExpanded
-              ? const Color(0xFFEBF0F8)
-              : Colors.white,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: isExpanded
-              ? const Color(0xFFC5D4EC)
-              : const Color(0xFFE4E7ED),
+          border: Border.all(
+            color: isExpanded
+                ? AppColors.primary
+                : AppColors.border,
           ),
           boxShadow: [
             BoxShadow(

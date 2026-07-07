@@ -12,7 +12,7 @@ import '../../services/calc/portfolio_service.dart';
 import '../../services/data/stock_price_service.dart';
 import '../../widgets/common/hero_card.dart';
 import '../../widgets/common/stats_strip.dart';
-import '../../widgets/trade/trade_tile.dart';
+import '../../widgets/tiles/trade_tile.dart';
 import '../trade/trade_list_screen.dart';
 import '../position/position_list_screen.dart';
 import '../position/stock_performance_screen.dart';

@@ -12,7 +12,7 @@ import '../../services/calc/position_service.dart';
 import '../../widgets/common/app_filter_chip.dart';
 import '../../widgets/common/hero_card.dart';
 import '../../widgets/common/expanded_actions.dart';
-import '../../widgets/trade/trade_tile.dart';
+import '../../widgets/tiles/trade_tile.dart';
 import 'add_trade_screen.dart';
 
 class TradeListScreen extends StatefulWidget {

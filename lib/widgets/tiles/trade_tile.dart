@@ -58,8 +58,8 @@ class _TradeTileState extends State<TradeTile> {
           borderRadius: BorderRadius.circular(12),
           border: Border.all( //邊框
             color: isExpanded
-                ? const Color(0xFFC5D4EC)
-                : const Color(0xFFE4E7ED),
+                ? AppColors.primary
+                : AppColors.border,
           ),
           boxShadow: [
             BoxShadow(

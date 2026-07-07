@@ -15,8 +15,6 @@ class Position { //all
 
   double get avgCost => quantity == 0 ? 0 : totalCost / quantity;
 
-  double? get currentPrice => livePrice;
-
   double get marketValue => (livePrice ?? avgCost) * quantity; //市值
   double get unrealizedPnL => livePrice == null ? 0 : marketValue - totalCost; //未實現損益
   double get unrealizedReturn => //未實現報酬率

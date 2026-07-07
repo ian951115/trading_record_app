@@ -11,6 +11,7 @@ import '../../services/calc/portfolio_service.dart';
 import '../../widgets/common/hero_card.dart';
 import '../../widgets/common/stats_strip.dart';
 import '../../widgets/common/expanded_actions.dart';
+import '../../widgets/tiles/cash_flow_tile.dart';
 import 'add_cash_flow_screen.dart';
 
 class CashFlowScreen extends StatelessWidget {
@@ -223,7 +224,18 @@ class CashFlowScreen extends StatelessWidget {
                     ),
                   )
                 else
-                  ...cashFlows.map((flow) => _CashFlowTile(flow: flow)),
+                  ...cashFlows.map((flow) => CashFlowTile(
+                    flow: flow,
+                    onDelete: () async {
+                      if (await ExpandedActions.confirmDelete(context)) {
+                        cashRepo.removeFlow(flow.id);
+                      }
+                    },
+                    onEdit: () => Navigator.push(context,
+                      MaterialPageRoute(
+                        builder: (_) => AddCashFlowScreen(existingFlow: flow)),
+                    ),
+                  )),
               ],
             ),
           ),
@@ -234,156 +246,6 @@ class CashFlowScreen extends StatelessWidget {
           MaterialPageRoute(builder: (_) => const AddCashFlowScreen()),
         ),
         child: const Icon(Icons.add),
-      ),
-    );
-  }
-}
-
-// ── 資金紀錄列 ─────────────────────────────────
-class _CashFlowTile extends StatefulWidget {
-  final CashFlow flow;
-  const _CashFlowTile({required this.flow});
-
-  @override
-  State<_CashFlowTile> createState() => _CashFlowTileState();
-}
-
-class _CashFlowTileState extends State<_CashFlowTile> {
-  bool _expanded = false;
-
-  void _onEdit(BuildContext context) { //跳到編輯畫面
-    Navigator.push(context,
-      MaterialPageRoute(builder: (_) => AddCashFlowScreen(existingFlow: widget.flow)),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final flow = widget.flow;
-    final isDeposit = flow.type == CashFlowType.deposit;
-    final dateStr = '${flow.date.year}/'
-        '${flow.date.month.toString().padLeft(2,'0')}/'
-        '${flow.date.day.toString().padLeft(2,'0')}';
-
-    return GestureDetector(
-      onTap: () => setState(() => _expanded = !_expanded),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: _expanded
-                ? AppColors.primary
-                : AppColors.border,
-            width: _expanded ? 1.5 : 1,
-          ),
-          boxShadow: [BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 4, offset: const Offset(0, 1),
-          )],
-        ),
-        child: Column(
-          children: [
-            // ── 主行（永遠顯示）──────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-              child: Row(
-                children: [
-                  Container( //左側圖示
-                    width: 36, height: 36,
-                    decoration: BoxDecoration(
-                      color: isDeposit
-                          ? AppColors.lossBg
-                          : AppColors.profitBg,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(
-                      isDeposit
-                          ? Icons.arrow_downward_rounded
-                          : Icons.arrow_upward_rounded,
-                      size: 18,
-                      color: isDeposit
-                          ? AppColors.loss
-                          : AppColors.profit,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded( //中間：類型 + 日期
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          isDeposit ? '入金' : '提領',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          flow.note?.isNotEmpty == true
-                              ? '$dateStr・${flow.note}'
-                              : dateStr,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: AppColors.textMuted,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Text( //右側金額
-                    isDeposit
-                        ? '+${AppFmt.num(flow.amount)}'
-                        : '-${AppFmt.num(flow.amount)}',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: isDeposit
-                          ? AppColors.loss
-                          : AppColors.profit,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  AnimatedRotation( //展開箭頭
-                    turns: _expanded ? 0.5 : 0,
-                    duration: const Duration(milliseconds: 200),
-                    child: const Icon(
-                      Icons.keyboard_arrow_down,
-                      size: 18,
-                      color: AppColors.textMuted,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-  
-            // ── 展開行（編輯/刪除按鈕）──────────
-            if (_expanded) ...[
-              Divider(
-                height: 1,
-                color: AppColors.border,
-                indent: 14,
-                endIndent: 14,
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
-                child: ExpandedActions(
-                  onEdit: () => _onEdit(context),
-                  onDelete: () async {
-                    if (await ExpandedActions.confirmDelete(context)) {
-                      if (context.mounted) {
-                        context.read<CashFlowRepository>().removeFlow(widget.flow.id);
-                      }
-                    }
-                  },
-                )
-              ),
-            ],
-          ],
-        ),
       ),
     );
   }

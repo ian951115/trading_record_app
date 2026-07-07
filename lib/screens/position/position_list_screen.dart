@@ -9,7 +9,7 @@ import '../../repositories/dividend_repository.dart';
 import '../../services/calc/position_service.dart';
 import '../../services/data/stock_price_service.dart';
 import '../../widgets/common/hero_card.dart';
-import '../../widgets/position/position_tile.dart';
+import '../../widgets/tiles/position_tile.dart';
 
 class PositionListScreen extends StatefulWidget {
   const PositionListScreen({super.key});

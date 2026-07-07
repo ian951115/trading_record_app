@@ -443,7 +443,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (widget.initialMode == null) ...[
-              const SectionTitle(title: '種類及標的'),
+              const SectionTitle(title: '目標種類'),
               FormCard(
                 child: Container(
                   decoration: BoxDecoration(
