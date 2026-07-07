@@ -331,15 +331,22 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 10),
                 LayoutBuilder(
                   builder: (context, constraints) {
+                    const maxGridWidth = 480.0; //快捷區塊最大寬度上限
+                    final gridWidth = constraints.maxWidth > maxGridWidth
+                        ? maxGridWidth
+                        : constraints.maxWidth;
                     final itemW = (constraints.maxWidth - 8 *3) / 4;
                     final itemH = itemW / 0.95;
                     final gridH = itemH * 2 + 8;
-                    return SizedBox(
-                      height: gridH,
-                      child: PageView(
-                        controller: _pageCtrl,
-                        onPageChanged: (i) => setState(() => _currentPage = i),
-                        children: [buildPage1(), buildPage2()],
+                    return Center(
+                      child: SizedBox(
+                        width: gridWidth,
+                        height: gridH,
+                        child: PageView(
+                          controller: _pageCtrl,
+                          onPageChanged: (i) => setState(() => _currentPage = i),
+                          children: [buildPage1(), buildPage2()],
+                        ),
                       ),
                     );
                   },

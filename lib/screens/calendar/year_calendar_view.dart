@@ -5,6 +5,7 @@ import '../../core/app_colors.dart';
 import '../../services/calc/pnl_service.dart';
 import '../../widgets/calendar/calendar_month_cell.dart';
 import '../../widgets/common/year_switcher.dart';
+import '../../widgets/common/hero_card.dart';
 
 class YearCalendarView extends StatelessWidget {
   final int currentYear;
@@ -57,71 +58,36 @@ class YearCalendarView extends StatelessWidget {
       child: Column(
         children: [
           // ── 年度統計卡片 ──────────────────
-          Container(
-            margin: const EdgeInsets.fromLTRB(14, 12, 14, 0),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFF3D5A8A), Color(0xFF4A6FA5)],
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
+            child: HeroCard(
+              title: '$currentYear 累計損益',
+              mainValue: Text(
+                yearPnL == 0 ? '—' : AppFmt.pnl(yearPnL),
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.pnl(yearPnL),
+                  letterSpacing: -0.5
+                ),
               ),
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF4A6FA5).withValues(alpha: 0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
+              stats: [
+                HeroStat(
+                  label: '年度勝率',
+                  value: yearTrades == 0
+                      ? '—'
+                      : '${(yearWinRate * 100).toStringAsFixed(1)}%',
                 ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '$currentYear 年度總結',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    letterSpacing: 0.5,
-                  ),
+                HeroStat(
+                  label: '交易次數',
+                  value: yearTrades.toString(),
                 ),
-                const SizedBox(height: 6),
-                Text( //年度總損益大字
-                  yearPnL == 0 ? '—' : AppFmt.pnl(yearPnL),
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.pnl(yearPnL),
-                    letterSpacing: -0.5
-                  ),
-                ),
-                const SizedBox(height: 12),
-                const Divider(color: Colors.white24, height: 1),
-                const SizedBox(height: 12),
-                Row( //三格統計
-                  children: [
-                    _YearStat(
-                      label: '年度勝率',
-                      value: yearTrades == 0
-                          ? '—'
-                          : '${(yearWinRate * 100).toStringAsFixed(0)}%',
-                    ),
-                    const _YearDivider(),
-                    _YearStat(
-                      label: '交易次數',
-                      value: yearTrades.toString(),
-                    ),
-                    const _YearDivider(),
-                    _YearStat(
-                      label: '最佳月份',
-                      value: bestMonth == 0 ? '—' : '$bestMonth 月',
-                      valueColor: bestMonth == 0
-                          ? Colors.white70
-                          : const Color(0xFFFFD6D4),
-                    ),
-                  ],
+                HeroStat(
+                  label: '最佳月份',
+                  value: bestMonth == 0 ? '—' : '$bestMonth 月',
+                  valueColor: bestMonth == 0
+                      ? Colors.white70
+                      : const Color(0xFFFFD6D4),
                 ),
               ],
             ),
@@ -160,60 +126,6 @@ class YearCalendarView extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _YearStat extends StatelessWidget {
-  final String label;
-  final String value;
-  final Color valueColor;
-
-  const _YearStat({
-    required this.label,
-    required this.value,
-    this.valueColor = Colors.white,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 9,
-              color: Colors.white60,
-              letterSpacing: 0.5,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: valueColor,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _YearDivider extends StatelessWidget {
-  const _YearDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 1, height: 28,
-      color: Colors.white24,
-      margin: const EdgeInsets.symmetric(horizontal: 4),
     );
   }
 }

@@ -1172,7 +1172,7 @@ class _PieTabState extends State<_PieTab> {
               const SizedBox(height: 16),
               // ──圓餅圖 + Stack 圓心 ──
               SizedBox(
-                height: 200,
+                height: 250,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
@@ -1180,7 +1180,7 @@ class _PieTabState extends State<_PieTab> {
                       PieChartData(
                         sections: sections, //區塊數據
                         sectionsSpace: 2, //區塊間格
-                        centerSpaceRadius: 42, //中心圓半徑
+                        centerSpaceRadius: 56, //中心圓半徑
                         // ──點選切換 ──
                         pieTouchData: PieTouchData(
                           touchCallback: (event, response) {
@@ -1195,45 +1195,75 @@ class _PieTabState extends State<_PieTab> {
                       ),
                     ),
                     // ──圓心資訊 ──
-                    if (_selectedIndex >= 0) ...[
-                      SizedBox(
-                        width: 72,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            FittedBox(
-                              child: Text(
-                                selected.symbol,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: selectedColor,
+                    SizedBox(
+                      width: 72,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: _selectedIndex >= 0
+                            ? [
+                              FittedBox(
+                                child: Text(
+                                  selected.symbol,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: selectedColor,
+                                  ),
                                 ),
                               ),
-                            ),
-                            FittedBox(
-                              child: Text(
-                                '${selectedPct.toStringAsFixed(1)}%',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                  color: selectedColor,
+                              FittedBox(
+                                child: Text(
+                                  '${selectedPct.toStringAsFixed(1)}%',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    color: selectedColor,
+                                  ),
                                 ),
                               ),
-                            ),
-                            FittedBox(
-                              child: Text(
-                                '${AppFmt.num(selectedVal.abs())} 元',
-                                style: const TextStyle(
-                                  fontSize: 9,
-                                  color: AppColors.textMuted,
+                              FittedBox(
+                                child: Text(
+                                  '${AppFmt.num(selectedVal.abs())} 元',
+                                  style: const TextStyle(
+                                    fontSize: 9,
+                                    color: AppColors.textMuted,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ]
+                            : [
+                              FittedBox(
+                                child: Text(
+                                  '持股總覽',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.textSecond,
+                                  ),
+                                ),
+                              ),
+                              FittedBox(
+                                child: Text(
+                                  '${shares.length} 檔',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                              ),
+                              FittedBox(
+                                child: Text(
+                                  '${AppFmt.num(totalVal)} 元',
+                                  style: const TextStyle(
+                                    fontSize: 9,
+                                    color: AppColors.textMuted,
+                                  ),
+                                ),
+                              ),
+                            ],
                         ),
                       ),
-                    ],
                   ],
                 ),
               ),
