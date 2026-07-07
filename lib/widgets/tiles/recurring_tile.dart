@@ -6,7 +6,8 @@ import '../../core/app_colors.dart';
 import '../../core/formatters.dart';
 import '../../repositories/recurring_repository.dart';
 import '../../services/calc/recurring_service.dart';
-import '../../widgets/common/expanded_actions.dart';
+import '../common/expanded_actions.dart';
+import '../common/info_item.dart';
 
 class RecurringTile extends StatefulWidget {
   final RecurringPlan plan;
@@ -178,31 +179,13 @@ class RecurringTileState extends State<RecurringTile> {
                 const SizedBox(height: 12),
                 const Divider(height: 1),
                 const SizedBox(height: 8),
-                if (plan.note != null && plan.note!.isNotEmpty) ...[
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 0, 0, 8),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(
-                          Icons.notes_outlined,
-                          size: 13,
-                          color: AppColors.textMuted,
-                        ),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            plan.note!,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textMuted,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: InfoItem(
+                    label: '備註',
+                    value: plan.note?.isNotEmpty == true ? plan.note! : '-',
                   ),
-                ],
+                ),
                 ExpandedActions(
                   extraActions: [ // 暫停/恢復
                     Expanded(

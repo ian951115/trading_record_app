@@ -1,4 +1,4 @@
-//多格摘要數據列，用於頁面頂部統計資訊
+//多格摘要數據列(白卡)，用於頁面頂部統計資訊
 import 'package:flutter/material.dart';
 import '../../core/app_colors.dart';
 

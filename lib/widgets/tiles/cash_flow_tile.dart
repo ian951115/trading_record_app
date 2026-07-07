@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import '../../models/cash_flow.dart';
 import '../../core/app_colors.dart';
 import '../../core/formatters.dart';
-import '../../widgets/common/expanded_actions.dart';
+import '../common/expanded_actions.dart';
+import '../common/info_item.dart';
 
 class CashFlowTile extends StatefulWidget {
   final CashFlow flow;
@@ -48,6 +49,7 @@ class CashFlowTileState extends State<CashFlowTile> {
           )],
         ),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── 主行（永遠顯示）──────────────────
             Padding(
@@ -87,9 +89,7 @@ class CashFlowTileState extends State<CashFlowTile> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          flow.note?.isNotEmpty == true
-                              ? '$dateStr・${flow.note}'
-                              : dateStr,
+                          dateStr,
                           style: const TextStyle(
                             fontSize: 11,
                             color: AppColors.textMuted,
@@ -131,6 +131,13 @@ class CashFlowTileState extends State<CashFlowTile> {
                 color: AppColors.border,
                 indent: 14,
                 endIndent: 14,
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 10, 14, 0),
+                child: InfoItem(
+                  label: '備註',
+                  value: flow.note?.isNotEmpty == true ? flow.note! : '-',
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),

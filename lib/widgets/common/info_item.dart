@@ -1,4 +1,4 @@
-//共用的標籤+數值顯示元件
+//共用的標籤+數值顯示元件(常用於展開區)
 import 'package:flutter/material.dart';
 
 class InfoItem extends StatelessWidget {
