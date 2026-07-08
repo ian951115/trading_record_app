@@ -9,6 +9,7 @@ import '../../repositories/recurring_repository.dart';
 import '../../services/data/stock_name_service.dart';
 import '../../widgets/common/form_card.dart';
 import '../../widgets/common/section_title.dart';
+import '../../widgets/common/app_snack_bar.dart';
 
 class AddRecurringScreen extends StatefulWidget {
   final RecurringPlan? existingPlan;
@@ -76,19 +77,19 @@ class _AddRecurringScreenState extends State<AddRecurringScreen> {
 
   void _save() async {
     if (_symbol.isEmpty) {
-      _showSnack('請輸入股票代碼');
+      AppSnackBar.showError(context, '請輸入股票代碼');
       return;
     }
     if (_name.isEmpty) {
-      _showSnack('請輸入股票名稱');
+      AppSnackBar.showError(context, '請輸入股票名稱');
       return;
     }
     if (_selectedDays.isEmpty) {
-      _showSnack('請選擇至少一個扣款日');
+      AppSnackBar.showError(context, '請選擇至少一個扣款日');
       return;
     }
     if (_amount <= 0) {
-      _showSnack('請輸入正確金額');
+      AppSnackBar.showError(context, '請輸入正確金額');
       return;
     }
 
@@ -118,11 +119,6 @@ class _AddRecurringScreenState extends State<AddRecurringScreen> {
       await repo.update(plan);
     }
     if (mounted) Navigator.pop(context);
-  }
-
-  void _showSnack(String msg) {
-    ScaffoldMessenger
-      .of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
   Future<void> _pickDate() async {

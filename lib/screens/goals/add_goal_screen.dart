@@ -11,6 +11,7 @@ import '../../services/data/stock_name_service.dart';
 import '../../core/enum_ext.dart';
 import '../../widgets/common/form_card.dart';
 import '../../widgets/common/section_title.dart';
+import '../../widgets/common/app_snack_bar.dart';
 
 class AddGoalScreen extends StatefulWidget {
   final GoalMode? initialMode;
@@ -172,21 +173,21 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
 
   void _save() async {
     if (_targetAmount <= 0) {
-      _showSnack('請輸入目標金額');
+      AppSnackBar.showError(context, '請輸入目標金額');
       return;
     }
  
     if (_mode == GoalMode.annual) {
       if (_goalType == GoalType.stockPnL &&
           (_stockSymbol == null || _stockSymbol!.trim().isEmpty)) {
-        _showSnack('請輸入股票代號');
+        AppSnackBar.showError(context, '請輸入股票代號');
         return;
       }
       final repo = context.read<AnnualGoalRepository>();
       // 新增時防重複
       if (widget.existingAnnual == null &&
           repo.hasGoalForYearAndType(_year, _goalType, symbol: _stockSymbol)) {
-        _showSnack('同年份、同標的的目標已存在');
+        AppSnackBar.showError(context, '同年份、同標的的目標已存在');
         return;
       }
       final g = AnnualGoal(
@@ -201,12 +202,12 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
       widget.existingAnnual != null ? await repo.update(g) : await repo.add(g);
     } else {
       if (_title.trim().isEmpty) {
-        _showSnack('請輸入目標標題');
+        AppSnackBar.showError(context, '請輸入目標標題');
         return;
       }
       if (_goalType == GoalType.stockPnL &&
           (_stockSymbol == null || _stockSymbol!.trim().isEmpty)) {
-        _showSnack('請輸入股票代號');
+        AppSnackBar.showError(context, '請輸入股票代號');
         return;
       }
       final repo = context.read<CustomGoalRepository>();
@@ -225,12 +226,6 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
     }
 
     if (mounted) Navigator.pop(context);
-  }
-
-  void _showSnack(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), behavior: SnackBarBehavior.floating),
-    );
   }
 
   // ── 追蹤'標的'的 ToggleButtons ────────────────────────────

@@ -6,6 +6,7 @@ import '../../models/dividend.dart';
 import '../../repositories/dividend_repository.dart';
 import '../../services/data/stock_name_service.dart';
 import '../../widgets/common/form_card.dart';
+import '../../widgets/common/app_snack_bar.dart';
 import '../../widgets/common/section_title.dart';
 
 double _calcHealthInsurance(double amount) { //二代健保計算
@@ -89,10 +90,10 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
 
   void _save() async {
     if (_symbol.trim().isEmpty) {
-      _showError('請填入股票代碼'); return;
+      AppSnackBar.showError(context, '請填入股票代碼'); return;
     }
     if (_pricePerShare <= 0 && _shareAmount <= 0) {
-      _showError('請填入有效每股股利'); return;
+      AppSnackBar.showError(context, '請填入有效每股股利'); return;
     }
     if (_type == DividendType.cash && _grossAmount <= 0) return;
     if (_type == DividendType.stock && _shareAmount <= 0) return;
@@ -117,14 +118,6 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
       await repo.addDividend(div);
     }
     Navigator.pop(context);
-  }
-
-  void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(msg),
-      backgroundColor: AppColors.profit,
-      behavior: SnackBarBehavior.floating,
-    ));
   }
 
   Future<void> _onSymbolChanged(String value) async {

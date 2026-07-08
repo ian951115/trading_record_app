@@ -14,6 +14,7 @@ import '../../services/data/stock_name_service.dart';
 import '../../widgets/common/form_card.dart';
 import '../../widgets/common/section_title.dart';
 import '../../widgets/common/info_item.dart';
+import '../../widgets/common/app_snack_bar.dart';
 
 class AddTradeScreen extends StatefulWidget {
   final Trade? editingTrade;
@@ -140,13 +141,13 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
   void _saveTrade() { //儲存交易
     // ── 驗證 ──────────────────────
     if (stockCode.trim().isEmpty) {
-      _showError('請填入股票代碼'); return;
+      AppSnackBar.showError(context, '請填入股票代碼'); return;
     }
     if (price <= 0) {
-      _showError('請填入有效價格'); return;
+      AppSnackBar.showError(context, '請填入有效價格'); return;
     }
     if (quantity <= 0) {
-      _showError('請填入有效數量'); return;
+      AppSnackBar.showError(context, '請填入有效數量'); return;
     }
 
     double finalFee = feeAmount;
@@ -185,14 +186,6 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
     Navigator.pop(context, AddTradeResult(
       trade: trade,
       autoDeposit: autoDeposit,
-    ));
-  }
-
-  void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(msg),
-      backgroundColor: AppColors.profit,
-      behavior: SnackBarBehavior.floating,
     ));
   }
 

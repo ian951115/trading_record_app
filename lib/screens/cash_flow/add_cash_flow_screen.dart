@@ -6,6 +6,7 @@ import '../../models/cash_flow.dart';
 import '../../repositories/cash_flow_repository.dart';
 import '../../widgets/common/form_card.dart';
 import '../../widgets/common/section_title.dart';
+import '../../widgets/common/app_snack_bar.dart';
 
 class AddCashFlowScreen extends StatefulWidget {
   final CashFlow? existingFlow;
@@ -47,11 +48,7 @@ class _AddCashFlowScreenState extends State<AddCashFlowScreen> {
 
   void _save() async {
     if (_amount <= 0) { //底部小彈窗
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('請輸入正確金額'),
-        backgroundColor: AppColors.profit,
-        behavior: SnackBarBehavior.floating,
-      ));
+      AppSnackBar.showError(context, '請輸入正確金額');
       return;
     }
 
