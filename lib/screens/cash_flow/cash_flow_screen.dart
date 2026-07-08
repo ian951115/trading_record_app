@@ -50,32 +50,33 @@ class CashFlowScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('資金管理')),
       body: Column(
         children: [
+          // ── Hero 卡片 ──────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
+            child: HeroCard(
+              title: '可用現金',
+              colors: const [Color(0xFF2D6A4F), AppColors.loss],
+              mainValue: Text(
+                AppFmt.num(cash),
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              stats: [
+                HeroStat(label: '總入金', value: AppFmt.num(totalDeposit)),
+                HeroStat(label: '總提領', value: AppFmt.num(totalWithdraw)),
+                HeroStat(label: '淨資金', value: AppFmt.num(netCash)),
+              ],
+            ),
+          ),
+
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
               children: [
-                // ── Hero 卡片 ──────────────────
-                HeroCard(
-                  title: '可用現金',
-                  colors: const [Color(0xFF2D6A4F), AppColors.loss],
-                  mainValue: Text(
-                    AppFmt.num(cash),
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  stats: [
-                    HeroStat(label: '總入金', value: AppFmt.num(totalDeposit)),
-                    HeroStat(label: '總提領', value: AppFmt.num(totalWithdraw)),
-                    HeroStat(label: '淨資金', value: AppFmt.num(netCash)),
-                  ],
-                ),
-
-                const SizedBox(height: 12),
-
                 // ── 資金水位 ───────────────────
                 Container(
                   padding: const EdgeInsets.all(16),

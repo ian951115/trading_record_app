@@ -9,6 +9,7 @@ import '../../repositories/trade_repository.dart';
 import '../../repositories/settings_repository.dart';
 import '../../services/calc/recurring_service.dart';
 import '../../services/data/stock_price_service.dart';
+import '../../widgets/common/app_snack_bar.dart';
 
 class ConfirmRecurringScreen extends StatefulWidget {
   const ConfirmRecurringScreen({super.key});
@@ -117,9 +118,7 @@ class _ConfirmRecurringScreenState extends State<ConfirmRecurringScreen> {
   // ── 確認入帳 ─────────────────────────────────
   Future<void> _confirm() async {
     if (_checkedCount == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('請勾選至少一筆'))
-      );
+      AppSnackBar.showError(context, '請勾選至少一筆');
       return;
     }
     setState(() => _isSaving = true);
@@ -155,9 +154,7 @@ class _ConfirmRecurringScreenState extends State<ConfirmRecurringScreen> {
     setState(() => _isSaving = false);
     if (mounted) {
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('已完成入帳！'))
-      );
+      AppSnackBar.showError(context, '已完成入帳！');
     }
   }
 

@@ -1,4 +1,4 @@
-//收益日曆上方統計卡片元件
+//年視圖統計卡片元件
 import 'package:flutter/material.dart';
 import '../../core/formatters.dart';
 import '../common/hero_card.dart';

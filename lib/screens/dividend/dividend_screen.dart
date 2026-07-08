@@ -40,40 +40,41 @@ class _DividendScreenState extends State<DividendScreen> {
       appBar: AppBar(title: const Text('股利紀錄')),
       body: Column(
         children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
+            child: HeroCard(
+              title: '累計股利收入',
+              colors: const [Color(0xFF2D6A4F), AppColors.loss],
+              mainValue: Text(
+                AppFmt.num(repo.totalCashDividend),
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+              stats: [
+                HeroStat(
+                  label:'現金股利',
+                  value: AppFmt.num(repo.totalCashDividend),
+                ),
+                HeroStat(
+                  label:'股票股利',
+                  value: '${repo.totalShareDividend} 股',
+                ),
+                HeroStat(
+                  label:'扣費後淨額',
+                  value: AppFmt.num(repo.totalNetCashDividend),
+                  valueColor: const Color(0xFFB8F0D0),
+                ),
+              ],
+            ),
+          ),
+
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
               children: [
-                HeroCard(
-                  title: '累計股利收入',
-                  colors: const [Color(0xFF2D6A4F), AppColors.loss],
-                  mainValue: Text(
-                    AppFmt.num(repo.totalCashDividend),
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                  stats: [
-                    HeroStat(
-                      label:'現金股利',
-                      value: AppFmt.num(repo.totalCashDividend),
-                    ),
-                    HeroStat(
-                      label:'股票股利',
-                      value: '${repo.totalShareDividend} 股',
-                    ),
-                    HeroStat(
-                      label:'扣費後淨額',
-                      value: AppFmt.num(repo.totalNetCashDividend),
-                      valueColor: const Color(0xFFB8F0D0),
-                    ),
-                  ],
-                ),
-                
-                const SizedBox(height: 12),
-          
                 StatsStrip(
                   cells: [
                     StatCell(label:'配息次數', value: '${all.length}'),
