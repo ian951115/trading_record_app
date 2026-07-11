@@ -12,6 +12,7 @@ import '../../core/enum_ext.dart';
 import '../../widgets/common/form_card.dart';
 import '../../widgets/common/section_title.dart';
 import '../../widgets/common/app_snack_bar.dart';
+import '../../widgets/common/app_filter_chip.dart';
 
 class AddGoalScreen extends StatefulWidget {
   final GoalMode? initialMode;
@@ -52,19 +53,10 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
   late String _title;
   late DateTime _startDate;
   late DateTime _endDate;
-  String _quickKey = '本月';  // 快捷日期當前選項
+  String _quickKey = '本月';  //快捷日期當前選項
 
   static const _quickKeys = ['本週', '本月', '本季', '本年', '自訂'];
-
-  // ── 顏色常數 ──────────────────────────────────────────
-  static const _blue = Color(0xFF4A6FA5);
-  static const _blueLight = Color(0xFFEBF0F8);
-  static const _textPrimary = Color(0xFF1A1F2E);
-  static const _textSecondary = Color(0xFF5A6375);
-  static const _border = Color(0xFFE4E7ED);
-
   bool _isFetchingName = false;
-
 
   @override
   void initState() {
@@ -270,7 +262,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: selected ? _blue : AppColors.textMuted,
+              color: selected ? AppColors.primary : AppColors.textMuted,
             ),
           ),
         ),
@@ -278,64 +270,21 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
     );
   }
 
-  // ── 股票代號輸入（個股才顯示）────────────────────────
-  Widget _buildStockField() => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const SizedBox(height: 20),
-      const SectionTitle(title: '股票資訊'),
-      FormCard(
-        child: Column(
-          children: [
-            const _FieldLabel(label: '股票代號'),
-            const SizedBox(height: 6),
-            TextField(
-              controller: _stockCtrl,
-              keyboardType: TextInputType.number,
-              onChanged: _onSymbolChanged,
-              decoration: const InputDecoration(
-                hintText: 'e.g. 2330',
-                border: InputBorder.none,
-              ),
-            ),
-            const SizedBox(height: 14),
-            const _FieldLabel(label: '股票名稱'),
-            const SizedBox(height: 6),
-            TextField(
-              controller: _stockNameCtrl,
-              onChanged: (v) => setState(() => _stockName = v.isEmpty ? null : v),
-              decoration: InputDecoration(
-                hintText: '自動填入或手動輸入',
-                border: InputBorder.none,
-                suffixIcon: _isFetchingName
-                    ? const Padding(
-                      padding: EdgeInsets.all(12),
-                      child: SizedBox(
-                        width: 16, height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                    )
-                    : null
-              ),
-            ),
-          ],
-        ),
-      ),
-    ],
-  );
-
   // ── 快捷日期 Chips ────────────────────────────────────
   Widget _buildQuickDateChips() => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       const SizedBox(height: 20),
       const SectionTitle(title: '日期範圍'),
-      SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: _quickKeys.map((k) => Padding(
-            padding: const EdgeInsets.only(right: 6),
-            child: GestureDetector(
+      SizedBox(
+        width: double.infinity,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: _quickKeys.map((k) => AppFilterChip(
+              label: k,
+              isActive: _quickKey == k,
               onTap: () async {
                 if (k == '自訂') {
                   final r = await showDateRangePicker(
@@ -361,27 +310,8 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
                   });
                 }
               },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: _quickKey == k ? _blueLight : Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: _quickKey == k ? _blue : _border,
-                    width: _quickKey == k ? 1.5 : 1,
-                  ),
-                ),
-                child: Text(
-                  k,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: _quickKey == k ? _blue : _textSecondary,
-                  ),
-                ),
-              ),
-            ),
-          )).toList(),
+            )).toList(),
+          ),
         ),
       ),
       const SizedBox(height: 8),
@@ -408,12 +338,12 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: _textPrimary,
+            color: AppColors.textPrimary,
           ),
         ),
         Text(
           _fmtDate(date),
-          style: const TextStyle(fontSize: 14, color: _textSecondary),
+          style: const TextStyle(fontSize: 14, color: AppColors.textSecond),
         ),
       ],
     ),
@@ -437,86 +367,118 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (widget.initialMode == null) ...[
-              const SectionTitle(title: '目標種類'),
-              FormCard(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF0F2F5),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  padding: const EdgeInsets.all(3),
-                  child: Row(
-                    children: [
-                      _ModeTab(
-                        label: '年度目標',
-                        isActive: _mode == GoalMode.annual,
-                        onTap: () => setState(() {
-                          _mode = GoalMode.annual;
-                          _titleCtrl.text = '';
-                        }),
+            // ── 基本資訊：目標種類（新增時才顯示）+ 年份／標題 ──
+            const SectionTitle(title: '基本資訊'),
+            FormCard(
+              child: Column(
+                children: [
+                  if (widget.initialMode == null) ...[
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF0F2F5),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      _ModeTab(
-                        label: '自定義目標',
-                        isActive: _mode == GoalMode.custom,
-                        onTap: () => setState(() {
-                          _mode = GoalMode.custom;
-                          _titleCtrl.text = _title;
-                          if (_endDate.isBefore(_startDate)) {
-                            _endDate = DateTime(_startDate.year, 12, 31);
-                          }
-                        }),
+                      padding: const EdgeInsets.all(3),
+                      child: Row(
+                        children: [
+                          _ModeTab(
+                            label: '年度目標',
+                            isActive: _mode == GoalMode.annual,
+                            onTap: () => setState(() {
+                              _mode = GoalMode.annual;
+                              _titleCtrl.text = '';
+                            }),
+                          ),
+                          _ModeTab(
+                            label: '自定義目標',
+                            isActive: _mode == GoalMode.custom,
+                            onTap: () => setState(() {
+                              _mode = GoalMode.custom;
+                              _titleCtrl.text = _title;
+                              if (_endDate.isBefore(_startDate)) {
+                                _endDate = DateTime(_startDate.year, 12, 31);
+                              }
+                            }),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
+                    ),
+                    const SizedBox(height: 14),
+                    const Divider(height: 1),
+                    const SizedBox(height: 14),
+                  ],
+                  _mode == GoalMode.custom
+                      ? TextField(
+                          controller: _titleCtrl,
+                          onChanged: (v) => setState(() => _title = v),
+                          decoration: const InputDecoration(
+                            hintText: 'e.g. 五月衝刺計畫',
+                            border: InputBorder.none,
+                          ),
+                      )
+                      : DropdownButtonFormField<int>(
+                        initialValue: _year,
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(vertical: 14),
+                          isDense: true,
+                        ),
+                        items: _yearOptions.map((y) =>
+                            DropdownMenuItem(value: y, child: Text('$y 年')),
+                        ).toList(),
+                        onChanged: (v) => setState(() => _year = v ?? _year),
+                      ),
+                ],
               ),
-              const SizedBox(height: 4),
-            ],
+            ),
+            const SizedBox(height: 20),
 
-            // ── 自訂義：標題 ──────────────────
-            if (_mode == GoalMode.custom) ...[
-              const SectionTitle(title: '目標標題'),
-              FormCard(
-                child: TextField(
-                  controller: _titleCtrl,
-                  onChanged: (v) => setState(() => _title = v),
-                  decoration: const InputDecoration(
-                    hintText: 'e.g. 五月衝刺計畫',
-                    border: InputBorder.none,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-            ],
-
-            // ── 年度：年份 ──────────────────────
-            if (_mode == GoalMode.annual) ...[
-              const SectionTitle(title: '目標年份'),
-              FormCard(
-                child: DropdownButtonFormField<int>(
-                  initialValue: _year,
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(vertical: 14),
-                    isDense: true,
-                  ),
-                  items: _yearOptions.map((y) =>
-                    DropdownMenuItem(value: y, child: Text('$y 年')),
-                  ).toList(),
-                  onChanged: (v) => setState(() => _year = v ?? _year),
-                ),
-              ),
-              const SizedBox(height: 20),
-            ],
-
-            // ── 追蹤標的 ──────────────────────
+            // ── 追蹤標的（含個股代號/名稱，條件顯示）──
             const SectionTitle(title: '追蹤標的'),
-            FormCard(child: _buildGoalTypeToggle()),
- 
-            // ── 個股代號（條件顯示）──────────
-            if (_goalType == GoalType.stockPnL) _buildStockField(),
- 
+            FormCard(
+              child: Column(
+                children: [
+                  _buildGoalTypeToggle(),
+                  if (_goalType == GoalType.stockPnL) ...[
+                    const SizedBox(height: 14),
+                    const Divider(height: 1),
+                    const SizedBox(height: 14),
+                    const _FieldLabel(label: '股票代號'),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: _stockCtrl,
+                      keyboardType: TextInputType.number,
+                      onChanged: _onSymbolChanged,
+                      decoration: const InputDecoration(
+                        hintText: 'e.g. 2330',
+                        border: InputBorder.none,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    const _FieldLabel(label: '股票名稱'),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: _stockNameCtrl,
+                      onChanged: (v) => setState(() => _stockName = v.isEmpty ? null : v),
+                      decoration: InputDecoration(
+                        hintText: '自動填入或手動輸入',
+                        border: InputBorder.none,
+                        suffixIcon: _isFetchingName
+                            ? const Padding(
+                              padding: EdgeInsets.all(12),
+                              child: SizedBox(
+                                width: 16, height: 16,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                            )
+                            : null,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+
             // ── 自訂義：日期範圍 ──────────────
             if (_mode == GoalMode.custom) _buildQuickDateChips(),
 
@@ -561,7 +523,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: _blueLight,
+                  color: AppColors.primaryLight,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Column(
@@ -572,7 +534,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: _blue,
+                        color: AppColors.primary,
                       ),
                     ),
                     SizedBox(height: 4),
@@ -582,7 +544,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
                       '總損益目標會固定顯示在最上方。',
                       style: TextStyle(
                         fontSize: 11,
-                        color: _textSecondary,
+                        color: AppColors.textSecond,
                         height: 1.6,
                       ),
                     ),
@@ -598,7 +560,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
               child: ElevatedButton(
                 onPressed: _save,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _blue,
+                  backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -631,7 +593,7 @@ class _FieldLabel extends StatelessWidget {
       style: const TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w600,
-        color: Color(0xFF5A6375),
+        color: AppColors.textSecond,
       ),
     ),
   );
@@ -653,8 +615,7 @@ class _ModeTab extends StatelessWidget {
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
+        child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             color: isActive ? Colors.white : Colors.transparent,
@@ -665,7 +626,7 @@ class _ModeTab extends StatelessWidget {
                     blurRadius: 4,
                     offset: const Offset(0, 1),
                   )]
-                : [],
+                : null,
           ),
           child: Text(
             label,

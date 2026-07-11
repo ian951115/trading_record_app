@@ -12,6 +12,7 @@ import '../../repositories/trade_repository.dart';
 import '../../repositories/annual_goal_repository.dart';
 import '../../repositories/custom_goal_repository.dart';
 import '../../widgets/common/expanded_actions.dart';
+import '../../widgets/common/app_filter_chip.dart';
 import '../goals/add_goal_screen.dart';
 
 class GoalTrackingScreen extends StatefulWidget {
@@ -579,11 +580,13 @@ class _CustomTabState extends State<_CustomTab> {
         : withStatus.where((e) => e.status == _filter).toList();
  
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _FilterChips(
           current: _filter,
           onChanged: (v) => setState(() => _filter = v),
         ),
+        SizedBox(height: 6),
         Expanded(
           child: filtered.isEmpty
               ? const _CustomEmptyHint()
@@ -617,18 +620,17 @@ class _FilterChips extends StatelessWidget {
   };
  
   @override
-  Widget build(BuildContext context) => SingleChildScrollView(
-    scrollDirection: Axis.horizontal,
-    padding: const EdgeInsets.fromLTRB(14, 10, 14, 4),
-    child: Row(
-      children: _labels.entries.map((e) => Padding(
-        padding: const EdgeInsets.only(right: 6),
-        child: FilterChip(
-          label: Text(e.value),
-          selected: current == e.key,
-          onSelected: (_) => onChanged(e.key),
-        ),
-      )).toList(),
+  Widget build(BuildContext context) => Padding(
+    padding: EdgeInsets.fromLTRB(14, 10, 14, 4),
+    child: SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: _labels.entries.map((e) => AppFilterChip(
+          label: e.value,
+          isActive: current == e.key,
+          onTap: () => onChanged(e.key),
+        )).toList(),
+      ),
     ),
   );
 }
