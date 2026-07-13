@@ -58,11 +58,8 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
       _fee = d.fee;
       _note = d.note ?? '';
       if (d.type == DividendType.cash) {
-        // cashAmount 是毛額，無法還原拆成「每股股利 × 股數」，
-        // 故以「每股股利＝原毛額、股數＝1」回填，使加總一致；
-        // 使用者可自行調整成原本的拆法。
-        _pricePerShare = d.cashAmount;
-        _heldShares = 1;
+        _pricePerShare = d.pricePerShare;
+        _heldShares = d.heldShares;
       } else {
         _shareAmount = d.shareAmount;
       }
@@ -104,8 +101,9 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
       symbol: _symbol,
       name: _name,
       type: _type,
-      cashAmount: _type == DividendType.cash ? _grossAmount : 0,
+      pricePerShare: _type == DividendType.cash ? _pricePerShare : 0,
       shareAmount: _type == DividendType.stock ? _shareAmount : 0,
+      heldShares: _type == DividendType.cash ? _heldShares : 0,
       fee: _fee,
       healthInsurance: _type == DividendType.cash ? _healthInsurance : 0,
       note: _note.isEmpty ? null : _note,

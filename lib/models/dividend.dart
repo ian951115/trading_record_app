@@ -25,14 +25,16 @@ class Dividend extends HiveObject {
   @HiveField(4)
   final DividendType type;
   @HiveField(5)
-  final double cashAmount; //現金金額（股票股利填0）
+  final double pricePerShare; //現金金額（股票股利填0）
   @HiveField(6)
   final int shareAmount; //股數（現金股利填0）
   @HiveField(7)
-  final double fee;
+  final int heldShares; //持股股數
   @HiveField(8)
-  final double healthInsurance; //二代健保
+  final double fee;
   @HiveField(9)
+  final double healthInsurance; //二代健保
+  @HiveField(10)
   final String? note;
 
   Dividend({
@@ -41,15 +43,18 @@ class Dividend extends HiveObject {
     required this.symbol,
     required this.name,
     required this.type,
-    this.cashAmount = 0,
+    this.pricePerShare = 0,
     this.shareAmount = 0,
+    this.heldShares = 0,
     this.fee = 0,
     this.healthInsurance = 0,
     this.note,
   }) : id = id ?? const Uuid().v4();
 
-  // 實際入帳金額（現金股利用）
-    double get netCashAmount =>
-      cashAmount - fee - healthInsurance;
+  // 現金股利毛額 = 每股股利 × 持股股數（股票股利型別回傳 0）
+  double get cashAmount =>
+      type == DividendType.cash ? pricePerShare * heldShares : 0;
 
+  // 實際入帳金額（現金股利用）
+  double get netCashAmount => cashAmount - fee - healthInsurance;
 }

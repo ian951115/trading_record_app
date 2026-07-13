@@ -22,18 +22,19 @@ class DividendAdapter extends TypeAdapter<Dividend> {
       symbol: fields[2] as String,
       name: fields[3] as String,
       type: fields[4] as DividendType,
-      cashAmount: fields[5] as double,
+      pricePerShare: fields[5] as double,
       shareAmount: fields[6] as int,
-      fee: fields[7] as double,
-      healthInsurance: fields[8] as double,
-      note: fields[9] as String?,
+      heldShares: fields[7] as int,
+      fee: fields[8] as double,
+      healthInsurance: fields[9] as double,
+      note: fields[10] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Dividend obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(11)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -45,14 +46,16 @@ class DividendAdapter extends TypeAdapter<Dividend> {
       ..writeByte(4)
       ..write(obj.type)
       ..writeByte(5)
-      ..write(obj.cashAmount)
+      ..write(obj.pricePerShare)
       ..writeByte(6)
       ..write(obj.shareAmount)
       ..writeByte(7)
-      ..write(obj.fee)
+      ..write(obj.heldShares)
       ..writeByte(8)
-      ..write(obj.healthInsurance)
+      ..write(obj.fee)
       ..writeByte(9)
+      ..write(obj.healthInsurance)
+      ..writeByte(10)
       ..write(obj.note);
   }
 

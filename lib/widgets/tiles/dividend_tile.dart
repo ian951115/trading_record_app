@@ -112,7 +112,7 @@ class DividendTileState extends State<DividendTile> {
                         const SizedBox(height: 2),
                         Text( //第二排日期及數量
                           isCash
-                            ? '$dateStr · 每股 ${d.cashAmount / (d.shareAmount > 0 ? d.shareAmount : 1)} 元'
+                            ? '$dateStr · 每股 ${d.pricePerShare} 元 × ${d.heldShares} 股'
                             : '$dateStr · 配股 ${d.shareAmount} 股',
                           style: const TextStyle(fontSize:11, color:AppColors.textMuted),
                         ),
