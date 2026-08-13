@@ -447,7 +447,7 @@ class _AddTradeScreenState extends State<AddTradeScreen> {
                     label: '備註',
                     hint: '記錄進出場原因、想法…',
                     controller: noteController,
-                    maxLines: 4,
+                    maxLines: 3,
                     onChanged: (v) => setState(() => note = v),
                   ),
                   const SizedBox(height: 12),

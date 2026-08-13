@@ -187,7 +187,6 @@ class _AddCashFlowScreenState extends State<AddCashFlowScreen> {
                       _amount = double.tryParse(v) ?? 0;
                     }),
                     decoration: const InputDecoration(
-                      hintText: '請輸入金額',
                       suffixText: '元'
                     ),
                   ),
@@ -251,7 +250,7 @@ class _AddCashFlowScreenState extends State<AddCashFlowScreen> {
                 maxLines: 3,
                 onChanged: (v) => setState(() => _note = v),
                 decoration: const InputDecoration(
-                  hintText: '選填，例如：薪資入金、生活費提領…',
+                  hintText: '紀錄出入金原因、來源…',
                 ),
               ),
             ),
@@ -309,7 +308,7 @@ class _AddCashFlowScreenState extends State<AddCashFlowScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: _save,
-                child: const Text('儲存'),
+                child: const Text('儲存紀錄'),
               ),
             ),
 

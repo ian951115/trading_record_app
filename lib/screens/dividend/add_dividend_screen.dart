@@ -90,7 +90,7 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
       AppSnackBar.showError(context, '請填入股票代碼'); return;
     }
     if (_pricePerShare <= 0 && _shareAmount <= 0) {
-      AppSnackBar.showError(context, '請填入有效每股股利'); return;
+      AppSnackBar.showError(context, '請填入每股股利及股數'); return;
     }
     if (_type == DividendType.cash && _grossAmount <= 0) return;
     if (_type == DividendType.stock && _shareAmount <= 0) return;
@@ -298,9 +298,10 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
                       children: [
                         Expanded(
                           child: _AppField(
-                            label: '每股股利（元）',
+                            label: '每股股利',
                             controller: _priceCtrl,
                             keyboardType: TextInputType.number,
+                            suffix: '元',
                             onChanged: (v) => setState(() =>
                               _pricePerShare = double.tryParse(v) ?? 0),
                           ),
@@ -311,6 +312,7 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
                             label: '持股股數',
                             controller: _sharesCtrl,
                             keyboardType: TextInputType.number,
+                            suffix: '股',
                             onChanged: (v) => setState(() =>
                               _heldShares = int.tryParse(v) ?? 0),
                           ),
@@ -322,9 +324,10 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
                       children: [
                         Expanded(
                           child: _AppField(
-                            label: '手續費（元）',
+                            label: '手續費',
                             controller: _feeCtrl,
                             keyboardType: TextInputType.number,
+                            suffix: '元',
                             onChanged: (v) => setState(() =>
                               _fee = double.tryParse(v) ?? 0),
                           ),
@@ -337,9 +340,9 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
                               const Text(
                                 '二代健保（元）',
                                 style: TextStyle(
-                                  fontSize:12,
-                                  fontWeight:FontWeight.w600,
-                                  color:Color(0xFF5A6375),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF5A6375),
                                 ),
                               ),
                               const SizedBox(height: 6),
@@ -463,7 +466,7 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
                 controller: _noteCtrl,
                 maxLines: 3,
                 onChanged: (v) => setState(() => _note = v),
-                decoration: const InputDecoration(hintText: '選填備註…'),
+                decoration: const InputDecoration(hintText: '記錄想法…'),
               ),
             ),
 
@@ -472,7 +475,7 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: _save,
-                child: const Text('儲存股利紀錄'),
+                child: const Text('儲存股利'),
               ),
             ),
             const SizedBox(height: 16),
@@ -485,12 +488,14 @@ class _AddDividendScreenState extends State<AddDividendScreen> {
 
 class _AppField extends StatelessWidget { //輸入格子
   final String label;
+  final String? suffix;
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
   final TextInputType? keyboardType;
   const _AppField({
     required this.label, required this.controller,
     required this.onChanged, this.keyboardType,
+    this.suffix,
   });
   @override
   Widget build(BuildContext context) {
@@ -510,7 +515,9 @@ class _AppField extends StatelessWidget { //輸入格子
           controller: controller,
           onChanged: onChanged,
           keyboardType: keyboardType,
-          decoration: const InputDecoration(),
+          decoration: InputDecoration(
+            suffixText: suffix,
+          ),
         ),
       ],
     );

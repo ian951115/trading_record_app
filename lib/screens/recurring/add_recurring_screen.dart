@@ -159,9 +159,6 @@ class _AddRecurringScreenState extends State<AddRecurringScreen> {
                     controller: _symbolCtrl,
                     keyboardType: TextInputType.number,
                     onChanged: _onSymbolChanged,
-                    decoration: InputDecoration(
-                      hintText: 'e.g. 0050',
-                    ),
                   ),
                   const SizedBox(height: 14),
                   _FieldLabel(label: '股票名稱'),
@@ -170,7 +167,7 @@ class _AddRecurringScreenState extends State<AddRecurringScreen> {
                     controller: _nameCtrl,
                     onChanged: (v) => setState(() => _name = v.trim()),
                     decoration: InputDecoration(
-                      hintText: 'e.g. 元大台灣50',
+                      hintText: '自動填入或手動輸入',
                       suffixIcon: _isFetchingName
                           ? const Padding(
                             padding: EdgeInsets.all(12),
@@ -251,7 +248,6 @@ class _AddRecurringScreenState extends State<AddRecurringScreen> {
                       _amount = double.tryParse(v) ?? 0;
                     }),
                     decoration: const InputDecoration(
-                      hintText: 'e.g. 10000',
                       suffixText: '元',
                     ),
                   ),
@@ -324,14 +320,14 @@ class _AddRecurringScreenState extends State<AddRecurringScreen> {
             const SizedBox(height: 20),
 
             // ── 備註（選填）────────────────────
-            const SectionTitle(title: '備註(選填)'),
+            const SectionTitle(title: '備註'),
             FormCard(
               child: TextField(
                 controller: _noteCtrl,
-                maxLines: 2,
+                maxLines: 3,
                 onChanged: (v) => setState(() => _note = v),
                 decoration: const InputDecoration(
-                  hintText: 'e.g. 退休金定存股',
+                  hintText: '記錄此計畫的想法、原因…',
                 ),
               ),
             ),
@@ -343,7 +339,7 @@ class _AddRecurringScreenState extends State<AddRecurringScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: _save,
-                child: Text(isEdit ? '更新' : '新增計畫'),
+                child: Text(isEdit ? '更新計畫' : '新增計畫'),
               ),
             ),
             const SizedBox(height: 16),

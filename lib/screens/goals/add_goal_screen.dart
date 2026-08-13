@@ -360,7 +360,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
           icon: const Icon(Icons.close),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('${isEdit ? '編輯' : '新增'} $modeLabel'),
+        title: Text('${isEdit ? '編輯' : '新增'}$modeLabel'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -406,13 +406,14 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
                     const SizedBox(height: 14),
                     const Divider(height: 1),
                     const SizedBox(height: 14),
+                    _FieldLabel(label: _mode == GoalMode.annual ? '目標年度' : '目標名稱'),
+                    const SizedBox(height: 6),
                   ],
                   _mode == GoalMode.custom
                       ? TextField(
                           controller: _titleCtrl,
                           onChanged: (v) => setState(() => _title = v),
                           decoration: const InputDecoration(
-                            hintText: 'e.g. 五月衝刺計畫',
                             border: InputBorder.none,
                           ),
                       )
@@ -450,7 +451,6 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
                       keyboardType: TextInputType.number,
                       onChanged: _onSymbolChanged,
                       decoration: const InputDecoration(
-                        hintText: 'e.g. 2330',
                         border: InputBorder.none,
                       ),
                     ),
@@ -494,7 +494,6 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
                   _targetAmount = double.tryParse(v) ?? 0;
                 }),
                 decoration: const InputDecoration(
-                  hintText: 'e.g. 100000',
                   suffixText: '元',
                   border: InputBorder.none,
                 ),
@@ -504,13 +503,14 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
             const SizedBox(height: 20),
 
             // ── 備註 ──────────────────────
-            const SectionTitle(title: '備註（選填）'),
+            const SectionTitle(title: '備註'),
             FormCard(
               child: TextField(
                 controller: _noteCtrl,
+                maxLines: 3,
                 onChanged: (v) => setState(() => _note = v),
                 decoration: const InputDecoration(
-                  hintText: 'e.g. 目標存到頭期款',
+                  hintText: '記錄此目標的想法、細節…',
                   border: InputBorder.none,
                 ),
               ),
@@ -567,12 +567,12 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
                 ),
                 child: Text(
                   isEdit ? '更新目標' : '新增目標',
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
                 ),
               ),
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 16),
           ],
         ),
       ),
